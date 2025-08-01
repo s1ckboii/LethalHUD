@@ -20,7 +20,7 @@ public static class ScanController
 
         if (!_randomColorApplied && ScanProgress <= 0f)
         {
-            Color randomColor = new(Random.value, Random.value, Random.value, Random.Range(0.26f, 1f));
+            Color randomColor = new(Random.Range(0.2f, 1f), Random.Range(0.2f, 1f), Random.Range(0.2f, 1f), Random.Range(0.26f, 1f));
             SetScanColor(randomColor);
             _randomColorApplied = true;
         }
@@ -42,7 +42,7 @@ public static class ScanController
     private static Vignette ScanVignette =>
         ScanVolume?.profile?.components?.OfType<Vignette>().FirstOrDefault();
 
-    private static Bloom ScanBloom =>
+    public static Bloom ScanBloom =>
         ScanVolume?.profile?.components?.OfType<Bloom>().FirstOrDefault();
 
     public static float ScanProgress =>
@@ -84,20 +84,12 @@ public static class ScanController
     public static void UpdateScanTexture()
     {
         if (ScanBloom == null) return;
-
-        var tex = GetSelectedTexture();
+        ScanlinesEnums.DirtIntensityHandlerByScanLine();
+        Texture2D tex = GetSelectedTexture();
         if (tex == null) return;
-
         if (Configs.Instance.RecolorScanLines.Value)
         {
-            var readable = Utils.MakeTextureReadable(tex) as Texture2D;
-            if (readable == null)
-            {
-                Plugins.mls.LogWarning("Scanline texture not readable. Applying without recolor.");
-                ScanBloom.dirtTexture.Override(tex);
-                return;
-            }
-            RecolorAndApplyTexture(ParseScanColor(), readable);
+            RecolorAndApplyTexture(ParseScanColor(), tex);
         }
         else
         {
@@ -109,7 +101,7 @@ public static class ScanController
     {
         var newTex = new Texture2D(baseTex.width, baseTex.height);
         newTex.SetPixels(baseTex.GetPixels());
-        newTex.Apply();
+        newTex.Apply(false);
 
         Utils.RecolorTexture(ref newTex, color);
 

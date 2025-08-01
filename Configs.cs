@@ -11,6 +11,8 @@ public sealed class Configs
     public ConfigEntry<bool> RecolorScanLines { get; private set; }
     public ConfigEntry<float> Alpha { get; private set; }
 
+    public ConfigEntry<float> DirtIntensity { get; private set; }
+
     public ConfigEntry<string> ScanColor { get; private set; }
     public ConfigEntry<float> VignetteIntensity { get; private set; }
     public ConfigEntry<bool> RandomColor { get; private set; }
@@ -34,6 +36,7 @@ public sealed class Configs
         FadeOut              = Plugins.BepInExConfig().Bind("Scan", "FadeOut", false, new ConfigDescription("Fade out effect for scan color."));
         RecolorScanLines     = Plugins.BepInExConfig().Bind("Scan", "RecolorScanLines", true, new ConfigDescription("Recolor the blue horizontal scan lines texture aswell."));
         SelectedScanlineMode = Plugins.BepInExConfig().Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.");
+        DirtIntensity        = Plugins.BepInExConfig().Bind("Scan", "Scanline Intensity", 0f, new ConfigDescription("Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 42", new AcceptableValueRange<float>(-500f, 500f)));
         ScanColor            = Plugins.BepInExConfig().Bind("Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format. (Default vale: #000CFF)");
         Alpha                = Plugins.BepInExConfig().Bind("Scan", "Alpha", 0.26f, new ConfigDescription("Alpha / opacity.", new AcceptableValueRange<float>(0f, 1f)));
         VignetteIntensity    = Plugins.BepInExConfig().Bind("Scan", "VignetteIntensity", 0.46f, new ConfigDescription("Intensity of the vignette / borders effect during scan.", new AcceptableValueRange<float>(0f, 1f)));
@@ -44,6 +47,7 @@ public sealed class Configs
         SelectedScanlineMode.SettingChanged += (obj, args) => ScanController.UpdateScanTexture();
         ScanColor.SettingChanged += (obj, args) => { ScanController.SetScanColor(); };
         Alpha.SettingChanged += (obj, args) => { ScanController.SetScanColor(); };
+        DirtIntensity.SettingChanged += (obj, args) => { ScanController.SetScanColor(); };
         FadeOut.SettingChanged += (obj, args) => { ScanController.SetScanColor(); };
         RandomColor.SettingChanged += (obj, args) => { if (!RandomColor.Value) ScanController.SetScanColor(); };
         VignetteIntensity.SettingChanged += (obj, args) => { ScanController.UpdateVignetteIntensity(); };
