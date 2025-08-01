@@ -34,12 +34,12 @@ public class Plugins : BaseUnityPlugin
         harmony.PatchAll(typeof(Patches.HUDManagerPatch));
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "scanlines");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "veryoriginalscanlinesnameforlethalhud");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
 
         if (assetBundle == null)
         {
-            Logger.LogError("Failed to load scanlines assetbundle.");
+            Logger.LogError("Failed to load veryoriginalscanlinesnameforlethalhud assetbundle.");
             return;
         }
 

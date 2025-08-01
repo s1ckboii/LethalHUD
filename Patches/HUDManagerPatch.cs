@@ -16,7 +16,6 @@ internal static class HUDManagerPatch
     {
         ScanController.SetScanColor();
         ScanController.UpdateScanTexture();
-
     }
 
     [HarmonyPostfix]
