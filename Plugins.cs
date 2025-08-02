@@ -21,8 +21,6 @@ public class Plugins : BaseUnityPlugin
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
 
-    internal static RuntimeAnimatorController inventoryAnimController;
-
     public static ConfigFile BepInExConfig() { return instance.Config; }
 
     public void Awake()
@@ -45,8 +43,6 @@ public class Plugins : BaseUnityPlugin
             Logger.LogError("Failed to load incrediblyoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
-
-        inventoryAnimController = assetBundle.LoadAsset<RuntimeAnimatorController>("inventoryframes");
 
         foreach (ScanLines scanLine in System.Enum.GetValues(typeof(ScanLines)))
         {
