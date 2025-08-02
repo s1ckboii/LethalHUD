@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
+using LethalHUD.Configs;
+using LethalHUD.HUD;
 using LethalHUD.Scan;
-using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
@@ -19,15 +20,32 @@ internal static class HUDManagerPatch
     }
 
     [HarmonyPostfix]
+    [HarmonyPatch(nameof(HUDManager.OnEnable))]
+    public static void OnHUDManagerEnable(HUDManager __instance)
+    {
+        if (__instance.gameObject.GetComponent<InventoryUtils>() == null)
+        {
+            __instance.gameObject.AddComponent<InventoryUtils>();
+        }
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(HUDManager.DisplayNewScrapFound))]
+    public static void OnHUDManagerDisplayNewScrapFound()
+    {
+        InventoryFrames.ApplySlotColors();
+    }
+
+    [HarmonyPostfix]
     [HarmonyPatch(nameof(HUDManager.Update))]
     public static void OnHUDManagerUpdate(HUDManager __instance)
     {
-        if (Configs.Instance.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
+        if (ConfigEntries.Instance.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
             __instance.PingScan_performed(pingScan);
 
-        if (Configs.Instance.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
+        if (ConfigEntries.Instance.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
         {
-            float fadeAlpha = ScanController.ScanProgress * Configs.Instance.Alpha.Value;
+            float fadeAlpha = ScanController.ScanProgress * ConfigEntries.Instance.Alpha.Value;
             ScanController.SetScanColorAlpha(fadeAlpha);
         }
         ScanController.RandomColoringnt();

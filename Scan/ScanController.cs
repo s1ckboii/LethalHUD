@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using LethalHUD.Configs;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -15,7 +16,7 @@ public static class ScanController
 
     public static void RandomColoring()
     {
-        if (!Configs.Instance.RandomColor.Value || !HUDManager.Instance.CanPlayerScan())
+        if (!ConfigEntries.Instance.RandomColor.Value || !HUDManager.Instance.CanPlayerScan())
             return;
 
         if (!_randomColorApplied && ScanProgress <= 0f)
@@ -51,14 +52,14 @@ public static class ScanController
     public static void SetScanColorAlpha(float alpha)
     {
         if (ScanRenderer?.material == null) return;
-        var color = ScanRenderer.material.color;
+        Color color = ScanRenderer.material.color;
         color.a = alpha;
         ScanRenderer.material.color = color;
     }
 
     public static void SetScanColor(Color? overrideColor = null)
     {
-        var color = overrideColor ?? ParseScanColor();
+        Color color = overrideColor ?? ConfigHelper.GetScanColor();
 
         if (ScanRenderer?.material != null)
             ScanRenderer.material.color = color;
@@ -78,7 +79,7 @@ public static class ScanController
 
     public static void UpdateVignetteIntensity()
     {
-        ScanVignette?.intensity.Override(Configs.Instance.VignetteIntensity.Value);
+        ScanVignette?.intensity.Override(ConfigEntries.Instance.VignetteIntensity.Value);
     }
 
     public static void UpdateScanTexture()
@@ -87,9 +88,9 @@ public static class ScanController
         ScanlinesEnums.DirtIntensityHandlerByScanLine();
         Texture2D tex = GetSelectedTexture();
         if (tex == null) return;
-        if (Configs.Instance.RecolorScanLines.Value)
+        if (ConfigEntries.Instance.RecolorScanLines.Value)
         {
-            RecolorAndApplyTexture(ParseScanColor(), tex);
+            RecolorAndApplyTexture(ConfigHelper.GetScanColor(), tex);
         }
         else
         {
@@ -99,11 +100,11 @@ public static class ScanController
 
     private static void RecolorAndApplyTexture(Color color, Texture2D baseTex)
     {
-        var newTex = new Texture2D(baseTex.width, baseTex.height);
+        Texture2D newTex = new Texture2D(baseTex.width, baseTex.height);
         newTex.SetPixels(baseTex.GetPixels());
         newTex.Apply(false);
 
-        Utils.RecolorTexture(ref newTex, color);
+        ScanUtils.RecolorTexture(ref newTex, color);
 
         if (_lastRecoloredTexture != null)
             Object.Destroy(_lastRecoloredTexture);
@@ -114,9 +115,9 @@ public static class ScanController
 
     private static Texture2D GetSelectedTexture()
     {
-        var selected = Configs.Instance.SelectedScanlineMode.Value;
+        var selected = ConfigEntries.Instance.SelectedScanlineMode.Value;
 
-        if (Plugins.ScanlineTextures.TryGetValue(selected, out var tex) && tex != null)
+        if (Plugins.ScanlineTextures.TryGetValue(selected, out Texture2D tex) && tex != null)
             return tex;
 
         Plugins.mls.LogWarning($"Scanline texture '{selected}' missing. Falling back to Default.");
@@ -128,12 +129,4 @@ public static class ScanController
         Plugins.mls.LogError("No scanline textures could be applied.");
         return null;
     }
-
-    private static Color ParseScanColor()
-    {
-        ColorUtility.TryParseHtmlString(Configs.Instance.ScanColor.Value, out var color);
-        return new Color(color.r, color.g, color.b, Configs.Instance.Alpha.Value);
-    }
 }
-
-// Issue: when RecolorScanline is enabled, Circles and Square textures are gone

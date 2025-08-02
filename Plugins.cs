@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using LethalHUD.Configs;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -20,6 +21,8 @@ public class Plugins : BaseUnityPlugin
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
 
+    internal static RuntimeAnimatorController inventoryAnimController;
+
     public static ConfigFile BepInExConfig() { return instance.Config; }
 
     public void Awake()
@@ -27,21 +30,23 @@ public class Plugins : BaseUnityPlugin
         instance ??= this;
 
         mls = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
-        Configs.Instance.Setup();
+        ConfigEntries.Instance.Setup();
 
         mls.LogMessage("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 
         harmony.PatchAll(typeof(Patches.HUDManagerPatch));
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "veryoriginalscanlinesnameforlethalhud");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "incrediblyoriginalassetbundlenameforlethalhud");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
 
         if (assetBundle == null)
         {
-            Logger.LogError("Failed to load veryoriginalscanlinesnameforlethalhud assetbundle.");
+            Logger.LogError("Failed to load incrediblyoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
+
+        inventoryAnimController = assetBundle.LoadAsset<RuntimeAnimatorController>("inventoryframes");
 
         foreach (ScanLines scanLine in System.Enum.GetValues(typeof(ScanLines)))
         {

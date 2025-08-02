@@ -2,7 +2,7 @@
 using System.Linq;
 
 namespace LethalHUD.Scan;
-public class Utils
+public class ScanUtils
 {
     public static void RecolorTexture(ref Texture2D texture, Color color)
     {
