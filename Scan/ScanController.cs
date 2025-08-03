@@ -12,27 +12,6 @@ public static class ScanController
 
     private static Texture2D _lastRecoloredTexture;
 
-    private static bool _randomColorApplied = false;
-
-    public static void RandomColoring()
-    {
-        if (!ConfigEntries.Instance.RandomColor.Value || !HUDManager.Instance.CanPlayerScan())
-            return;
-
-        if (!_randomColorApplied && ScanProgress <= 0f)
-        {
-            Color randomColor = new(Random.Range(0.2f, 1f), Random.Range(0.2f, 1f), Random.Range(0.2f, 1f), Random.Range(0.26f, 1f));
-            SetScanColor(randomColor);
-            _randomColorApplied = true;
-        }
-    }
-
-    public static void RandomColoringnt()
-    {
-        if (ScanProgress <= 0f)
-            _randomColorApplied = false;
-    }
-
     private static MeshRenderer ScanRenderer =>
         HUDManager.Instance?.scanEffectAnimator?.GetComponent<MeshRenderer>();
 
@@ -75,6 +54,18 @@ public static class ScanController
             ScanBloom.tint.Override(color);
             UpdateScanTexture();
         }
+    }
+    public static void UpdateScanAlpha()
+    {
+        float baseAlpha = ConfigEntries.Instance.Alpha.Value;
+        float finalAlpha = baseAlpha;
+
+        if (ConfigEntries.Instance.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
+        {
+            finalAlpha *= ScanProgress;
+        }
+
+        SetScanColorAlpha(finalAlpha);
     }
 
     public static void UpdateVignetteIntensity()

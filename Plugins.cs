@@ -35,12 +35,12 @@ public class Plugins : BaseUnityPlugin
         harmony.PatchAll(typeof(Patches.HUDManagerPatch));
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "incrediblyoriginalassetbundlenameforlethalhud");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "unimaginablyoriginalassetbundlenameforlethalhud");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
 
         if (assetBundle == null)
         {
-            Logger.LogError("Failed to load incrediblyoriginalassetbundlenameforlethalhud assetbundle.");
+            Logger.LogError("Failed to load unimaginablyoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
 

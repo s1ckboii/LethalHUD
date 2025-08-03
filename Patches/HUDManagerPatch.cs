@@ -33,7 +33,7 @@ internal static class HUDManagerPatch
     [HarmonyPatch(nameof(HUDManager.DisplayNewScrapFound))]
     public static void OnHUDManagerDisplayNewScrapFound()
     {
-        InventoryFrames.ApplySlotColors();
+        InventoryFrames.SetSlotColors();
     }
 
     [HarmonyPostfix]
@@ -43,12 +43,7 @@ internal static class HUDManagerPatch
         if (ConfigEntries.Instance.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
             __instance.PingScan_performed(pingScan);
 
-        if (ConfigEntries.Instance.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
-        {
-            float fadeAlpha = ScanController.ScanProgress * ConfigEntries.Instance.Alpha.Value;
-            ScanController.SetScanColorAlpha(fadeAlpha);
-        }
-        ScanController.RandomColoringnt();
+        ScanController.UpdateScanAlpha();
     }
 
     [HarmonyPrefix]
@@ -56,6 +51,5 @@ internal static class HUDManagerPatch
     public static void OnScanTriggered(CallbackContext context)
     {
         pingScan = context;
-        ScanController.RandomColoring();
     }
 }
