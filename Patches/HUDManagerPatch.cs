@@ -2,6 +2,8 @@
 using LethalHUD.Configs;
 using LethalHUD.HUD;
 using LethalHUD.Scan;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
@@ -51,5 +53,29 @@ internal static class HUDManagerPatch
     public static void OnScanTriggered(CallbackContext context)
     {
         pingScan = context;
+    }
+    [HarmonyTranspiler]
+    [HarmonyPatch(nameof(HUDManager.AddChatMessage))]
+    public static IEnumerable<CodeInstruction> AddChatMessage_Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = new List<CodeInstruction>(instructions);
+        var getColoredNameMethod = typeof(ChatController).GetMethod(nameof(ChatController.GetColoredPlayerName));
+
+        for (int i = 0; i < codes.Count; i++)
+        {
+            var inst = codes[i];
+
+            // ldarg.2 = playerName
+            if (inst.opcode == OpCodes.Ldarg_2)
+            {
+                // Instead of just loading playerName, call GetColoredPlayerName(playerName)
+                yield return new CodeInstruction(OpCodes.Ldarg_2);
+                yield return new CodeInstruction(OpCodes.Call, getColoredNameMethod);
+
+                continue;
+            }
+
+            yield return inst;
+        }
     }
 }

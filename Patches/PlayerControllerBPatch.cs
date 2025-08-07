@@ -1,14 +1,17 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 
+
+namespace LethalHUD.Patches;
+
 [HarmonyPatch(typeof(PlayerControllerB))]
 internal static class PlayerControllerBPatch
 {
 
     [HarmonyPostfix]
-    [HarmonyPatch("LateUpdate")]
-    public static void Postfix(PlayerControllerB __instance)
+    [HarmonyPatch(nameof(PlayerControllerB.Awake))]
+    public static void OnPlayerControllerBAwake(PlayerControllerB __instance)
     {
-
+        // ._.
     }
 }

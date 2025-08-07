@@ -1,7 +1,6 @@
 ﻿using LethalHUD.Configs;
 using UnityEngine;
 using UnityEngine.UI;
-using static LethalHUD.HUD.InventoryGradientEnums;
 
 namespace LethalHUD.HUD;
 

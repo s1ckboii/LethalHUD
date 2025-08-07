@@ -20,7 +20,6 @@ public class Plugins : BaseUnityPlugin
     internal static ManualLogSource mls;
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
-
     public static ConfigFile BepInExConfig() { return instance.Config; }
 
     public void Awake()
@@ -33,6 +32,7 @@ public class Plugins : BaseUnityPlugin
         mls.LogMessage("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 
         harmony.PatchAll(typeof(Patches.HUDManagerPatch));
+        harmony.PatchAll(typeof(Patches.StartOfRoundPatch));
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unimaginablyoriginalassetbundlenameforlethalhud");

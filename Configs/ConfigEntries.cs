@@ -2,6 +2,7 @@
 using LethalHUD.HUD;
 using LethalHUD.Scan;
 using System;
+using Unity.Netcode;
 using static LethalHUD.HUD.InventoryGradientEnums;
 using static LethalHUD.Scan.ScanlinesEnums;
 
@@ -39,6 +40,11 @@ public sealed class ConfigEntries
     public ConfigEntry<string> GradientColorB { get; private set; }
     #endregion
 
+    #region Chat ConfigEntries
+    public ConfigEntry<bool> NameColors { get; private set; }
+    public ConfigEntry<string> LocalNameColor { get; private set; }
+    #endregion
+
     private static ConfigEntries instance = null;
     public static ConfigEntries Instance
     {
@@ -72,6 +78,11 @@ public sealed class ConfigEntries
         SlotRainbowColor = Plugins.BepInExConfig().Bind("Inventory", "RainbowFrames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
         GradientColorA = Plugins.BepInExConfig().Bind("Inventory", "GradientColorA", "#3226B4", "Start color for custom wavy gradient.");
         GradientColorB = Plugins.BepInExConfig().Bind("Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
+        #endregion
+
+        #region Chat Binds
+        NameColors = Plugins.BepInExConfig().Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (only visible to others who also have this enabled.");
+        LocalNameColor = Plugins.BepInExConfig().Bind("Chat", "NameColor", "#FF0000", "Change your name's color in chat in HEX format");
         #endregion
 
         #region Main Changes
@@ -128,6 +139,11 @@ public sealed class ConfigEntries
         SlotRainbowColor.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
+        #endregion
+
+        #region Chat Changes
+        NameColors.SettingChanged += (obj, args) => { /*ChatController.somekindoffunction();*/ };
+        LocalNameColor.SettingChanged += (obj, args) => { /*ChatController.somekindoffunction();*/ };
         #endregion
     }
 }
