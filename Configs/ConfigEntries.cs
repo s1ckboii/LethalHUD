@@ -7,14 +7,21 @@ using static LethalHUD.HUD.InventoryGradientEnums;
 using static LethalHUD.Scan.ScanlinesEnums;
 
 namespace LethalHUD.Configs;
-public sealed class ConfigEntries
+internal class ConfigEntries
 {
+    public static ConfigFile ConfigFile { get; private set; }
     internal DateTime _lastScanColorChange = DateTime.MinValue;
     internal DateTime _lastMainColorChange = DateTime.MinValue;
     internal DateTime _lastSlotColorChange = DateTime.MinValue;
 
     private const string DefaultMainColor = "#000CFF";
     private const string DefaultSlotColor = "#3226B4";
+
+    public ConfigEntries()
+    {
+        Setup();
+        ConfigHelper.ClearUnusedEntries();
+    }
 
     #region Main
     public ConfigEntry<string> MainColor { get; private set; }
@@ -44,45 +51,36 @@ public sealed class ConfigEntries
     public ConfigEntry<bool> NameColors { get; private set; }
     public ConfigEntry<string> LocalNameColor { get; private set; }
     #endregion
-
-    private static ConfigEntries instance = null;
-    public static ConfigEntries Instance
-    {
-        get
-        {
-            instance ??= new ConfigEntries();
-            return instance;
-        }
-    }
-
     public void Setup()
     {
+        ConfigHelper.SkipAutoGen();
+
         #region Main Binds
-        MainColor = Plugins.BepInExConfig().Bind("Main", "MainColor", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way. (Default value: #000CFF)");
+        MainColor = ConfigHelper.Bind(true, "Main", "MainColor", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way. (Default value: #000CFF)");
         #endregion
 
 
         #region Scan Binds
-        HoldScan = Plugins.BepInExConfig().Bind("Scan", "Hold Scan Button", false, "Allows you to keep holding scan button.");
-        FadeOut = Plugins.BepInExConfig().Bind("Scan", "FadeOut", false, new ConfigDescription("Fade out effect for scan color."));
-        RecolorScanLines = Plugins.BepInExConfig().Bind("Scan", "RecolorScanLines", true, new ConfigDescription("Recolor the blue horizontal scan lines texture aswell."));
-        SelectedScanlineMode = Plugins.BepInExConfig().Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.");
-        DirtIntensity = Plugins.BepInExConfig().Bind("Scan", "Scanline Intensity", 0f, new ConfigDescription("Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", new AcceptableValueRange<float>(-500f, 500f)));
-        ScanColor = Plugins.BepInExConfig().Bind("Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format. (Default value: #000CFF)");
-        Alpha = Plugins.BepInExConfig().Bind("Scan", "Alpha", 0.26f, new ConfigDescription("Alpha / opacity.", new AcceptableValueRange<float>(0f, 1f)));
-        VignetteIntensity = Plugins.BepInExConfig().Bind("Scan", "VignetteIntensity", 0.46f, new ConfigDescription("Intensity of the vignette / borders effect during scan.", new AcceptableValueRange<float>(0f, 1f)));
+        HoldScan = ConfigHelper.Bind("Scan", "Hold Scan Button", false, "Allows you to keep holding scan button.");
+        FadeOut = ConfigHelper.Bind("Scan", "FadeOut", false, "Fade out effect for scan color.");
+        RecolorScanLines = ConfigHelper.Bind("Scan", "RecolorScanLines", true, "Recolor the blue horizontal scan lines texture aswell.");
+        SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.", false);
+        DirtIntensity = ConfigHelper.Bind("Scan", "Scanline Intensity", 0f, "Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", false, new AcceptableValueRange<float>(-500f, 500f));
+        ScanColor = ConfigHelper.Bind(true, "Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format. (Default value: #000CFF)");
+        Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
+        VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false,new AcceptableValueRange<float>(0f, 1f));
         #endregion
 
         #region InventorySlot Binds
-        SlotColor = Plugins.BepInExConfig().Bind("Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors  (Default value: #3226B4)");
-        SlotRainbowColor = Plugins.BepInExConfig().Bind("Inventory", "RainbowFrames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
-        GradientColorA = Plugins.BepInExConfig().Bind("Inventory", "GradientColorA", "#3226B4", "Start color for custom wavy gradient.");
-        GradientColorB = Plugins.BepInExConfig().Bind("Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
+        SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors  (Default value: #3226B4)");
+        SlotRainbowColor = ConfigHelper.Bind("Inventory", "RainbowFrames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
+        GradientColorA = ConfigHelper.Bind(true, "Inventory", "GradientColorA", "#3226B4", "Start color for custom wavy gradient.");
+        GradientColorB = ConfigHelper.Bind(true, "Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
         #endregion
 
         #region Chat Binds
-        NameColors = Plugins.BepInExConfig().Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (only visible to others who also have this enabled.");
-        LocalNameColor = Plugins.BepInExConfig().Bind("Chat", "NameColor", "#FF0000", "Change your name's color in chat in HEX format");
+        NameColors = ConfigHelper.Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (only visible to others who also have this enabled.");
+        LocalNameColor = ConfigHelper.Bind(true, "Chat", "NameColor", "#FF0000", "Change your name's color in chat in HEX format");
         #endregion
 
         #region Main Changes
@@ -142,8 +140,20 @@ public sealed class ConfigEntries
         #endregion
 
         #region Chat Changes
-        NameColors.SettingChanged += (obj, args) => { /*ChatController.somekindoffunction();*/ };
-        LocalNameColor.SettingChanged += (obj, args) => { /*ChatController.somekindoffunction();*/ };
+        NameColors.SettingChanged += (obj, args) =>
+        {
+            if (NameColors.Value)
+            {
+                ChatController.Instance.UpdateLocalColor();
+            }
+        };
+        LocalNameColor.SettingChanged += (obj, args) =>
+        {
+            if (NameColors.Value)
+            {
+                ChatController.Instance.UpdateLocalColor();
+            }
+        };
         #endregion
     }
 }

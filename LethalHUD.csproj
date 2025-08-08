@@ -53,6 +53,12 @@
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="LethalConfig">
+      <HintPath>..\..\Gale\lethal-company\profiles\dev\BepInEx\plugins\AinaVT-LethalConfig\LethalConfig\LethalConfig.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
   <!-- Import settings from .csproj.user file -->
   <Import Project="$(MSBuildProjectFile).user" Condition="Exists('$(MSBuildProjectFile).user')" />
 

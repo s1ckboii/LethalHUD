@@ -1,6 +1,4 @@
-﻿using LethalHUD.Configs;
-
-namespace LethalHUD.HUD;
+﻿namespace LethalHUD.HUD;
 
 public class InventoryGradientEnums
 {
@@ -18,8 +16,8 @@ public class InventoryGradientEnums
 
     public static bool HasCustomGradient()
     {
-        string a = ConfigEntries.Instance.GradientColorA.Value;
-        string b = ConfigEntries.Instance.GradientColorB.Value;
+        string a = Plugins.ConfigEntries.GradientColorA.Value;
+        string b = Plugins.ConfigEntries.GradientColorB.Value;
 
         return !string.IsNullOrWhiteSpace(a)
             && !string.IsNullOrWhiteSpace(b)

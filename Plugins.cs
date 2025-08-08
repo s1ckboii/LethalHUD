@@ -10,33 +10,40 @@ using static LethalHUD.Scan.ScanlinesEnums;
 
 namespace LethalHUD;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInDependency(LethalConfigProxy.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
 
     private readonly Harmony harmony = new(MyPluginInfo.PLUGIN_GUID);
 
-    private static Plugins instance;
-
-    internal static ManualLogSource mls;
-
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
-    public static ConfigFile BepInExConfig() { return instance.Config; }
+
+    internal static Plugins Instance { get; private set; }
+    internal static new ManualLogSource Logger { get; private set; }
+    internal static new ConfigFile Config { get; private set; }
+
+    internal static ConfigEntries ConfigEntries {  get; private set; }
+
+
 
     public void Awake()
     {
-        instance ??= this;
+        if (Instance == null) Instance = this;
 
-        mls = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
-        ConfigEntries.Instance.Setup();
+        Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
+        Logger.LogInfo("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 
-        mls.LogMessage("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
+        Config = ConfigUtils.CreateGlobalConfigFile(this);
 
         harmony.PatchAll(typeof(Patches.HUDManagerPatch));
         harmony.PatchAll(typeof(Patches.StartOfRoundPatch));
+        harmony.PatchAll(typeof(Patches.PlayerControllerBPatch));
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unimaginablyoriginalassetbundlenameforlethalhud");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
+
+        ConfigEntries = new ConfigEntries();
 
         if (assetBundle == null)
         {
@@ -55,7 +62,7 @@ public class Plugins : BaseUnityPlugin
             }
             else
             {
-                mls.LogWarning($"Texture '{name}' not found in asset bundle.");
+                Logger.LogWarning($"Texture '{name}' not found in asset bundle.");
             }
         }
     }

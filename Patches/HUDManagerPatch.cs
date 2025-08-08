@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using LethalHUD.Configs;
 using LethalHUD.HUD;
 using LethalHUD.Scan;
 using System.Collections.Generic;
@@ -42,7 +41,7 @@ internal static class HUDManagerPatch
     [HarmonyPatch(nameof(HUDManager.Update))]
     public static void OnHUDManagerUpdate(HUDManager __instance)
     {
-        if (ConfigEntries.Instance.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
+        if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
             __instance.PingScan_performed(pingScan);
 
         ScanController.UpdateScanAlpha();

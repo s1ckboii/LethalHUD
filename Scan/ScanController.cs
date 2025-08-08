@@ -57,10 +57,10 @@ public static class ScanController
     }
     public static void UpdateScanAlpha()
     {
-        float baseAlpha = ConfigEntries.Instance.Alpha.Value;
+        float baseAlpha = Plugins.ConfigEntries.Alpha.Value;
         float finalAlpha = baseAlpha;
 
-        if (ConfigEntries.Instance.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
+        if (Plugins.ConfigEntries.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
         {
             finalAlpha *= ScanProgress;
         }
@@ -70,7 +70,7 @@ public static class ScanController
 
     public static void UpdateVignetteIntensity()
     {
-        ScanVignette?.intensity.Override(ConfigEntries.Instance.VignetteIntensity.Value);
+        ScanVignette?.intensity.Override(Plugins.ConfigEntries.VignetteIntensity.Value);
     }
 
     public static void UpdateScanTexture()
@@ -79,7 +79,7 @@ public static class ScanController
         ScanlinesEnums.DirtIntensityHandlerByScanLine();
         Texture2D tex = GetSelectedTexture();
         if (tex == null) return;
-        if (ConfigEntries.Instance.RecolorScanLines.Value)
+        if (Plugins.ConfigEntries.RecolorScanLines.Value)
         {
             RecolorAndApplyTexture(ConfigHelper.GetScanColor(), tex);
         }
@@ -106,18 +106,18 @@ public static class ScanController
 
     private static Texture2D GetSelectedTexture()
     {
-        var selected = ConfigEntries.Instance.SelectedScanlineMode.Value;
+        var selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
 
         if (Plugins.ScanlineTextures.TryGetValue(selected, out Texture2D tex) && tex != null)
             return tex;
 
-        Plugins.mls.LogWarning($"Scanline texture '{selected}' missing. Falling back to Default.");
+        Plugins.Logger.LogWarning($"Scanline texture '{selected}' missing. Falling back to Default.");
 
         if (selected != ScanlinesEnums.ScanLines.Default &&
             Plugins.ScanlineTextures.TryGetValue(ScanlinesEnums.ScanLines.Default, out var fallback) && fallback != null)
             return fallback;
 
-        Plugins.mls.LogError("No scanline textures could be applied.");
+        Plugins.Logger.LogError("No scanline textures could be applied.");
         return null;
     }
 }

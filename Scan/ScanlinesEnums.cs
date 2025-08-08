@@ -1,5 +1,4 @@
-﻿using LethalHUD.Configs;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace LethalHUD.Scan;
 
@@ -19,11 +18,11 @@ public class ScanlinesEnums
         var scanBloom = ScanController.ScanBloom;
         if (scanBloom == null) return;
 
-        var selected = ConfigEntries.Instance.SelectedScanlineMode.Value;
+        var selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
 
         if (selected == ScanLines.Default)
-            scanBloom.dirtIntensity.Override(Mathf.Max(0f, baseIntensity + ConfigEntries.Instance.DirtIntensity.Value));
+            scanBloom.dirtIntensity.Override(Mathf.Max(0f, baseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
         else
-            scanBloom.dirtIntensity.Override(Mathf.Max(0f, customBaseIntensity + ConfigEntries.Instance.DirtIntensity.Value));
+            scanBloom.dirtIntensity.Override(Mathf.Max(0f, customBaseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
     }
 }

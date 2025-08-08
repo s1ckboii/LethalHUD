@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using LethalHUD.Configs;
+﻿using LethalHUD.Configs;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.HUD.InventoryGradientEnums;
@@ -22,8 +21,8 @@ public static class InventoryFrames
 
         if (HasCustomGradient())
         {
-            if (ColorUtility.TryParseHtmlString(ConfigEntries.Instance.GradientColorA.Value, out Color colorA)
-             && ColorUtility.TryParseHtmlString(ConfigEntries.Instance.GradientColorB.Value, out Color colorB))
+            if (ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientColorA.Value, out Color colorA)
+             && ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientColorB.Value, out Color colorB))
             {
                 CurrentGradientStartColor =colorA;
                 CurrentGradientEndColor =colorB;
@@ -34,7 +33,7 @@ public static class InventoryFrames
         }
 
 
-        SlotEnums gradient = ConfigEntries.Instance.SlotRainbowColor.Value;
+        SlotEnums gradient = Plugins.ConfigEntries.SlotRainbowColor.Value;
         switch (gradient)
         {
             case SlotEnums.Rainbow:
