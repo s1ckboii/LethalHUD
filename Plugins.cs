@@ -36,8 +36,8 @@ public class Plugins : BaseUnityPlugin
         Config = ConfigUtils.CreateGlobalConfigFile(this);
 
         harmony.PatchAll(typeof(Patches.HUDManagerPatch));
-        harmony.PatchAll(typeof(Patches.StartOfRoundPatch));
-        harmony.PatchAll(typeof(Patches.PlayerControllerBPatch));
+        //harmony.PatchAll(typeof(Patches.StartOfRoundPatch));
+        //harmony.PatchAll(typeof(Patches.PlayerControllerBPatch));
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unimaginablyoriginalassetbundlenameforlethalhud");

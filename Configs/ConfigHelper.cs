@@ -67,9 +67,7 @@ public static class ConfigHelper
     {
         // Check if T is int
         if (typeof(T) == typeof(int) && int.TryParse(value, out int parsedInt))
-        {
             configEntry.Value = (T)(object)parsedInt;
-        }
         // Check if T is float
         else if (typeof(T) == typeof(float) && float.TryParse(value, out float parsedFloat))
             configEntry.Value = (T)(object)parsedFloat;
@@ -108,9 +106,9 @@ public static class ConfigHelper
     {
         var cfg = Plugins.ConfigEntries;
 
-        string hex = cfg._lastScanColorChange >= cfg._lastMainColorChange
+        string hex = cfg._lastScanColorChange >= cfg._lastUnifyMostColorsChange
             ? cfg.ScanColor.Value
-            : cfg.MainColor.Value;
+            : cfg.UnifyMostColors.Value;
 
         return ParseHexColor(hex);
     }
@@ -119,9 +117,9 @@ public static class ConfigHelper
     {
         var cfg = Plugins.ConfigEntries;
 
-        string hex = cfg._lastSlotColorChange >= cfg._lastMainColorChange
+        string hex = cfg._lastSlotColorChange >= cfg._lastUnifyMostColorsChange
             ? cfg.SlotColor.Value
-            : cfg.MainColor.Value;
+            : cfg.UnifyMostColors.Value;
 
         return ParseHexColor(hex);
     }

@@ -114,7 +114,7 @@ public static class InventoryFrames
         if (frames == null || frames.Length == 0)
             return;
 
-        _gradientWaveTime += Time.deltaTime * speed;
+        _gradientWaveTime = (_gradientWaveTime + Time.deltaTime * speed) % 1f;
 
         int count = frames.Length;
         for (int i = 0; i < count; i++)

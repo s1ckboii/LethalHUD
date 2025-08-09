@@ -3,6 +3,7 @@ using LethalHUD.HUD;
 using LethalHUD.Scan;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
@@ -45,6 +46,9 @@ internal static class HUDManagerPatch
             __instance.PingScan_performed(pingScan);
 
         ScanController.UpdateScanAlpha();
+        ChatController.GradientWaveTime += Time.deltaTime * 0.15f;
+        if (ChatController.GradientWaveTime > 1f)
+            ChatController.GradientWaveTime -= 1f;
     }
 
     [HarmonyPrefix]
@@ -57,24 +61,21 @@ internal static class HUDManagerPatch
     [HarmonyPatch(nameof(HUDManager.AddChatMessage))]
     public static IEnumerable<CodeInstruction> AddChatMessage_Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        var codes = new List<CodeInstruction>(instructions);
         var getColoredNameMethod = typeof(ChatController).GetMethod(nameof(ChatController.GetColoredPlayerName));
+        var matcher = new CodeMatcher(instructions);
 
-        for (int i = 0; i < codes.Count; i++)
+        while (true)
         {
-            var inst = codes[i];
+            var foundMatcher = matcher.MatchForward(false, new CodeMatch(OpCodes.Ldarg_2));
+            if (foundMatcher == null || !foundMatcher.IsValid)
+                break;
 
-            // ldarg.2 = playerName
-            if (inst.opcode == OpCodes.Ldarg_2)
-            {
-                // Instead of just loading playerName, call GetColoredPlayerName(playerName)
-                yield return new CodeInstruction(OpCodes.Ldarg_2);
-                yield return new CodeInstruction(OpCodes.Call, getColoredNameMethod);
+            foundMatcher.Advance(1);
+            foundMatcher.InsertAndAdvance(new CodeInstruction(OpCodes.Call, getColoredNameMethod));
 
-                continue;
-            }
-
-            yield return inst;
+            matcher = foundMatcher;
         }
+
+        return matcher.InstructionEnumeration();
     }
 }
