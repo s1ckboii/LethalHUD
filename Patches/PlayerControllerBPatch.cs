@@ -1,6 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
-
+using LethalHUD.HUD;
 
 namespace LethalHUD.Patches;
 
@@ -12,6 +12,19 @@ internal static class PlayerControllerBPatch
     [HarmonyPatch(nameof(PlayerControllerB.Awake))]
     public static void OnPlayerControllerBAwake(PlayerControllerB __instance)
     {
-        // ._.
+        // .-.
+    }
+    [HarmonyPostfix]
+    [HarmonyPatch (nameof(PlayerControllerB.GrabObject))]
+    public static void OnPlayerControllerBGrabObject()
+    {
+        InventoryFrames.HandsFull();
+    }
+    [HarmonyPostfix]
+    [HarmonyPatch (nameof(PlayerControllerB.LateUpdate))]
+    public static void OnPlayerIsTyping(PlayerControllerB __instance)
+    {
+        if (__instance.isTypingChat)
+            ChatController.PlayerTypingIndicator();
     }
 }

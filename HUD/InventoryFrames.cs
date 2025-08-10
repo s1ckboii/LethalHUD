@@ -1,4 +1,6 @@
-﻿using LethalHUD.Configs;
+﻿using HarmonyLib;
+using LethalHUD.Configs;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.HUD.InventoryGradientEnums;
@@ -17,7 +19,7 @@ public static class InventoryFrames
         if (HUDManager.Instance == null || HUDManager.Instance.itemSlotIconFrames == null)
             return;
 
-        var frames = HUDManager.Instance.itemSlotIconFrames;
+        Image[] frames = HUDManager.Instance.itemSlotIconFrames;
 
         if (HasCustomGradient())
         {
@@ -32,9 +34,8 @@ public static class InventoryFrames
             }
         }
 
-
-        SlotEnums gradient = Plugins.ConfigEntries.SlotRainbowColor.Value;
-        switch (gradient)
+        CurrentSlotColorMode = Plugins.ConfigEntries.SlotRainbowColor.Value;
+        switch (CurrentSlotColorMode)
         {
             case SlotEnums.Rainbow:
                 ApplyRainbow(frames);
@@ -125,5 +126,12 @@ public static class InventoryFrames
             Color interpolated = Color.Lerp(startColor, endColor, waveOffset).gamma;
             frames[i].color = interpolated;
         }
+    }
+
+    public static void HandsFull()
+    {
+        string handsfullColor = Plugins.ConfigEntries.HandsFullColor.Value;
+        ColorUtility.TryParseHtmlString(handsfullColor, out Color fullColor);
+        HUDManager.Instance.holdingTwoHandedItem.color = fullColor;
     }
 }

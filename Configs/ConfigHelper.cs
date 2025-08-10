@@ -5,7 +5,6 @@ using System.Reflection;
 using UnityEngine;
 
 namespace LethalHUD.Configs;
-
 public static class ConfigHelper
 {
     public static void SkipAutoGen()
@@ -85,7 +84,7 @@ public static class ConfigHelper
             throw new InvalidOperationException($"Unsupported type: {typeof(T)}");
     }
 
-    // Credit to Kittenji. <- from Zehs but from me too!
+    // Credit to Kittenji. <- Thanks from Zehs and me too.
     public static void ClearUnusedEntries(ConfigFile configFile = null)
     {
         configFile ??= Plugins.Config;

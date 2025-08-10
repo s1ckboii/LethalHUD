@@ -46,19 +46,21 @@ internal class ConfigEntries
     public ConfigEntry<SlotEnums> SlotRainbowColor { get; private set; }
     public ConfigEntry<string> GradientColorA { get; private set; }
     public ConfigEntry<string> GradientColorB { get; private set; }
+    public ConfigEntry<string> HandsFullColor { get; private set; }
     #endregion
 
     #region Chat ConfigEntries
     public ConfigEntry<bool> ColoredNames { get; private set; }
     public ConfigEntry<string> LocalNameColor { get; private set; }
-    public ConfigEntry<SlotEnums> ChatNameColorMode { get; private set; }
+    public ConfigEntry<string> GradientNameColorA { get; private set; }
+    public ConfigEntry<string> GradientNameColorB { get; private set; }
     #endregion
     public void Setup()
     {
         ConfigHelper.SkipAutoGen();
 
         #region Main Binds
-        UnifyMostColors = ConfigHelper.Bind(true, "Main", "MainColor", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way. (Default value: #000CFF)");
+        UnifyMostColors = ConfigHelper.Bind(true, "Main", "MainColor", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way.");
         #endregion
 
 
@@ -68,22 +70,24 @@ internal class ConfigEntries
         RecolorScanLines = ConfigHelper.Bind("Scan", "RecolorScanLines", true, "Recolor the blue horizontal scan lines texture aswell.");
         SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.", false);
         DirtIntensity = ConfigHelper.Bind("Scan", "Scanline Intensity", 0f, "Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", false, new AcceptableValueRange<float>(-500f, 500f));
-        ScanColor = ConfigHelper.Bind(true, "Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format. (Default value: #000CFF)");
+        ScanColor = ConfigHelper.Bind(true, "Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format.");
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
         VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false,new AcceptableValueRange<float>(0f, 1f));
         #endregion
 
         #region InventorySlot Binds
-        SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors  (Default value: #3226B4)");
+        SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors.");
         SlotRainbowColor = ConfigHelper.Bind("Inventory", "RainbowFrames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
         GradientColorA = ConfigHelper.Bind(true, "Inventory", "GradientColorA", "#3226B4", "Start color for custom wavy gradient.");
         GradientColorB = ConfigHelper.Bind(true, "Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
+        HandsFullColor = ConfigHelper.Bind(true, "Inventory", "HandsFullColor", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
         #endregion
 
         #region Chat Binds
         ColoredNames = ConfigHelper.Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
-        LocalNameColor = ConfigHelper.Bind(true, "Chat", "LocalNameColor", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format");
-        ChatNameColorMode = ConfigHelper.Bind("Chat", "NameColorMode", SlotEnums.None, "Select the color mode for player names in chat.");
+        LocalNameColor = ConfigHelper.Bind(true, "Chat", "LocalNameColor", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
+        GradientNameColorA = ConfigHelper.Bind(true, "Chat", "GradientNameColorA", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
+        GradientNameColorB = ConfigHelper.Bind(true, "Chat", "GradientNameColorB", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
         #endregion
 
         #region Main Changes
@@ -145,7 +149,9 @@ internal class ConfigEntries
         #region Chat Changes
         ColoredNames.SettingChanged += (obj, args) => { };
         LocalNameColor.SettingChanged += (obj, args) => { };
-        ChatNameColorMode.SettingChanged += (obj, args) => { };
+        GradientNameColorA.SettingChanged += (obj, args) => { };
+        GradientNameColorB.SettingChanged += (obj, args) => { };
+        HandsFullColor.SettingChanged += (obj, args) => { };
         #endregion
     }
 }

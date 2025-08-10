@@ -91,7 +91,7 @@ public static class ScanController
 
     private static void RecolorAndApplyTexture(Color color, Texture2D baseTex)
     {
-        Texture2D newTex = new Texture2D(baseTex.width, baseTex.height);
+        Texture2D newTex = new(baseTex.width, baseTex.height);
         newTex.SetPixels(baseTex.GetPixels());
         newTex.Apply(false);
 

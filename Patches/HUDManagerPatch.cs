@@ -13,6 +13,13 @@ internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
 
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(HUDManager.PingScan_performed))]
+    public static void OnScanTriggered(CallbackContext context)
+    {
+        pingScan = context;
+    }
+
     [HarmonyPostfix]
     [HarmonyPatch(nameof(HUDManager.Start))]
     public static void OnHUDManagerStart()
@@ -29,6 +36,7 @@ internal static class HUDManagerPatch
         {
             __instance.gameObject.AddComponent<InventoryUtils>();
         }
+        ChatController.ColorChatInputField(__instance.chatTextField,Time.time * 0.25f);
     }
 
     [HarmonyPostfix]
@@ -46,17 +54,8 @@ internal static class HUDManagerPatch
             __instance.PingScan_performed(pingScan);
 
         ScanController.UpdateScanAlpha();
-        ChatController.GradientWaveTime += Time.deltaTime * 0.15f;
-        if (ChatController.GradientWaveTime > 1f)
-            ChatController.GradientWaveTime -= 1f;
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(nameof(HUDManager.PingScan_performed))]
-    public static void OnScanTriggered(CallbackContext context)
-    {
-        pingScan = context;
-    }
     [HarmonyTranspiler]
     [HarmonyPatch(nameof(HUDManager.AddChatMessage))]
     public static IEnumerable<CodeInstruction> AddChatMessage_Transpiler(IEnumerable<CodeInstruction> instructions)
