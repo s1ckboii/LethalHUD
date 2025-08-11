@@ -5,7 +5,6 @@ using UnityEngine.UI;
 namespace LethalHUD.HUD;
 internal static class HUDUtils
 {
-
     #region
     public static Color ParseHexColor(string hex)
     {

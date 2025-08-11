@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
 namespace LethalHUD.HUD;
-
 public class InventoryGradientEnums
 {
     public enum SlotEnums

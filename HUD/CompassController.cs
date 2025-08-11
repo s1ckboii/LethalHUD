@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace LethalHUD.HUD;
-
 public static class CompassController
 {
     internal static RawImage CompassImage => HUDManager.Instance?.compassImage;

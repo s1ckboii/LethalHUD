@@ -30,6 +30,12 @@ public static class ChatController
             return $"<color={solidColor}>{playerName}</color>";
         }
     }
+    public static string GetDefaultChatColorTag()
+    {
+        Color color = ConfigHelper.GetSlotColor();
+        string hex = ColorUtility.ToHtmlStringRGB(color);
+        return $"<color=#{hex}>";
+    }
 
     public static void PlayerTypingIndicator()
     {

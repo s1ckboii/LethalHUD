@@ -7,7 +7,6 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
-
 [HarmonyPatch(typeof(HUDManager))]
 internal static class HUDManagerPatch
 {
@@ -61,8 +60,10 @@ internal static class HUDManagerPatch
     public static IEnumerable<CodeInstruction> AddChatMessage_Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         var getColoredNameMethod = typeof(ChatController).GetMethod(nameof(ChatController.GetColoredPlayerName));
+        var getDefaultColorTagMethod = typeof(ChatController).GetMethod(nameof(ChatController.GetDefaultChatColorTag));
         var matcher = new CodeMatcher(instructions);
 
+        // Patch the hardcoded red chat name color
         while (true)
         {
             var foundMatcher = matcher.MatchForward(false, new CodeMatch(OpCodes.Ldarg_2));
@@ -71,6 +72,19 @@ internal static class HUDManagerPatch
 
             foundMatcher.Advance(1);
             foundMatcher.InsertAndAdvance(new CodeInstruction(OpCodes.Call, getColoredNameMethod));
+
+            matcher = foundMatcher;
+        }
+        matcher = new CodeMatcher(matcher.InstructionEnumeration());
+
+        // Patch the hardcoded blue chat color <color=#7069ff>
+        while (true)
+        {
+            var foundMatcher = matcher.MatchForward(false, new CodeMatch(OpCodes.Ldstr, "<color=#7069ff>"));
+            if (foundMatcher == null || !foundMatcher.IsValid)
+                break;
+
+            foundMatcher.SetInstruction(new CodeInstruction(OpCodes.Call, getDefaultColorTagMethod));
 
             matcher = foundMatcher;
         }

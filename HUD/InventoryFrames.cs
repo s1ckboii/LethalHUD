@@ -1,4 +1,6 @@
-﻿using LethalHUD.Configs;
+﻿using HarmonyLib;
+using LethalHUD.Configs;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.HUD.InventoryGradientEnums;
@@ -16,6 +18,14 @@ public static class InventoryFrames
             return;
 
         Image[] frames = HUDManager.Instance.itemSlotIconFrames;
+            GameObject bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner");
+            Transform imageTransform = bottomLeftCorner.transform.Find("Image");
+            Image chatFrame = imageTransform.GetComponent<Image>();
+            if (!frames.Contains(chatFrame))
+            {
+                HUDManager.Instance.itemSlotIconFrames = frames.Concat(new[] { chatFrame }).ToArray();
+            }
+
 
         if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientColorA.Value, Plugins.ConfigEntries.GradientColorB.Value))
         {

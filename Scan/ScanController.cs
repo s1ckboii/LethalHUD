@@ -5,7 +5,6 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace LethalHUD.Scan;
-
 public static class ScanController
 {
     private const float ScanDuration = 1.3f;

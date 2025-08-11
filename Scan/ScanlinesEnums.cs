@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
 namespace LethalHUD.Scan;
-
 public class ScanlinesEnums
 {
     public enum ScanLines
