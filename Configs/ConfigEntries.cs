@@ -2,7 +2,7 @@
 using LethalHUD.HUD;
 using LethalHUD.Scan;
 using System;
-using Unity.Netcode;
+using UnityEngine;
 using static LethalHUD.HUD.InventoryGradientEnums;
 using static LethalHUD.Scan.ScanlinesEnums;
 
@@ -49,6 +49,12 @@ internal class ConfigEntries
     public ConfigEntry<string> HandsFullColor { get; private set; }
     #endregion
 
+    #region HealthAndStamina ConfigEntries
+    public ConfigEntry<string> SprintMeterColorGradient { get; private set; }
+    public ConfigEntry<string> SprintMeterColorSolid { get; private set; }
+    public ConfigEntry<string> SprintMeterColorShades { get; private set; }
+    #endregion
+
     #region Chat ConfigEntries
     public ConfigEntry<bool> ColoredNames { get; private set; }
     public ConfigEntry<string> LocalNameColor { get; private set; }
@@ -88,6 +94,12 @@ internal class ConfigEntries
         LocalNameColor = ConfigHelper.Bind(true, "Chat", "LocalNameColor", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
         GradientNameColorA = ConfigHelper.Bind(true, "Chat", "GradientNameColorA", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "GradientNameColorB", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
+        #endregion
+
+        #region HealthAndStamina Binds
+        SprintMeterColorSolid = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
+        SprintMeterColorGradient = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
+        SprintMeterColorShades = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorShades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
         #endregion
 
         #region Main Changes
@@ -153,5 +165,24 @@ internal class ConfigEntries
         GradientNameColorB.SettingChanged += (obj, args) => { };
         HandsFullColor.SettingChanged += (obj, args) => { };
         #endregion
+
+        SprintMeterColorSolid.SettingChanged += (obj, args) =>
+        {
+            PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Solid");
+            PlayerPrefs.Save();
+            SprintMeter.UpdateSprintMeterColor();
+        };
+        SprintMeterColorGradient.SettingChanged += (obj, args) =>
+        {
+            PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Gradient");
+            PlayerPrefs.Save();
+            SprintMeter.UpdateSprintMeterColor();
+        };
+        SprintMeterColorShades.SettingChanged += (obj, args) =>
+        {
+            PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Shades");
+            PlayerPrefs.Save();
+            SprintMeter.UpdateSprintMeterColor();
+        };
     }
 }

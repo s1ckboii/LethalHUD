@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using LethalHUD.HUD;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -109,7 +110,7 @@ public static class ConfigHelper
             ? cfg.ScanColor.Value
             : cfg.UnifyMostColors.Value;
 
-        return ParseHexColor(hex);
+        return HUDUtils.ParseHexColor(hex);
     }
 
     public static Color GetSlotColor()
@@ -120,17 +121,6 @@ public static class ConfigHelper
             ? cfg.SlotColor.Value
             : cfg.UnifyMostColors.Value;
 
-        return ParseHexColor(hex);
-    }
-
-    public static Color ParseHexColor(string hex)
-    {
-        if (ColorUtility.TryParseHtmlString(hex, out Color color))
-        {
-            return new Color(color.r, color.g, color.b);
-        }
-
-        Plugins.Logger.LogWarning($"Invalid HEX color: {hex}. Defaulting to original blue.");
-        return new Color(0f, 0.047f, 1f);
+        return HUDUtils.ParseHexColor(hex);
     }
 }

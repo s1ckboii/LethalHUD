@@ -6,10 +6,7 @@ namespace LethalHUD.HUD;
 
 public static class CompassController
 {
-    private static RawImage CompassImage => HUDManager.Instance?.compassImage;
-
-    private static float _rainbowTime = 0f;
-    private static float _gradientWaveTime = 0f;
+    internal static RawImage CompassImage => HUDManager.Instance?.compassImage;
 
     public static void SetCompassColor(Color? overrideColor = null)
     {
@@ -22,32 +19,8 @@ public static class CompassController
 
         CompassImage.color = color;
     }
-
-    public static void ApplyCompassRainbow()
-    {
-        if (CompassImage == null) return;
-
-        _rainbowTime += Time.deltaTime * 0.15f;
-        float hue = _rainbowTime % 1f;
-        Color rainbowColor = Color.HSVToRGB(hue, 1f, 1f);
-
-        rainbowColor.a = CompassImage.color.a;
-        CompassImage.color = rainbowColor;
-    }
-    public static void ApplyCompassWavyGradient(Color startColor, Color endColor)
-    {
-        if (CompassImage == null) return;
-
-        _gradientWaveTime += Time.deltaTime * 0.15f;
-        float waveOffset = Mathf.SmoothStep(0f, 1f, Mathf.Sin(_gradientWaveTime * Mathf.PI * 2f) * 0.5f + 0.5f); // *magic numbers*
-
-        Color interpolated = Color.Lerp(startColor, endColor, waveOffset).gamma;
-        interpolated.a = CompassImage.color.a;
-        CompassImage.color = interpolated;
-    }
-
     public static void SetCompassWavyGradient()
     {
-            ApplyCompassWavyGradient(InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor);
+            HUDUtils.ApplyCompassWavyGradient(InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor);
     }
 }

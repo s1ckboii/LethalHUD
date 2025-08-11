@@ -32,9 +32,9 @@ internal static class HUDManagerPatch
     [HarmonyPatch(nameof(HUDManager.OnEnable))]
     public static void OnHUDManagerEnable(HUDManager __instance)
     {
-        if (__instance.gameObject.GetComponent<InventoryUtils>() == null)
+        if (__instance.gameObject.GetComponent<LethalHUDMono>() == null)
         {
-            __instance.gameObject.AddComponent<InventoryUtils>();
+            __instance.gameObject.AddComponent<LethalHUDMono>();
         }
         ChatController.ColorChatInputField(__instance.chatTextField,Time.time * 0.25f);
     }
