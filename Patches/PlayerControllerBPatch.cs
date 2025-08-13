@@ -1,35 +1,36 @@
 ﻿using GameNetcodeStuff;
-using HarmonyLib;
 using LethalHUD.HUD;
+using MonoDetour;
+using MonoDetour.HookGen;
+using UnityEngine;
 
 namespace LethalHUD.Patches;
-
-[HarmonyPatch(typeof(PlayerControllerB))]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["GrabObject", "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(PlayerControllerB.Awake))]
-    public static void OnPlayerControllerBAwake()
+    [MonoDetourHookInitialize]
+    public static void Init()
     {
-        // ._.
+        // Prefix
+        On.GameNetcodeStuff.PlayerControllerB.GrabObject.Prefix(OnPlayerControllerBBeginGrabObject);
+
+        // Postfix
+        On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerIsTyping);
+        //On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
     }
-    [HarmonyPostfix]
-    [HarmonyPatch (nameof(PlayerControllerB.GrabObject))]
-    public static void OnPlayerControllerBGrabObject()
+
+    private static void OnPlayerControllerBDamagePlayer(PlayerControllerB self, ref int damageNumber, ref bool hasDamageSFX, ref bool callRPC, ref CauseOfDeath causeOfDeath, ref int deathAnimation, ref bool fallDamage, ref Vector3 force)
+    {
+
+    }
+
+    private static void OnPlayerControllerBBeginGrabObject(PlayerControllerB self)
     {
         InventoryFrames.HandsFull();
     }
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(PlayerControllerB.DamagePlayer))]
-    public static void OnPlayerControllerBDamagePlayer()
+    private static void OnPlayerIsTyping(PlayerControllerB self)
     {
-
-    }
-    [HarmonyPostfix]
-    [HarmonyPatch (nameof(PlayerControllerB.LateUpdate))]
-    public static void OnPlayerIsTyping(PlayerControllerB __instance)
-    {
-        if (__instance.isTypingChat)
+        if (self.isTypingChat)
             ChatController.PlayerTypingIndicator();
         SprintMeter.UpdateSprintMeterColor();
     }

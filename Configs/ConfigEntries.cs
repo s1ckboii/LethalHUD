@@ -3,11 +3,10 @@ using LethalHUD.HUD;
 using LethalHUD.Scan;
 using System;
 using UnityEngine;
-using static LethalHUD.HUD.InventoryGradientEnums;
-using static LethalHUD.Scan.ScanlinesEnums;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.Configs;
-internal class ConfigEntries
+public class ConfigEntries
 {
     public static ConfigFile ConfigFile { get; private set; }
     internal DateTime _lastScanColorChange = DateTime.MinValue;
@@ -53,6 +52,8 @@ internal class ConfigEntries
     public ConfigEntry<string> SprintMeterColorGradient { get; private set; }
     public ConfigEntry<string> SprintMeterColorSolid { get; private set; }
     public ConfigEntry<string> SprintMeterColorShades { get; private set; }
+    public static ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
+    public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
 
     #region Chat ConfigEntries
@@ -100,6 +101,9 @@ internal class ConfigEntries
         SprintMeterColorSolid = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
         SprintMeterColorGradient = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
         SprintMeterColorShades = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorShades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
+        WeightUnitConfig = ConfigHelper.Bind("HealthAndStamina", "WeightUnit", WeightUnit.Pounds, "Select the weight unit.");
+        WeightStarterColor = ConfigHelper.Bind(true, "HealthAndStamina", "WeightColor", "#E55901", "The starting base color for weight display in hex format."
+);
         #endregion
 
         #region Main Changes
@@ -166,6 +170,7 @@ internal class ConfigEntries
         HandsFullColor.SettingChanged += (obj, args) => { };
         #endregion
 
+        #region HealthAndStamina Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>
         {
             PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Solid");
@@ -184,5 +189,7 @@ internal class ConfigEntries
             PlayerPrefs.Save();
             SprintMeter.UpdateSprintMeterColor();
         };
+        WeightUnitConfig.SettingChanged += (obj, args) => { WeightController.UpdateWeightDisplay(); };
+        #endregion
     }
 }

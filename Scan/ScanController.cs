@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace LethalHUD.Scan;
-public static class ScanController
+internal static class ScanController
 {
     private const float ScanDuration = 1.3f;
 
@@ -21,13 +21,13 @@ public static class ScanController
     private static Vignette ScanVignette =>
         ScanVolume?.profile?.components?.OfType<Vignette>().FirstOrDefault();
 
-    public static Bloom ScanBloom =>
+    internal static Bloom ScanBloom =>
         ScanVolume?.profile?.components?.OfType<Bloom>().FirstOrDefault();
 
-    public static float ScanProgress =>
+    private static float ScanProgress =>
         1f / ScanDuration * (HUDManager.Instance.playerPingingScan + 1f);
 
-    public static void SetScanColorAlpha(float alpha)
+    private static void SetScanColorAlpha(float alpha)
     {
         if (ScanRenderer?.material == null) return;
         Color color = ScanRenderer.material.color;
@@ -35,7 +35,7 @@ public static class ScanController
         ScanRenderer.material.color = color;
     }
 
-    public static void SetScanColor(Color? overrideColor = null)
+    internal static void SetScanColor(Color? overrideColor = null)
     {
         Color color = overrideColor ?? ConfigHelper.GetScanColor();
 
@@ -54,7 +54,7 @@ public static class ScanController
             UpdateScanTexture();
         }
     }
-    public static void UpdateScanAlpha()
+    internal static void UpdateScanAlpha()
     {
         float baseAlpha = Plugins.ConfigEntries.Alpha.Value;
         float finalAlpha = baseAlpha;
@@ -67,15 +67,15 @@ public static class ScanController
         SetScanColorAlpha(finalAlpha);
     }
 
-    public static void UpdateVignetteIntensity()
+    internal static void UpdateVignetteIntensity()
     {
         ScanVignette?.intensity.Override(Plugins.ConfigEntries.VignetteIntensity.Value);
     }
 
-    public static void UpdateScanTexture()
+    internal static void UpdateScanTexture()
     {
         if (ScanBloom == null) return;
-        ScanlinesEnums.DirtIntensityHandlerByScanLine();
+        Enums.DirtIntensityHandlerByScanLine();
         Texture2D tex = GetSelectedTexture();
         if (tex == null) return;
         if (Plugins.ConfigEntries.RecolorScanLines.Value)
@@ -112,8 +112,8 @@ public static class ScanController
 
         Plugins.Logger.LogWarning($"Scanline texture '{selected}' missing. Falling back to Default.");
 
-        if (selected != ScanlinesEnums.ScanLines.Default &&
-            Plugins.ScanlineTextures.TryGetValue(ScanlinesEnums.ScanLines.Default, out var fallback) && fallback != null)
+        if (selected != Enums.ScanLines.Default &&
+            Plugins.ScanlineTextures.TryGetValue(Enums.ScanLines.Default, out var fallback) && fallback != null)
             return fallback;
 
         Plugins.Logger.LogError("No scanline textures could be applied.");

@@ -1,27 +1,25 @@
-﻿using HarmonyLib;
+﻿using MonoDetour;
+using MonoDetour.HookGen;
 
 
-namespace LethalHUD.Patches; 
-[HarmonyPatch(typeof(StartOfRound))]
+namespace LethalHUD.Patches;
+[MonoDetourTargets(typeof(StartOfRound), Members = [])]
 internal static class StartOfRoundPatch
 {
+    [MonoDetourHookInitialize]
+    public static void Init()
+    {
 
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(StartOfRound.Start))]
-    public static void OnStartOfRoundStart(StartOfRound __instance)
+    }
+    public static void OnStartOfRoundStart(StartOfRound self)
     {
         // .-.
     }
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(StartOfRound.OnClientConnect))]
-    private static void Postfix_OnClientConnect()
+    private static void Postfix_OnClientConnect(StartOfRound self)
     {
         // ChatController.RefreshPlayerCache();
     }
-
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(StartOfRound.OnClientDisconnect))]
-    private static void Postfix_OnClientDisconnect()
+    private static void Postfix_OnClientDisconnect(StartOfRound self)
     {
         // ChatController.RefreshPlayerCache();
     }

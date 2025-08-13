@@ -6,16 +6,16 @@ using System.Reflection;
 using UnityEngine;
 
 namespace LethalHUD.Configs;
-public static class ConfigHelper
+internal static class ConfigHelper
 {
-    public static void SkipAutoGen()
+    internal static void SkipAutoGen()
     {
         if (LethalConfigProxy.Enabled)
         {
             LethalConfigProxy.SkipAutoGen();
         }
     }
-    public static ConfigEntry<string> Bind(bool isHexColor, string section, string key, string defaultValue, string description, bool requiresRestart = false, AcceptableValueBase acceptableValues = null, Action<string> settingChanged = null, ConfigFile configFile = null)
+    internal static ConfigEntry<string> Bind(bool isHexColor, string section, string key, string defaultValue, string description, bool requiresRestart = false, AcceptableValueBase acceptableValues = null, Action<string> settingChanged = null, ConfigFile configFile = null)
     {
         configFile ??= Plugins.Config;
 
@@ -35,7 +35,7 @@ public static class ConfigHelper
 
         return configEntry;
     }
-    public static ConfigEntry<T> Bind<T>(string section, string key, T defaultValue, string description, bool requiresRestart = false, AcceptableValueBase acceptableValues = null, Action<T> settingChanged = null, ConfigFile configFile = null)
+    internal static ConfigEntry<T> Bind<T>(string section, string key, T defaultValue, string description, bool requiresRestart = false, AcceptableValueBase acceptableValues = null, Action<T> settingChanged = null, ConfigFile configFile = null)
     {
         configFile ??= Plugins.Config;
 
@@ -55,7 +55,7 @@ public static class ConfigHelper
 
         return configEntry;
     }
-    public static Dictionary<ConfigDefinition, string> GetOrphanedConfigEntries(ConfigFile configFile = null)
+    internal static Dictionary<ConfigDefinition, string> GetOrphanedConfigEntries(ConfigFile configFile = null)
     {
         configFile ??= Plugins.Config;
 
@@ -63,7 +63,7 @@ public static class ConfigHelper
         return (Dictionary<ConfigDefinition, string>)orphanedEntriesProp.GetValue(configFile, null);
     }
 
-    public static void SetConfigEntryValue<T>(ConfigEntry<T> configEntry, string value)
+    internal static void SetConfigEntryValue<T>(ConfigEntry<T> configEntry, string value)
     {
         // Check if T is int
         if (typeof(T) == typeof(int) && int.TryParse(value, out int parsedInt))
@@ -86,7 +86,7 @@ public static class ConfigHelper
     }
 
     // Credit to Kittenji. <- Thanks from Zehs and me too.
-    public static void ClearUnusedEntries(ConfigFile configFile = null)
+    internal static void ClearUnusedEntries(ConfigFile configFile = null)
     {
         configFile ??= Plugins.Config;
 
@@ -102,7 +102,7 @@ public static class ConfigHelper
     }
 
 
-    public static Color GetScanColor()
+    internal static Color GetScanColor()
     {
         var cfg = Plugins.ConfigEntries;
 
@@ -113,7 +113,7 @@ public static class ConfigHelper
         return HUDUtils.ParseHexColor(hex);
     }
 
-    public static Color GetSlotColor()
+    internal static Color GetSlotColor()
     {
         var cfg = Plugins.ConfigEntries;
 

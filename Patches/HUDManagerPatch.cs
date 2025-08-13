@@ -1,94 +1,94 @@
-﻿using HarmonyLib;
-using LethalHUD.HUD;
+﻿using LethalHUD.HUD;
 using LethalHUD.Scan;
-using System.Collections.Generic;
-using System.Reflection.Emit;
+using MonoDetour;
+using MonoDetour.Cil;
+using MonoDetour.HookGen;
+using MonoMod.Cil;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
-[HarmonyPatch(typeof(HUDManager))]
+[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisplayNewScrapFound", "Update", "AddChatMessage"])]
 internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
 
-    [HarmonyPrefix]
-    [HarmonyPatch(nameof(HUDManager.PingScan_performed))]
-    public static void OnScanTriggered(CallbackContext context)
+    [MonoDetourHookInitialize]
+    public static void Init()
+    {
+        // Prefix
+        On.HUDManager.PingScan_performed.Prefix(OnScanTriggered);
+
+        // Postfix
+        On.HUDManager.Start.Postfix(OnHUDManagerStart);
+        On.HUDManager.OnEnable.Postfix(OnHUDManagerEnable);
+        On.HUDManager.DisplayNewScrapFound.Postfix(OnHUDManagerDisplayNewScrapFound);
+        On.HUDManager.Update.Postfix(OnHUDManagerUpdate);
+
+        // Transpiler
+        On.HUDManager.AddChatMessage.ILHook(ILHook_AddChatMessage);
+    }
+
+    private static void OnScanTriggered(HUDManager self,ref CallbackContext context)
     {
         pingScan = context;
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(HUDManager.Start))]
-    public static void OnHUDManagerStart()
+    private static void OnHUDManagerStart(HUDManager self)
     {
         ScanController.SetScanColor();
         ScanController.UpdateScanTexture();
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(HUDManager.OnEnable))]
-    public static void OnHUDManagerEnable(HUDManager __instance)
+    private static void OnHUDManagerEnable(HUDManager self)
     {
-        if (__instance.gameObject.GetComponent<LethalHUDMono>() == null)
+        if (self.gameObject.GetComponent<LethalHUDMono>() == null)
         {
-            __instance.gameObject.AddComponent<LethalHUDMono>();
+            self.gameObject.AddComponent<LethalHUDMono>();
         }
-        ChatController.ColorChatInputField(__instance.chatTextField,Time.time * 0.25f);
+        ChatController.ColorChatInputField(self.chatTextField,Time.time * 0.25f);
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(HUDManager.DisplayNewScrapFound))]
-    public static void OnHUDManagerDisplayNewScrapFound()
+    private static void OnHUDManagerDisplayNewScrapFound(HUDManager self)
     {
         InventoryFrames.SetSlotColors();
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(HUDManager.Update))]
-    public static void OnHUDManagerUpdate(HUDManager __instance)
+    private static void OnHUDManagerUpdate(HUDManager self)
     {
         if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
-            __instance.PingScan_performed(pingScan);
+            self.PingScan_performed(pingScan);
 
         ScanController.UpdateScanAlpha();
+        WeightController.UpdateWeightDisplay();
     }
 
-    [HarmonyTranspiler]
-    [HarmonyPatch(nameof(HUDManager.AddChatMessage))]
-    public static IEnumerable<CodeInstruction> AddChatMessage_Transpiler(IEnumerable<CodeInstruction> instructions)
+    private static void ILHook_AddChatMessage(ILManipulationInfo info)
     {
-        var getColoredNameMethod = typeof(ChatController).GetMethod(nameof(ChatController.GetColoredPlayerName));
-        var getDefaultColorTagMethod = typeof(ChatController).GetMethod(nameof(ChatController.GetDefaultChatColorTag));
-        var matcher = new CodeMatcher(instructions);
+        ILWeaver w = new(info);
 
-        // Patch the hardcoded red chat name color
-        while (true)
-        {
-            var foundMatcher = matcher.MatchForward(false, new CodeMatch(OpCodes.Ldarg_2));
-            if (foundMatcher == null || !foundMatcher.IsValid)
-                break;
+        // Patch player name coloring
+        w.MatchMultipleStrict(
+            matchWeaver =>
+            {
+                matchWeaver.InsertAfterCurrent(
+                    matchWeaver.CreateCall(ChatController.GetColoredPlayerName)
+                );
+            },
+            x => x.MatchLdarg(2) && w.SetCurrentTo(x)
+        );
 
-            foundMatcher.Advance(1);
-            foundMatcher.InsertAndAdvance(new CodeInstruction(OpCodes.Call, getColoredNameMethod));
+        // Patch hardcoded blue chat color <color=#7069ff>
+        w.MatchMultipleStrict(
+            matchWeaver =>
+            {
+                matchWeaver.Remove(matchWeaver.Current, out _);
 
-            matcher = foundMatcher;
-        }
-        matcher = new CodeMatcher(matcher.InstructionEnumeration());
-
-        // Patch the hardcoded blue chat color <color=#7069ff>
-        while (true)
-        {
-            var foundMatcher = matcher.MatchForward(false, new CodeMatch(OpCodes.Ldstr, "<color=#7069ff>"));
-            if (foundMatcher == null || !foundMatcher.IsValid)
-                break;
-
-            foundMatcher.SetInstruction(new CodeInstruction(OpCodes.Call, getDefaultColorTagMethod));
-
-            matcher = foundMatcher;
-        }
-
-        return matcher.InstructionEnumeration();
+                matchWeaver.InsertAfterCurrent(
+                    matchWeaver.CreateCall(ChatController.GetDefaultChatColorTag)
+                );
+            },
+            x => x.MatchLdstr("<color=#7069ff>") && w.SetCurrentTo(x)
+        );
     }
 }

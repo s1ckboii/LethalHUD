@@ -2,10 +2,10 @@
 using UnityEngine;
 
 namespace LethalHUD.HUD;
-public static class SprintMeter
+internal static class SprintMeter
 {
-    public const string PlayerPrefsKey = "SprintMeterLastMode";
-    public static void UpdateSprintMeterColor()
+    internal const string PlayerPrefsKey = "SprintMeterLastMode";
+    internal static void UpdateSprintMeterColor()
     {
         var player = StartOfRound.Instance?.localPlayerController;
         if (player?.sprintMeterUI == null)

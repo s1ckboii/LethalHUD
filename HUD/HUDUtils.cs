@@ -1,12 +1,13 @@
-﻿using TMPro;
+﻿using LethalHUD.Configs;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace LethalHUD.HUD;
 internal static class HUDUtils
 {
-    #region
-    public static Color ParseHexColor(string hex)
+    #region Basic Helpers
+    internal static Color ParseHexColor(string hex)
     {
         if (ColorUtility.TryParseHtmlString(hex, out Color color))
         {
@@ -16,7 +17,7 @@ internal static class HUDUtils
         Plugins.Logger.LogWarning($"Invalid HEX color: {hex}. Defaulting to original blue.");
         return new Color(0f, 0.047f, 1f);
     }
-    public static bool HasCustomGradient(string a, string b)
+    internal static bool HasCustomGradient(string a, string b)
     {
         return !string.IsNullOrWhiteSpace(a)
             && !string.IsNullOrWhiteSpace(b)
@@ -25,7 +26,7 @@ internal static class HUDUtils
     #endregion
 
     #region ChatController Helpers
-    public static string ApplyStaticGradient(string input, Color startColor, Color endColor, float minBrightness = 0.15f)
+    internal static string ApplyStaticGradient(string input, Color startColor, Color endColor, float minBrightness = 0.15f)
     {
         string result = "";
         int len = input.Length;
@@ -48,7 +49,7 @@ internal static class HUDUtils
 
         return result;
     }
-    public static void ApplyVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, float waveFrequency = 1.5f)
+    internal static void ApplyVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, float waveFrequency = 1.5f)
     {
         if (tmpText == null)
             return;
@@ -59,13 +60,13 @@ internal static class HUDUtils
         Color leftColor = Color.Lerp(startColor, endColor, leftWave);
         Color rightColor = Color.Lerp(startColor, endColor, rightWave);
 
-        VertexGradient vertexGradient = new VertexGradient(leftColor, leftColor, rightColor, rightColor);
+        VertexGradient vertexGradient = new(leftColor, leftColor, rightColor, rightColor);
 
         tmpText.colorGradient = vertexGradient;
         tmpText.ForceMeshUpdate();
     }
 
-    public static void ApplyRainbowGradient(TextMeshProUGUI tmpText, float time)
+    internal static void ApplyRainbowGradient(TextMeshProUGUI tmpText, float time)
     {
         if (tmpText == null)
             return;
@@ -78,7 +79,7 @@ internal static class HUDUtils
         Color bottomLeft = Color.HSVToRGB((hueShift + 0.66f) % 1f, 1f, 1f);
         Color bottomRight = Color.HSVToRGB((hueShift + 0.99f) % 1f, 1f, 1f);
 
-        tmpText.colorGradient = new VertexGradient(topLeft, topRight, bottomLeft, bottomRight);
+        tmpText.colorGradient = new(topLeft, topRight, bottomLeft, bottomRight);
         tmpText.ForceMeshUpdate();
     }
     #endregion
@@ -86,7 +87,7 @@ internal static class HUDUtils
     private static RawImage CompassImage => CompassController.CompassImage;
     private static float _rainbowTime = 0f;
     private static float _gradientWaveTime = 0f;
-    public static void ApplyCompassRainbow()
+    internal static void ApplyCompassRainbow()
     {
         if (CompassImage == null) return;
 
@@ -97,7 +98,7 @@ internal static class HUDUtils
         rainbowColor.a = CompassImage.color.a;
         CompassImage.color = rainbowColor;
     }
-    public static void ApplyCompassWavyGradient(Color startColor, Color endColor)
+    internal static void ApplyCompassWavyGradient(Color startColor, Color endColor)
     {
         if (CompassImage == null) return;
 
@@ -110,7 +111,7 @@ internal static class HUDUtils
     }
     #endregion
     #region InventoryFrames Helpers
-    public static void ApplyRainbow(Image[] frames)
+    internal static void ApplyRainbow(Image[] frames)
     {
         int count = frames.Length;
         float hueShift = Time.time * 0.15f;
@@ -125,7 +126,7 @@ internal static class HUDUtils
         }
     }
 
-    public static void ApplyWavyGradient(Image[] frames, Color startColor, Color endColor, float speed = 0.15f, float waveFrequency = 2f)
+    internal static void ApplyWavyGradient(Image[] frames, Color startColor, Color endColor, float speed = 0.15f, float waveFrequency = 2f)
     {
         if (frames == null || frames.Length == 0)
             return;
@@ -144,7 +145,7 @@ internal static class HUDUtils
     }
     #endregion
     #region SprintMeter Helpers
-    public static Color GetGradientColor(Color baseColor, float fillAmount)
+    internal static Color GetGradientColor(Color baseColor, float fillAmount)
     {
         Color.RGBToHSV(baseColor, out float h, out float s, out float v);
 
@@ -154,7 +155,7 @@ internal static class HUDUtils
 
         return Color.HSVToRGB(newH, s, v);
     }
-    public static Color GetShadeColor(Color baseColor, float fillAmount)
+    internal static Color GetShadeColor(Color baseColor, float fillAmount)
     {
         Color.RGBToHSV(baseColor, out float h, out float s, out float v);
 
@@ -185,6 +186,26 @@ internal static class HUDUtils
         {
             v = Mathf.Lerp(0.5f, v, fillAmount);
             return Color.HSVToRGB(h, s, v);
+        }
+    }
+    #endregion
+    #region Weight Helper
+    internal static Color GetWeightColor(float normalizedWeight)
+    {
+        ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.WeightStarterColor.Value, out Color starter);
+
+        Color brightRed = new(1f, 0f, 0f);
+        Color darkRed = new(0.5f, 0f, 0f);
+
+        if (normalizedWeight <= 0.5f)
+        {
+            float t = normalizedWeight / 0.5f;
+            return Color.Lerp(starter, brightRed, t);
+        }
+        else
+        {
+            float t = (normalizedWeight - 0.5f) / 0.5f;
+            return Color.Lerp(brightRed, darkRed, t);
         }
     }
     #endregion

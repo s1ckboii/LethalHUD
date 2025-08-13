@@ -3,11 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace LethalHUD.HUD;
-public static class CompassController
+internal static class CompassController
 {
     internal static RawImage CompassImage => HUDManager.Instance?.compassImage;
 
-    public static void SetCompassColor(Color? overrideColor = null)
+    internal static void SetCompassColor(Color? overrideColor = null)
     {
         if (CompassImage == null)
             return;
@@ -18,7 +18,7 @@ public static class CompassController
 
         CompassImage.color = color;
     }
-    public static void SetCompassWavyGradient()
+    internal static void SetCompassWavyGradient()
     {
             HUDUtils.ApplyCompassWavyGradient(InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor);
     }

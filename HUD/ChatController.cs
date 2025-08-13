@@ -2,12 +2,12 @@
 using System;
 using TMPro;
 using UnityEngine;
-using static LethalHUD.HUD.InventoryGradientEnums;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
-public static class ChatController
+internal static class ChatController
 {
-    public static string GetColoredPlayerName(string playerName)
+    internal static string GetColoredPlayerName(string playerName)
     {
         if (!Plugins.ConfigEntries.ColoredNames.Value || string.IsNullOrEmpty(playerName))
             return playerName;
@@ -30,14 +30,14 @@ public static class ChatController
             return $"<color={solidColor}>{playerName}</color>";
         }
     }
-    public static string GetDefaultChatColorTag()
+    internal static string GetDefaultChatColorTag()
     {
         Color color = ConfigHelper.GetSlotColor();
         string hex = ColorUtility.ToHtmlStringRGB(color);
         return $"<color=#{hex}>";
     }
 
-    public static void PlayerTypingIndicator()
+    internal static void PlayerTypingIndicator()
     {
         var indicator = HUDManager.Instance.typingIndicator;
         indicator.enableVertexGradient = true;
@@ -71,7 +71,7 @@ public static class ChatController
         }
     }
 
-    public static void ColorChatInputField(TMP_InputField inputField, float time)
+    internal static void ColorChatInputField(TMP_InputField inputField, float time)
     {
         Color targetColor;
 

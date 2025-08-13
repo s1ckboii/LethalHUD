@@ -6,12 +6,12 @@ using UnityEngine;
 namespace LethalHUD.Configs;
 internal static class ConfigUtils
 {
-    public static string GetPluginPersistentDataPath()
+    private static string GetPluginPersistentDataPath()
     {
         return Path.Combine(Application.persistentDataPath, MyPluginInfo.PLUGIN_NAME);
     }
 
-    public static ConfigFile CreateConfigFile(BaseUnityPlugin plugin, string path, string name = null, bool saveOnInit = false)
+    private static ConfigFile CreateConfigFile(BaseUnityPlugin plugin, string path, string name = null, bool saveOnInit = false)
     {
         BepInPlugin metadata = MetadataHelper.GetMetadata(plugin);
         name ??= metadata.GUID;
@@ -19,12 +19,12 @@ internal static class ConfigUtils
         return new ConfigFile(Path.Combine(path, name), saveOnInit, metadata);
     }
 
-    public static ConfigFile CreateLocalConfigFile(BaseUnityPlugin plugin, string name = null, bool saveOnInit = false)
+    private static ConfigFile CreateLocalConfigFile(BaseUnityPlugin plugin, string name = null, bool saveOnInit = false)
     {
         return CreateConfigFile(plugin, Paths.ConfigPath, name, saveOnInit);
     }
 
-    public static ConfigFile CreateGlobalConfigFile(BaseUnityPlugin plugin, string name = null, bool saveOnInit = false)
+    internal static ConfigFile CreateGlobalConfigFile(BaseUnityPlugin plugin, string name = null, bool saveOnInit = false)
     {
         string path = GetPluginPersistentDataPath();
         name ??= "global";
