@@ -20,7 +20,6 @@ public static class Enums
         Default,
         Circles,
         Hexagons,
-        Circlegons,
         Circuit,
         Noisy,
         Scifi

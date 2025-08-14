@@ -39,14 +39,16 @@ internal static class WeightController
 
         if (!float.TryParse(parts[0], out float weightNum)) return;
 
-        string unit = parts[1].ToLower();
+        string unit = parts[1].Split('\n')[0].ToLower().Trim();
 
-        float normalizedWeight = unit switch
+        float maxWeight = unit switch
         {
-            "manuls" => Mathf.Clamp01(weightNum / (130f / 9.9f)),
-            "kg" => Mathf.Clamp01(weightNum / (130f * 0.453592f)),
-            _ => Mathf.Clamp01(weightNum / 130f)
+            "manuls" => 130f / 9.9f,
+            "kg" => 130f * 0.453592f,
+            _ => 130f
         };
+
+        float normalizedWeight = Mathf.Clamp01(weightNum / maxWeight);
 
         Color color = HUDUtils.GetWeightColor(normalizedWeight);
         hud.weightCounter.color = color;

@@ -12,29 +12,21 @@ internal static class ChatController
         if (!Plugins.ConfigEntries.ColoredNames.Value || string.IsNullOrEmpty(playerName))
             return playerName;
 
-        string gradientA = Plugins.ConfigEntries.GradientNameColorA.Value;
-        string gradientB = Plugins.ConfigEntries.GradientNameColorB.Value;
-        string solidColor = Plugins.ConfigEntries.LocalNameColor.Value;
-
-        bool useGradient = !(gradientA.Equals("#FF0000", StringComparison.OrdinalIgnoreCase) &&
-                             gradientB.Equals("#FF0000", StringComparison.OrdinalIgnoreCase));
-
-        if (useGradient)
+        if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value))
         {
-            ColorUtility.TryParseHtmlString(gradientA, out Color colorA);
-            ColorUtility.TryParseHtmlString(gradientB, out Color colorB);
+            ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorA.Value, out Color colorA);
+            ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorB.Value, out Color colorB);
             return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
         }
         else
         {
-            return $"<color={solidColor}>{playerName}</color>";
+            return $"<color={Plugins.ConfigEntries.LocalNameColor.Value}>{playerName}</color>";
         }
     }
     internal static string GetDefaultChatColorTag()
     {
-        Color color = ConfigHelper.GetSlotColor();
-        string hex = ColorUtility.ToHtmlStringRGB(color);
-        return $"<color=#{hex}>";
+            return $"<color={Plugins.ConfigEntries.LocalNameColor.Value}></color>";
+
     }
 
     internal static void PlayerTypingIndicator()

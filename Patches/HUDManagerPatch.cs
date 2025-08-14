@@ -1,4 +1,5 @@
 ﻿using LethalHUD.HUD;
+using LethalHUD.Misc;
 using LethalHUD.Scan;
 using MonoDetour;
 using MonoDetour.Cil;
@@ -46,6 +47,10 @@ internal static class HUDManagerPatch
         {
             self.gameObject.AddComponent<LethalHUDMono>();
         }
+        if (self.gameObject.GetComponent<FPSAndPingCounter>() == null)
+        {
+            self.gameObject.AddComponent<FPSAndPingCounter>();
+        }
         ChatController.ColorChatInputField(self.chatTextField,Time.time * 0.25f);
     }
 
@@ -69,12 +74,7 @@ internal static class HUDManagerPatch
 
         // Patch player name coloring
         w.MatchMultipleStrict(
-            matchWeaver =>
-            {
-                matchWeaver.InsertAfterCurrent(
-                    matchWeaver.CreateCall(ChatController.GetColoredPlayerName)
-                );
-            },
+            matchWeaver => { matchWeaver.InsertAfterCurrent(matchWeaver.CreateCall(ChatController.GetColoredPlayerName)); },
             x => x.MatchLdarg(2) && w.SetCurrentTo(x)
         );
 
@@ -83,10 +83,7 @@ internal static class HUDManagerPatch
             matchWeaver =>
             {
                 matchWeaver.Remove(matchWeaver.Current, out _);
-
-                matchWeaver.InsertAfterCurrent(
-                    matchWeaver.CreateCall(ChatController.GetDefaultChatColorTag)
-                );
+                matchWeaver.InsertAfterCurrent(matchWeaver.CreateCall(ChatController.GetDefaultChatColorTag));
             },
             x => x.MatchLdstr("<color=#7069ff>") && w.SetCurrentTo(x)
         );

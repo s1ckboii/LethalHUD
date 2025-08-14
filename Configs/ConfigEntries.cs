@@ -32,14 +32,11 @@ public class ConfigEntries
     public ConfigEntry<bool> FadeOut { get; private set; }
     public ConfigEntry<bool> RecolorScanLines { get; private set; }
     public ConfigEntry<float> Alpha { get; private set; }
-
     public ConfigEntry<float> DirtIntensity { get; private set; }
-
     public ConfigEntry<string> ScanColor { get; private set; }
     public ConfigEntry<float> VignetteIntensity { get; private set; }
     public ConfigEntry<ScanLines> SelectedScanlineMode { get; private set; }
     #endregion
-
     #region InventorySlot ConfigEntries
     public ConfigEntry<string> SlotColor { get; private set; }
     public ConfigEntry<SlotEnums> SlotRainbowColor { get; private set; }
@@ -47,20 +44,24 @@ public class ConfigEntries
     public ConfigEntry<string> GradientColorB { get; private set; }
     public ConfigEntry<string> HandsFullColor { get; private set; }
     #endregion
-
-    #region HealthAndStamina ConfigEntries
+    #region HSW ConfigEntries
     public ConfigEntry<string> SprintMeterColorGradient { get; private set; }
     public ConfigEntry<string> SprintMeterColorSolid { get; private set; }
     public ConfigEntry<string> SprintMeterColorShades { get; private set; }
     public static ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
-
     #region Chat ConfigEntries
     public ConfigEntry<bool> ColoredNames { get; private set; }
     public ConfigEntry<string> LocalNameColor { get; private set; }
     public ConfigEntry<string> GradientNameColorA { get; private set; }
     public ConfigEntry<string> GradientNameColorB { get; private set; }
+    #endregion
+    #region Misc ConfigEntries
+    public static ConfigEntry<bool> ShowFPSCounter { get; private set; }
+    public static ConfigEntry<float> FPSCounterX { get; private set; }
+    public static ConfigEntry<float> FPSCounterY { get; private set; }
+    public static ConfigEntry<bool> ShowPingCounter { get; private set; }
     #endregion
     public void Setup()
     {
@@ -69,7 +70,6 @@ public class ConfigEntries
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "MainColor", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way.");
         #endregion
-
 
         #region Scan Binds
         HoldScan = ConfigHelper.Bind("Scan", "Hold Scan Button", false, "Allows you to keep holding scan button.");
@@ -81,7 +81,6 @@ public class ConfigEntries
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
         VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false,new AcceptableValueRange<float>(0f, 1f));
         #endregion
-
         #region InventorySlot Binds
         SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors.");
         SlotRainbowColor = ConfigHelper.Bind("Inventory", "RainbowFrames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
@@ -89,21 +88,24 @@ public class ConfigEntries
         GradientColorB = ConfigHelper.Bind(true, "Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
         HandsFullColor = ConfigHelper.Bind(true, "Inventory", "HandsFullColor", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
         #endregion
-
         #region Chat Binds
         ColoredNames = ConfigHelper.Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
         LocalNameColor = ConfigHelper.Bind(true, "Chat", "LocalNameColor", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
         GradientNameColorA = ConfigHelper.Bind(true, "Chat", "GradientNameColorA", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "GradientNameColorB", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
         #endregion
-
-        #region HealthAndStamina Binds
-        SprintMeterColorSolid = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
-        SprintMeterColorGradient = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
-        SprintMeterColorShades = ConfigHelper.Bind(true, "HealthAndStamina", "SprintMeterColorShades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
-        WeightUnitConfig = ConfigHelper.Bind("HealthAndStamina", "WeightUnit", WeightUnit.Pounds, "Select the weight unit.");
-        WeightStarterColor = ConfigHelper.Bind(true, "HealthAndStamina", "WeightColor", "#E55901", "The starting base color for weight display in hex format."
-);
+        #region HSW Binds
+        SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
+        SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
+        SprintMeterColorShades = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorShades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
+        WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "WeightUnit", WeightUnit.Pounds, "Select the weight unit.");
+        WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
+        #endregion
+        #region Misc Binds
+        ShowFPSCounter = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
+        ShowPingCounter = ConfigHelper.Bind("Misc", "ShowPingCounter", false, "Display the current network ping (ms) on the HUD.");
+        FPSCounterX = ConfigHelper.Bind("Misc", "FPSCounterX", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 2000f));
+        FPSCounterY = ConfigHelper.Bind("Misc", "FPSCounterY", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 1200f));
         #endregion
 
         #region Main Changes
@@ -150,7 +152,6 @@ public class ConfigEntries
         VignetteIntensity.SettingChanged += (obj, args) => { ScanController.UpdateVignetteIntensity(); };
         RecolorScanLines.SettingChanged += (obj, args) => { ScanController.UpdateScanTexture(); };
         #endregion
-
         #region Inventory Changes
         SlotColor.SettingChanged += (obj, args) =>
         {
@@ -161,7 +162,6 @@ public class ConfigEntries
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         #endregion
-
         #region Chat Changes
         ColoredNames.SettingChanged += (obj, args) => { };
         LocalNameColor.SettingChanged += (obj, args) => { };
@@ -170,7 +170,7 @@ public class ConfigEntries
         HandsFullColor.SettingChanged += (obj, args) => { };
         #endregion
 
-        #region HealthAndStamina Changes
+        #region HSW Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>
         {
             PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Solid");
