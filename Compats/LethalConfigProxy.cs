@@ -1,5 +1,4 @@
-﻿using BepInEx.Bootstrap;
-using BepInEx.Configuration;
+﻿using BepInEx.Configuration;
 using HarmonyLib;
 using LethalConfig;
 using LethalConfig.ConfigItems;
