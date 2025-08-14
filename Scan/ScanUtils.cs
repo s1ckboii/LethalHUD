@@ -18,6 +18,6 @@ public class ScanUtils
             var intensityDiff = colorIntensity == 0f ? 0f : (pixelIntensity / colorIntensity);
             pixels[i] = new Color(color.r * intensityDiff, color.g * intensityDiff, color.b * intensityDiff);
         }
-        texture.SetPixels(pixels.ToArray());
+        texture.SetPixels([.. pixels]);
     }
 }

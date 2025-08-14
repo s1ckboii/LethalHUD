@@ -1,15 +1,17 @@
-﻿using LethalHUD.HUD;
+﻿using GameNetcodeStuff;
+using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using MonoDetour;
 using MonoDetour.Cil;
 using MonoDetour.HookGen;
 using MonoMod.Cil;
+using System;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisplayNewScrapFound", "Update", "AddChatMessage"])]
+[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisplayNewScrapFound", "Update", "UpdateScanNodes", "AddChatMessage"])]
 internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
@@ -25,6 +27,7 @@ internal static class HUDManagerPatch
         On.HUDManager.OnEnable.Postfix(OnHUDManagerEnable);
         On.HUDManager.DisplayNewScrapFound.Postfix(OnHUDManagerDisplayNewScrapFound);
         On.HUDManager.Update.Postfix(OnHUDManagerUpdate);
+        On.HUDManager.UpdateScanNodes.Postfix(OnHUDManagerUpdateScanNodes);
 
         // Transpiler
         On.HUDManager.AddChatMessage.ILHook(ILHook_AddChatMessage);
@@ -68,6 +71,11 @@ internal static class HUDManagerPatch
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.UpdateWeightDisplay();
     }
+    private static void OnHUDManagerUpdateScanNodes(HUDManager self, ref PlayerControllerB playerScript)
+    {
+        Scannodes.UpdateTimers(self.scanElements, self.scanNodes);
+    }
+
 
     private static void ILHook_AddChatMessage(ILManipulationInfo info)
     {

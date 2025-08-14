@@ -16,7 +16,7 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.GrabObject.Prefix(OnPlayerControllerBBeginGrabObject);
 
         // Postfix
-        On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerIsTyping);
+        On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerLateUpdate);
         //On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
     }
 
@@ -24,7 +24,7 @@ internal static class PlayerControllerBPatch
     {
         InventoryFrames.HandsFull();
     }
-    private static void OnPlayerIsTyping(PlayerControllerB self)
+    private static void OnPlayerLateUpdate(PlayerControllerB self)
     {
         if (self.isTypingChat)
             ChatController.PlayerTypingIndicator();

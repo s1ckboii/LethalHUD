@@ -1,5 +1,4 @@
 ﻿using LethalHUD.Configs;
-using System;
 using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;

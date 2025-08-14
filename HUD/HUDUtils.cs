@@ -1,5 +1,4 @@
-﻿using LethalHUD.Configs;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 

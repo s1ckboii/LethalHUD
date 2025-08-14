@@ -1,5 +1,4 @@
-﻿
-using LethalHUD.Configs;
+﻿using LethalHUD.Configs;
 using UnityEngine;
 using static LethalHUD.Enums;
 
@@ -115,4 +114,3 @@ internal static class WeightController
         }
     }
 }
-

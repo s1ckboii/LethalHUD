@@ -7,8 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace LethalHUD.Compats;
-
-internal static class LethalConfigProxy
+internal static class LethalConfigProxy // Credits to Zehs for the whole class and helping me with setting things up for globalconfigs
 {
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     public static void SkipAutoGen() => LethalConfigManager.SkipAutoGen();
