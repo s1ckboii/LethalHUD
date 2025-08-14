@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using LethalHUD.Compats;
 using LethalHUD.Configs;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +10,8 @@ using static LethalHUD.Enums;
 
 namespace LethalHUD;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-[BepInDependency(LethalConfigProxy.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.LethalConfig_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.NiceChat_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];

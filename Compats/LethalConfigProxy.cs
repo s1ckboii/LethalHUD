@@ -7,22 +7,10 @@ using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace LethalHUD;
+namespace LethalHUD.Compats;
 
 internal static class LethalConfigProxy
 {
-    public const string PLUGIN_GUID = "ainavt.lc.lethalconfig";
-    public static bool Enabled
-    {
-        get
-        {
-            _enabled ??= Chainloader.PluginInfos.ContainsKey(PLUGIN_GUID);
-            return _enabled.Value;
-        }
-    }
-
-    private static bool? _enabled;
-
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     public static void SkipAutoGen() => LethalConfigManager.SkipAutoGen();
 

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using LethalHUD.Compats;
 using LethalHUD.HUD;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ internal static class ConfigHelper
 {
     internal static void SkipAutoGen()
     {
-        if (LethalConfigProxy.Enabled)
+        if (ModCompats.IsLethalConfigPresent)
         {
             LethalConfigProxy.SkipAutoGen();
         }
@@ -28,7 +29,7 @@ internal static class ConfigHelper
             configEntry.SettingChanged += (sender, e) => settingChanged?.Invoke(configEntry.Value);
         }
 
-        if (LethalConfigProxy.Enabled)
+        if (ModCompats.IsLethalConfigPresent)
         {
             LethalConfigProxy.AddConfig(configEntry, requiresRestart, isHexColor);
         }
@@ -48,7 +49,7 @@ internal static class ConfigHelper
             configEntry.SettingChanged += (sender, e) => settingChanged?.Invoke(configEntry.Value);
         }
 
-        if (LethalConfigProxy.Enabled)
+        if (ModCompats.IsLethalConfigPresent)
         {
             LethalConfigProxy.AddConfig(configEntry, requiresRestart);
         }

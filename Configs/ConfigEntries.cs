@@ -45,9 +45,11 @@ public class ConfigEntries
     public ConfigEntry<string> HandsFullColor { get; private set; }
     #endregion
     #region HSW ConfigEntries
+    public ConfigEntry<bool> SprintMeterBoolean { get; private set; }
     public ConfigEntry<string> SprintMeterColorGradient { get; private set; }
     public ConfigEntry<string> SprintMeterColorSolid { get; private set; }
     public ConfigEntry<string> SprintMeterColorShades { get; private set; }
+    public ConfigEntry<bool> WeightCounterBoolean { get; private set; }
     public static ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
@@ -95,9 +97,11 @@ public class ConfigEntries
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "GradientNameColorB", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
         #endregion
         #region HSW Binds
+        SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "SprintMeterConfiguration", false, "Enable color configs for sprintmeter.");
         SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
         SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
         SprintMeterColorShades = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorShades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
+        WeightCounterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "WeightCounterConfiguration", false, "Enable configs for weightcounter.");
         WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "WeightUnit", WeightUnit.Pounds, "Select the weight unit.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
         #endregion
@@ -173,23 +177,37 @@ public class ConfigEntries
         #region HSW Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>
         {
-            PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Solid");
-            PlayerPrefs.Save();
-            SprintMeter.UpdateSprintMeterColor();
+            if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
+            {
+                PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Solid");
+                PlayerPrefs.Save();
+                SprintMeter.UpdateSprintMeterColor();
+            }
+
         };
         SprintMeterColorGradient.SettingChanged += (obj, args) =>
         {
-            PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Gradient");
-            PlayerPrefs.Save();
-            SprintMeter.UpdateSprintMeterColor();
+            if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
+            {
+                PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Gradient");
+                PlayerPrefs.Save();
+                SprintMeter.UpdateSprintMeterColor();
+            }
         };
         SprintMeterColorShades.SettingChanged += (obj, args) =>
         {
-            PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Shades");
-            PlayerPrefs.Save();
-            SprintMeter.UpdateSprintMeterColor();
+            if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
+            {
+                PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Shades");
+                PlayerPrefs.Save();
+                SprintMeter.UpdateSprintMeterColor();
+            }
         };
-        WeightUnitConfig.SettingChanged += (obj, args) => { WeightController.UpdateWeightDisplay(); };
+        WeightUnitConfig.SettingChanged += (obj, args) =>
+        {
+            if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
+                WeightController.UpdateWeightDisplay();
+        };
         #endregion
     }
 }

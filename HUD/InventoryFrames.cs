@@ -1,4 +1,5 @@
-﻿using LethalHUD.Configs;
+﻿using LethalHUD.Compats;
+using LethalHUD.Configs;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.Enums;
@@ -18,19 +19,37 @@ internal static class InventoryFrames
             return;
         
         Image[] frames = HUDManager.Instance.itemSlotIconFrames;
-        
-        GameObject bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner");
-        Transform imageTransform = bottomLeftCorner.transform.Find("Image");
-        Image chatFrame = imageTransform.GetComponent<Image>();
+        if (ModCompats.IsNiceChatPresent)
+        {
+            GameObject bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner/taffyko.NiceChat.ChatContainer");
+            Transform imageTransform = bottomLeftCorner.transform.Find("Image");
+            Image chatFrame = imageTransform.GetComponent<Image>();
 
-        Image[] combined = new Image[frames.Length + 1];
+            Image[] combined = new Image[frames.Length + 1];
 
-        for (int i = 0; i < frames.Length; i++)
-            combined[i] = frames[i];
+            for (int i = 0; i < frames.Length; i++)
+                combined[i] = frames[i];
 
-        combined[frames.Length] = chatFrame;
+            combined[frames.Length] = chatFrame;
 
-        allFrames = combined;
+            allFrames = combined;
+        }
+        else
+        {
+            GameObject bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner");
+            Transform imageTransform = bottomLeftCorner.transform.Find("Image");
+            Image chatFrame = imageTransform.GetComponent<Image>();
+
+            Image[] combined = new Image[frames.Length + 1];
+
+            for (int i = 0; i < frames.Length; i++)
+                combined[i] = frames[i];
+
+            combined[frames.Length] = chatFrame;
+
+            allFrames = combined;
+        }
+
 
 
         if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientColorA.Value, Plugins.ConfigEntries.GradientColorB.Value))

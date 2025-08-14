@@ -65,7 +65,8 @@ internal static class HUDManagerPatch
             self.PingScan_performed(pingScan);
 
         ScanController.UpdateScanAlpha();
-        WeightController.UpdateWeightDisplay();
+        if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
+            WeightController.UpdateWeightDisplay();
     }
 
     private static void ILHook_AddChatMessage(ILManipulationInfo info)

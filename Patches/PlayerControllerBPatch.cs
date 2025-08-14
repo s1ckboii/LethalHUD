@@ -2,6 +2,7 @@
 using LethalHUD.HUD;
 using MonoDetour;
 using MonoDetour.HookGen;
+using System;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
@@ -19,11 +20,6 @@ internal static class PlayerControllerBPatch
         //On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
     }
 
-    private static void OnPlayerControllerBDamagePlayer(PlayerControllerB self, ref int damageNumber, ref bool hasDamageSFX, ref bool callRPC, ref CauseOfDeath causeOfDeath, ref int deathAnimation, ref bool fallDamage, ref Vector3 force)
-    {
-
-    }
-
     private static void OnPlayerControllerBBeginGrabObject(PlayerControllerB self)
     {
         InventoryFrames.HandsFull();
@@ -32,6 +28,7 @@ internal static class PlayerControllerBPatch
     {
         if (self.isTypingChat)
             ChatController.PlayerTypingIndicator();
-        SprintMeter.UpdateSprintMeterColor();
+        if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
+            SprintMeter.UpdateSprintMeterColor();
     }
 }

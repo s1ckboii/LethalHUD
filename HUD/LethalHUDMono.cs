@@ -7,6 +7,7 @@ internal class LethalHUDMono : MonoBehaviour
     {
         InventoryFrames.SetSlotColors();
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
-        WeightController.RecolorWeightText();
+        if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
+            WeightController.RecolorWeightText();
     }
 }
