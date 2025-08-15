@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using LethalHUD.Compats;
+using LethalHUD.Scan;
+using UnityEngine;
 
 namespace LethalHUD.HUD;
 internal class LethalHUDMono : MonoBehaviour
@@ -9,5 +11,7 @@ internal class LethalHUDMono : MonoBehaviour
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.RecolorWeightText();
+        if (ModCompats.IsGoodItemScanPresent)
+            ScanNodeController.UpdateGoodItemScanNodes();
     }
 }

@@ -6,7 +6,6 @@ using MonoDetour;
 using MonoDetour.Cil;
 using MonoDetour.HookGen;
 using MonoMod.Cil;
-using System;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -73,7 +72,7 @@ internal static class HUDManagerPatch
     }
     private static void OnHUDManagerUpdateScanNodes(HUDManager self, ref PlayerControllerB playerScript)
     {
-        Scannodes.UpdateTimers(self.scanElements, self.scanNodes);
+        ScanNodeController.UpdateTimers(self.scanElements, self.scanNodes);
     }
 
 

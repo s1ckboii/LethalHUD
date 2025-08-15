@@ -2,8 +2,6 @@
 using LethalHUD.HUD;
 using MonoDetour;
 using MonoDetour.HookGen;
-using System;
-using UnityEngine;
 
 namespace LethalHUD.Patches;
 [MonoDetourTargets(typeof(PlayerControllerB), Members = ["GrabObject", "LateUpdate"])]

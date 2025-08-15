@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -30,6 +30,7 @@
       https://api.nuget.org/v3/index.json;
       https://nuget.bepinex.dev/v3/index.json;
       https://nuget.samboy.dev/v3/index.json;
+      https://nuget.windows10ce.com/nuget/v3/index.json
     </RestoreAdditionalProjectSources>
   </PropertyGroup>
 
@@ -53,8 +54,8 @@
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" PrivateAssets="all" />
     <PackageReference Include="MonoDetour" Version="0.6.*" PrivateAssets="all" />
     <PackageReference Include="MonoDetour.HookGen" Version="0.6.*" />
+    <PackageReference Include="TestAccount666-GoodItemScan" Version="1.14.0" PrivateAssets="all" Publicize="true" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="LethalConfig">
       <HintPath>..\..\Gale\lethal-company\profiles\dev\BepInEx\plugins\AinaVT-LethalConfig\LethalConfig\LethalConfig.dll</HintPath>

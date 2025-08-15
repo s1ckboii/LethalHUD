@@ -43,6 +43,10 @@ public class ConfigEntries
     public ConfigEntry<string> GradientColorA { get; private set; }
     public ConfigEntry<string> GradientColorB { get; private set; }
     public ConfigEntry<string> HandsFullColor { get; private set; }
+    #region ScanNode ConfigEntries
+    internal static ConfigEntry<float> ScanNodeLifetime { get; private set; }
+    internal static ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
+    #endregion
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> SprintMeterBoolean { get; private set; }
@@ -81,7 +85,11 @@ public class ConfigEntries
         DirtIntensity = ConfigHelper.Bind("Scan", "Scanline Intensity", 0f, "Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", false, new AcceptableValueRange<float>(-500f, 500f));
         ScanColor = ConfigHelper.Bind(true, "Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format.");
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
-        VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false,new AcceptableValueRange<float>(0f, 1f));
+        VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false, new AcceptableValueRange<float>(0f, 1f));
+        #endregion
+        #region ScanNode Binds
+        ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 5f));
+        ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "FadeDuration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
         #endregion
         #region InventorySlot Binds
         SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors.");
@@ -155,6 +163,10 @@ public class ConfigEntries
         FadeOut.SettingChanged += (obj, args) => { ScanController.UpdateScanAlpha(); };
         VignetteIntensity.SettingChanged += (obj, args) => { ScanController.UpdateVignetteIntensity(); };
         RecolorScanLines.SettingChanged += (obj, args) => { ScanController.UpdateScanTexture(); };
+        #endregion
+        #region ScanNode Changes
+        ScanNodeLifetime.SettingChanged += (obj, args) => { ScanNodeController.lifetime = ScanNodeLifetime.Value; };
+        ScanNodeFadeDuration.SettingChanged += (obj, args) => { ScanNodeController.fadeDuration = ScanNodeFadeDuration.Value; };
         #endregion
         #region Inventory Changes
         SlotColor.SettingChanged += (obj, args) =>

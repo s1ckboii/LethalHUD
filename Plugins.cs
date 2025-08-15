@@ -12,7 +12,7 @@ namespace LethalHUD;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency(ModCompats.LethalConfig_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(ModCompats.NiceChat_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-[BepInDependency(ModCompats.GIS_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(GoodItemScan.MyPluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
