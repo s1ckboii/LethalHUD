@@ -41,6 +41,7 @@ internal static class HUDManagerPatch
     {
         ScanController.SetScanColor();
         ScanController.UpdateScanTexture();
+        PlayerHPDisplay.Init();
     }
 
     private static void OnHUDManagerEnable(HUDManager self)
@@ -63,16 +64,19 @@ internal static class HUDManagerPatch
 
     private static void OnHUDManagerUpdate(HUDManager self)
     {
-        if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
-            self.PingScan_performed(pingScan);
 
         ScanController.UpdateScanAlpha();
+        PlayerHPDisplay.UpdateNumber();
+
+        if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
+            self.PingScan_performed(pingScan);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.UpdateWeightDisplay();
     }
     private static void OnHUDManagerUpdateScanNodes(HUDManager self, ref PlayerControllerB playerScript)
     {
-        ScanNodeController.UpdateTimers(self.scanElements, self.scanNodes);
+        if (Plugins.ConfigEntries.ScanNodeFade.Value)
+            ScanNodeController.UpdateTimers(self.scanElements, self.scanNodes);
     }
 
 

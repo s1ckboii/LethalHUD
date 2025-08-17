@@ -43,18 +43,23 @@ public class ConfigEntries
     public ConfigEntry<string> GradientColorA { get; private set; }
     public ConfigEntry<string> GradientColorB { get; private set; }
     public ConfigEntry<string> HandsFullColor { get; private set; }
-    #region ScanNode ConfigEntries
-    internal static ConfigEntry<float> ScanNodeLifetime { get; private set; }
-    internal static ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
     #endregion
+    #region ScanNode ConfigEntries
+    internal ConfigEntry<bool> ScanNodeFade { get; private set; }
+    internal ConfigEntry<float> ScanNodeLifetime { get; private set; }
+    internal ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
     #endregion
     #region HSW ConfigEntries
+    public ConfigEntry<bool> HealthIndicator { get; private set; }
+    public ConfigEntry<bool> HealthStarterColor { get; private set; }
+    public ConfigEntry<float> HPIndicatorX { get; private set; }
+    public ConfigEntry<float> HPIndicatorY { get; private set; }
     public ConfigEntry<bool> SprintMeterBoolean { get; private set; }
     public ConfigEntry<string> SprintMeterColorGradient { get; private set; }
     public ConfigEntry<string> SprintMeterColorSolid { get; private set; }
     public ConfigEntry<string> SprintMeterColorShades { get; private set; }
     public ConfigEntry<bool> WeightCounterBoolean { get; private set; }
-    public static ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
+    public ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
     #region Chat ConfigEntries
@@ -64,10 +69,10 @@ public class ConfigEntries
     public ConfigEntry<string> GradientNameColorB { get; private set; }
     #endregion
     #region Misc ConfigEntries
-    public static ConfigEntry<bool> ShowFPSCounter { get; private set; }
-    public static ConfigEntry<float> FPSCounterX { get; private set; }
-    public static ConfigEntry<float> FPSCounterY { get; private set; }
-    public static ConfigEntry<bool> ShowPingCounter { get; private set; }
+    public ConfigEntry<bool> ShowFPSCounter { get; private set; }
+    public ConfigEntry<float> FPSCounterX { get; private set; }
+    public ConfigEntry<float> FPSCounterY { get; private set; }
+    public ConfigEntry<bool> ShowPingCounter { get; private set; }
     #endregion
     public void Setup()
     {
@@ -79,7 +84,7 @@ public class ConfigEntries
 
         #region Scan Binds
         HoldScan = ConfigHelper.Bind("Scan", "Hold Scan Button", false, "Allows you to keep holding scan button.");
-        FadeOut = ConfigHelper.Bind("Scan", "FadeOut", false, "Fade out effect for scan color.");
+        FadeOut = ConfigHelper.Bind("Scan", "FadeOut", true, "Fade out effect for scan color.");
         RecolorScanLines = ConfigHelper.Bind("Scan", "RecolorScanLines", true, "Recolor the blue horizontal scan lines texture aswell.");
         SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.", false);
         DirtIntensity = ConfigHelper.Bind("Scan", "Scanline Intensity", 0f, "Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", false, new AcceptableValueRange<float>(-500f, 500f));
@@ -88,7 +93,8 @@ public class ConfigEntries
         VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false, new AcceptableValueRange<float>(0f, 1f));
         #endregion
         #region ScanNode Binds
-        ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 5f));
+        ScanNodeFade = ConfigHelper.Bind("ScanNodes", "FadeAway", true, "Allows you to apply fadeaway for scannodes.");
+        ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 10f));
         ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "FadeDuration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
         #endregion
         #region InventorySlot Binds
@@ -105,6 +111,10 @@ public class ConfigEntries
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "GradientNameColorB", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
         #endregion
         #region HSW Binds
+        HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "HealthIndicator", true, "Enable health points indicator.");
+        HealthStarterColor = ConfigHelper.Bind("Health/Stamina/Weight", "HealthStarterColor", false, "Takes the color of the inventory slots as starter color.");
+        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorX", -285f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-350f, 510));
+        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorY", 120f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
         SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "SprintMeterConfiguration", false, "Enable color configs for sprintmeter.");
         SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
         SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
@@ -150,7 +160,6 @@ public class ConfigEntries
         };
         #endregion
 
-
         #region Scan Changes
         SelectedScanlineMode.SettingChanged += (obj, args) => ScanController.UpdateScanTexture();
         ScanColor.SettingChanged += (obj, args) =>
@@ -165,8 +174,16 @@ public class ConfigEntries
         RecolorScanLines.SettingChanged += (obj, args) => { ScanController.UpdateScanTexture(); };
         #endregion
         #region ScanNode Changes
-        ScanNodeLifetime.SettingChanged += (obj, args) => { ScanNodeController.lifetime = ScanNodeLifetime.Value; };
-        ScanNodeFadeDuration.SettingChanged += (obj, args) => { ScanNodeController.fadeDuration = ScanNodeFadeDuration.Value; };
+        ScanNodeLifetime.SettingChanged += (obj, args) =>
+        {
+            if (Plugins.ConfigEntries.ScanNodeFade.Value)
+                ScanNodeController.lifetime = ScanNodeLifetime.Value;
+        };
+        ScanNodeFadeDuration.SettingChanged += (obj, args) =>
+        {
+            if (Plugins.ConfigEntries.ScanNodeFade.Value)
+                ScanNodeController.fadeDuration = ScanNodeFadeDuration.Value;
+        };
         #endregion
         #region Inventory Changes
         SlotColor.SettingChanged += (obj, args) =>
@@ -185,7 +202,6 @@ public class ConfigEntries
         GradientNameColorB.SettingChanged += (obj, args) => { };
         HandsFullColor.SettingChanged += (obj, args) => { };
         #endregion
-
         #region HSW Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>
         {

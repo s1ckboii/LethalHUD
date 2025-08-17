@@ -7,7 +7,7 @@ internal static class WeightController
 {
     internal static float ConvertWeight(float weightInLbs)
     {
-        return ConfigEntries.WeightUnitConfig.Value switch
+        return Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
             WeightUnit.Pounds => weightInLbs,
             WeightUnit.Kilograms => weightInLbs * 0.453592f,
@@ -18,7 +18,7 @@ internal static class WeightController
 
     internal static string GetUnitString()
     {
-        return ConfigEntries.WeightUnitConfig.Value switch
+        return Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
             WeightUnit.Pounds => "lb",
             WeightUnit.Kilograms => "kg",
@@ -91,7 +91,7 @@ internal static class WeightController
         string unitString = GetUnitString();
 
 
-        float maxWeight = ConfigEntries.WeightUnitConfig.Value switch
+        float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
             WeightUnit.Pounds => 130f,
             WeightUnit.Kilograms => 130f * 0.453592f,
@@ -102,7 +102,7 @@ internal static class WeightController
         float normalizedWeight = Mathf.Clamp01(convertedWeight / maxWeight);
         Color color = HUDUtils.GetWeightColor(normalizedWeight);
 
-        if (ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
+        if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
         {
             hud.weightCounter.text = $"{convertedWeight:F0} manuls\n{GetManulAsciiByWeight(convertedWeight)}";
             hud.weightCounter.color = color;

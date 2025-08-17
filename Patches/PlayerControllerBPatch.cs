@@ -2,9 +2,10 @@
 using LethalHUD.HUD;
 using MonoDetour;
 using MonoDetour.HookGen;
+using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["GrabObject", "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["GrabObject", "DamagePlayer" , "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
@@ -15,7 +16,12 @@ internal static class PlayerControllerBPatch
 
         // Postfix
         On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerLateUpdate);
-        //On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
+        On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
+    }
+
+    private static void OnPlayerControllerBDamagePlayer(PlayerControllerB self, ref int damageNumber, ref bool hasDamageSFX, ref bool callRPC, ref CauseOfDeath causeOfDeath, ref int deathAnimation, ref bool fallDamage, ref Vector3 force)
+    {
+        PlayerHPDisplay.ShakeOnHit();
     }
 
     private static void OnPlayerControllerBBeginGrabObject(PlayerControllerB self)

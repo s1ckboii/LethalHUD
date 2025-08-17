@@ -19,7 +19,7 @@ public class Plugins : BaseUnityPlugin
     internal static Plugins Instance { get; private set; }
     internal static new ManualLogSource Logger { get; private set; }
     internal static new ConfigFile Config { get; private set; }
-    internal static ConfigEntries ConfigEntries {  get; private set; }
+    internal static ConfigEntries ConfigEntries { get; private set; }
 
 
     public void Awake()

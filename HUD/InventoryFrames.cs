@@ -19,37 +19,40 @@ internal static class InventoryFrames
             return;
         
         Image[] frames = HUDManager.Instance.itemSlotIconFrames;
+        GameObject bottomLeftCorner;
         if (ModCompats.IsNiceChatPresent)
-        {
-            GameObject bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner/taffyko.NiceChat.ChatContainer");
-            Transform imageTransform = bottomLeftCorner.transform.Find("Image");
-            Image chatFrame = imageTransform.GetComponent<Image>();
-
-            Image[] combined = new Image[frames.Length + 1];
-
-            for (int i = 0; i < frames.Length; i++)
-                combined[i] = frames[i];
-
-            combined[frames.Length] = chatFrame;
-
-            allFrames = combined;
-        }
+            bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner/taffyko.NiceChat.ChatContainer");
         else
+            bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner");
+
+        if (bottomLeftCorner == null)
         {
-            GameObject bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner");
-            Transform imageTransform = bottomLeftCorner.transform.Find("Image");
-            Image chatFrame = imageTransform.GetComponent<Image>();
-
-            Image[] combined = new Image[frames.Length + 1];
-
-            for (int i = 0; i < frames.Length; i++)
-                combined[i] = frames[i];
-
-            combined[frames.Length] = chatFrame;
-
-            allFrames = combined;
+            Debug.LogWarning("InventoryFrames: BottomLeftCorner not found.");
+            allFrames = frames;
+            return;
         }
 
+        Transform imageTransform = bottomLeftCorner.transform.Find("Image");
+        if (imageTransform == null)
+        {
+            Debug.LogWarning("InventoryFrames: Image transform not found under BottomLeftCorner.");
+            allFrames = frames;
+            return;
+        }
+
+        Image chatFrame = imageTransform.GetComponent<Image>();
+        if (chatFrame == null)
+        {
+            Debug.LogWarning("InventoryFrames: Image component not found.");
+            allFrames = frames;
+            return;
+        }
+
+        Image[] combined = new Image[frames.Length + 1];
+        for (int i = 0; i < frames.Length; i++)
+            combined[i] = frames[i];
+        combined[frames.Length] = chatFrame;
+        allFrames = combined;
 
 
         if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientColorA.Value, Plugins.ConfigEntries.GradientColorB.Value))

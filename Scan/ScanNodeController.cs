@@ -7,8 +7,8 @@ namespace LethalHUD.Scan;
 internal static class ScanNodeController
 {
     private static readonly Dictionary<ScanNodeProperties, float> nodeAppearTimes = [];
-    internal static float lifetime = ConfigEntries.ScanNodeLifetime.Value;
-    internal static float fadeDuration = ConfigEntries.ScanNodeFadeDuration.Value;
+    internal static float lifetime = Plugins.ConfigEntries.ScanNodeLifetime.Value;
+    internal static float fadeDuration = Plugins.ConfigEntries.ScanNodeFadeDuration.Value;
     private static readonly AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
 
     internal static void UpdateTimers(RectTransform[] scanElements, Dictionary<RectTransform, ScanNodeProperties> scanNodes)
