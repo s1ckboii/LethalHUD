@@ -11,7 +11,7 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisplayNewScrapFound", "Update", "UpdateScanNodes", "AddChatMessage"])]
+[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisableAllScanElements", "DisplayNewScrapFound", "Update", "UpdateScanNodes", "AddChatMessage"])]
 internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
@@ -21,6 +21,7 @@ internal static class HUDManagerPatch
     {
         // Prefix
         On.HUDManager.PingScan_performed.Prefix(OnScanTriggered);
+        On.HUDManager.DisableAllScanElements.Prefix(OnHUDManagerDisabledAllScanElements);
 
         // Postfix
         On.HUDManager.Start.Postfix(OnHUDManagerStart);
@@ -65,6 +66,12 @@ internal static class HUDManagerPatch
     private static void OnHUDManagerDisplayNewScrapFound(HUDManager self)
     {
         InventoryFrames.SetSlotColors();
+    }
+
+    private static void OnHUDManagerDisabledAllScanElements(HUDManager self)
+    {
+        if (ModCompats.IsGoodItemScanPresent)
+            ScanNodeController.ResetGoodItemScanNodes();
     }
 
     private static void OnHUDManagerUpdate(HUDManager self)

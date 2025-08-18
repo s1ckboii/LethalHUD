@@ -47,16 +47,26 @@ internal static class ScanNodeController
         var scanner = GoodItemScan.GoodItemScan.scanner;
         if (scanner == null) return;
 
-        foreach (var kvp in scanner._scanNodes)
+        var keys = new List<ScanNodeProperties>(scanner._scanNodes.Keys);
+
+        foreach (var node in keys)
         {
-            if (!GoodItemScanProxy.TryGetRectTransform(kvp.Key, out RectTransform rect)) continue;
-            if (rect == null) continue;
+            if (!GoodItemScanProxy.TryGetRectTransform(node, out RectTransform rect) || rect == null)
+            {
+                nodeAppearTimes.Remove(node);
+                continue;
+            }
 
-            if (!nodeAppearTimes.ContainsKey(kvp.Key))
-                nodeAppearTimes[kvp.Key] = Time.time;
+            if (!rect.gameObject.activeInHierarchy)
+            {
+                nodeAppearTimes.Remove(node);
+                continue;
+            }
 
-            float elapsed = Time.time - nodeAppearTimes[kvp.Key];
+            if (!nodeAppearTimes.ContainsKey(node))
+                nodeAppearTimes[node] = Time.time;
 
+            float elapsed = Time.time - nodeAppearTimes[node];
             float alpha = elapsed > lifetime
                 ? fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration)
                 : 1f;

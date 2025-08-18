@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
