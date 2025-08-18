@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.0.9</Version>
+    <Version>1.1.0</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -57,6 +57,9 @@
     <PackageReference Include="TestAccount666-GoodItemScan" Version="1.14.0" PrivateAssets="all" Publicize="true" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="BetterScanVision">
+      <HintPath>..\..\Gale\lethal-company\profiles\dev\BepInEx\plugins\DBJ-BetterScanVision\BetterScanVision.dll</HintPath>
+    </Reference>
     <Reference Include="LethalConfig">
       <HintPath>..\..\Gale\lethal-company\profiles\dev\BepInEx\plugins\AinaVT-LethalConfig\LethalConfig\LethalConfig.dll</HintPath>
     </Reference>

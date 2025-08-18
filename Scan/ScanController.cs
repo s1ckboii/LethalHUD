@@ -1,4 +1,5 @@
-﻿using LethalHUD.Configs;
+﻿using LethalHUD.Compats;
+using LethalHUD.Configs;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -38,6 +39,9 @@ internal static class ScanController
     internal static void SetScanColor(Color? overrideColor = null)
     {
         Color color = overrideColor ?? ConfigHelper.GetScanColor();
+
+        if (ModCompats.IsBetterScanVisionPresent)
+            BetterScanVisionProxy.OverrideNightVisionColor();
 
         if (ScanRenderer?.material != null)
             ScanRenderer.material.color = color;

@@ -11,7 +11,9 @@ internal class LethalHUDMono : MonoBehaviour
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.RecolorWeightText();
-        if (ModCompats.IsGoodItemScanPresent)
+        if (ModCompats.IsGoodItemScanPresent && Plugins.ConfigEntries.ScanNodeFade.Value)
             ScanNodeController.UpdateGoodItemScanNodes();
+        if (ModCompats.IsBetterScanVisionPresent)
+            BetterScanVisionProxy.OverrideNightVisionColor();
     }
 }

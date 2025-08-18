@@ -5,7 +5,7 @@ using MonoDetour.HookGen;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["GrabObject", "DamagePlayer" , "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["GrabObject", "DamagePlayer", "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]

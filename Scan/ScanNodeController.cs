@@ -58,13 +58,6 @@ internal static class ScanNodeController
 
             float elapsed = Time.time - nodeAppearTimes[kvp.Key];
 
-            if (elapsed >= lifetime + fadeDuration)
-            {
-                rect.gameObject.SetActive(false);
-                nodeAppearTimes.Remove(kvp.Key);
-                continue;
-            }
-
             float alpha = elapsed > lifetime
                 ? fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration)
                 : 1f;
@@ -72,9 +65,30 @@ internal static class ScanNodeController
             CanvasGroup canvasGroup = rect.GetComponent<CanvasGroup>();
             if (canvasGroup != null)
                 canvasGroup.alpha = alpha;
+
+            rect.gameObject.SetActive(alpha > 0f);
         }
     }
+    internal static void ResetGoodItemScanNodes()
+    {
+        if (!ModCompats.IsGoodItemScanPresent) return;
 
+        var scanner = GoodItemScan.GoodItemScan.scanner;
+        if (scanner == null) return;
+
+        foreach (var kvp in scanner._scanNodes)
+        {
+            if (!GoodItemScanProxy.TryGetRectTransform(kvp.Key, out RectTransform rect)) continue;
+            if (rect == null) continue;
+
+            nodeAppearTimes[kvp.Key] = Time.time;
+            rect.gameObject.SetActive(true);
+
+            var canvasGroup = rect.GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+                canvasGroup.alpha = 1f;
+        }
+    }
 
     private static void RemoveNode(RectTransform element, ScanNodeProperties node, Dictionary<RectTransform, ScanNodeProperties> scanNodes)
     {

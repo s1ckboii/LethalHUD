@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalHUD.Compats;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -35,6 +36,8 @@ internal static class HUDManagerPatch
     private static void OnScanTriggered(HUDManager self,ref CallbackContext context)
     {
         pingScan = context;
+        if (ModCompats.IsGoodItemScanPresent)
+            ScanNodeController.ResetGoodItemScanNodes();
     }
 
     private static void OnHUDManagerStart(HUDManager self)
@@ -42,6 +45,8 @@ internal static class HUDManagerPatch
         ScanController.SetScanColor();
         ScanController.UpdateScanTexture();
         PlayerHPDisplay.Init();
+        if (ModCompats.IsBetterScanVisionPresent)
+            BetterScanVisionProxy.OverrideNightVisionColor();
     }
 
     private static void OnHUDManagerEnable(HUDManager self)

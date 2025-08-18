@@ -12,9 +12,7 @@ internal static class ConfigHelper
     internal static void SkipAutoGen()
     {
         if (ModCompats.IsLethalConfigPresent)
-        {
             LethalConfigProxy.SkipAutoGen();
-        }
     }
     internal static ConfigEntry<string> Bind(bool isHexColor, string section, string key, string defaultValue, string description, bool requiresRestart = false, AcceptableValueBase acceptableValues = null, Action<string> settingChanged = null, ConfigFile configFile = null)
     {
