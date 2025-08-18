@@ -1,5 +1,4 @@
-﻿using LethalHUD.Configs;
-using UnityEngine;
+﻿using UnityEngine;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;

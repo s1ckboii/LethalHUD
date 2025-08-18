@@ -1,5 +1,4 @@
 ﻿using LethalHUD.Compats;
-using LethalHUD.Configs;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -43,7 +42,7 @@ internal static class ScanNodeController
     }
     internal static void UpdateGoodItemScanNodes()
     {
-        if (!ModCompats.IsGoodItemScanPresent) return;
+        if (!ModCompats.IsGoodItemScanPresent && !Plugins.ConfigEntries.ScanNodeFade.Value) return;
 
         var scanner = GoodItemScan.GoodItemScan.scanner;
         if (scanner == null) return;
@@ -71,7 +70,7 @@ internal static class ScanNodeController
     }
     internal static void ResetGoodItemScanNodes()
     {
-        if (!ModCompats.IsGoodItemScanPresent) return;
+        if (!ModCompats.IsGoodItemScanPresent && !Plugins.ConfigEntries.ScanNodeFade.Value) return;
 
         var scanner = GoodItemScan.GoodItemScan.scanner;
         if (scanner == null) return;
