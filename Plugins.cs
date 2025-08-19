@@ -22,6 +22,7 @@ public class Plugins : BaseUnityPlugin
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
 
+    internal static Texture2D DeadPlayerIconTexture;
 
     public void Awake()
     {
@@ -46,6 +47,7 @@ public class Plugins : BaseUnityPlugin
             Logger.LogError("Failed to load insanelyoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
+        DeadPlayerIconTexture = assetBundle.LoadAsset<Texture2D>("deadIcon");
 
         foreach (ScanLines scanLine in System.Enum.GetValues(typeof(ScanLines)))
         {

@@ -33,7 +33,8 @@ namespace LethalHUD.HUD
             localPlayer = GameNetworkManager.Instance.localPlayerController;
 
             GameObject hpObj = new("PlayerHPDisplay");
-            hpObj.transform.SetParent(hud.HUDContainer.transform, false);
+            GameObject tpc = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/");
+            hpObj.transform.SetParent(tpc.transform, false);
 
             hpText = hpObj.AddComponent<TextMeshProUGUI>();
             hpText.font = hud.HUDQuotaNumerator.font;
@@ -64,8 +65,6 @@ namespace LethalHUD.HUD
             basePosition = new Vector2(Plugins.ConfigEntries.HPIndicatorX.Value, Plugins.ConfigEntries.HPIndicatorY.Value);
 
             int hp = localPlayer.health;
-            hpText.gameObject.SetActive(hp > 0);
-            if (hp <= 0) return;
 
             hpText.text = $"{hp}";
 

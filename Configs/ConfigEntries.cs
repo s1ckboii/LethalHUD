@@ -113,8 +113,8 @@ public class ConfigEntries
         #region HSW Binds
         HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "HealthIndicator", true, "Enable health points indicator.");
         HealthStarterColor = ConfigHelper.Bind("Health/Stamina/Weight", "HealthStarterColor", false, "Takes the color of the inventory slots as starter color.");
-        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorX", -285f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-350f, 510));
-        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorY", 120f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
+        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorX", -295f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
+        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorY", 125f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
         SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "SprintMeterConfiguration", false, "Enable color configs for sprintmeter.");
         SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
         SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");

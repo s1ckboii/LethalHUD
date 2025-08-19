@@ -84,6 +84,8 @@ internal static class HUDManagerPatch
             self.PingScan_performed(pingScan);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.UpdateWeightDisplay();
+
+
     }
     private static void OnHUDManagerUpdateScanNodes(HUDManager self, ref PlayerControllerB playerScript)
     {
