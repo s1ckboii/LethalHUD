@@ -76,7 +76,6 @@ internal static class HUDManagerPatch
 
     private static void OnHUDManagerUpdate(HUDManager self)
     {
-
         ScanController.UpdateScanAlpha();
         PlayerHPDisplay.UpdateNumber();
 
@@ -84,15 +83,13 @@ internal static class HUDManagerPatch
             self.PingScan_performed(pingScan);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.UpdateWeightDisplay();
-
-
     }
+
     private static void OnHUDManagerUpdateScanNodes(HUDManager self, ref PlayerControllerB playerScript)
     {
         if (Plugins.ConfigEntries.ScanNodeFade.Value)
             ScanNodeController.UpdateTimers(self.scanElements, self.scanNodes);
     }
-
 
     private static void ILHook_AddChatMessage(ILManipulationInfo info)
     {

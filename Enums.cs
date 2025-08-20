@@ -30,6 +30,11 @@ public static class Enums
         Kilograms,
         Manuls
     }
+    public enum FPSPingLayout
+    {
+        Vertical,
+        Horizontal
+    }
 
     internal static Color solarFlare = new(1f, 0.8f, 0.3f);
     internal static Color moltenCore = new(1f, 0.2f, 0f);

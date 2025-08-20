@@ -30,7 +30,7 @@ internal static class ChatController
 
     internal static void PlayerTypingIndicator()
     {
-        var indicator = HUDManager.Instance.typingIndicator;
+        TextMeshProUGUI indicator = HUDManager.Instance.typingIndicator;
         indicator.enableVertexGradient = true;
         indicator.color = Color.white;
         if (indicator == null)

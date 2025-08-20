@@ -32,7 +32,7 @@ internal class BetterScanVisionProxy
 
         if (_nightVisionField != null)
         {
-            var light = _nightVisionField.GetValue(null) as Light;
+            Light light = _nightVisionField.GetValue(null) as Light;
             if (light != null)
             {
                 light.color = ConfigHelper.GetScanColor();

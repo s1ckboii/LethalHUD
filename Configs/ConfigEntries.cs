@@ -16,6 +16,7 @@ public class ConfigEntries
 
     private const string DefaultMainColor = "#000CFF";
     private const string DefaultSlotColor = "#3226B4";
+    private const string DefaultCompassColor = "#2C265B";
 
     public ConfigEntries()
     {
@@ -62,6 +63,13 @@ public class ConfigEntries
     public ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
+
+    #region Compass ConfigEntries
+    public ConfigEntry<bool> CompassInvertMask { get; private set; }
+    public ConfigEntry<bool> CompassInvertOutsides { get; private set; }
+    public ConfigEntry<float> CompassAlpha { get; private set; }
+    #endregion
+
     #region Chat ConfigEntries
     public ConfigEntry<bool> ColoredNames { get; private set; }
     public ConfigEntry<string> LocalNameColor { get; private set; }
@@ -70,16 +78,17 @@ public class ConfigEntries
     #endregion
     #region Misc ConfigEntries
     public ConfigEntry<bool> ShowFPSCounter { get; private set; }
+    public ConfigEntry<bool> ShowPingCounter { get; private set; }
+    public ConfigEntry<FPSPingLayout> MiscLayoutEnum { get; private set; }
     public ConfigEntry<float> FPSCounterX { get; private set; }
     public ConfigEntry<float> FPSCounterY { get; private set; }
-    public ConfigEntry<bool> ShowPingCounter { get; private set; }
     #endregion
     public void Setup()
     {
         ConfigHelper.SkipAutoGen();
 
         #region Main Binds
-        UnifyMostColors = ConfigHelper.Bind(true, "Main", "MainColor", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way.");
+        UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
         #endregion
 
         #region Scan Binds
@@ -123,11 +132,17 @@ public class ConfigEntries
         WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "WeightUnit", WeightUnit.Pounds, "Select the weight unit.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
         #endregion
+        #region Compass Binds
+        CompassInvertMask = ConfigHelper.Bind("Compass", "InvertMask", false, "Lets you invert the mask in the inside.");
+        CompassInvertOutsides = ConfigHelper.Bind("Compass", "InvertOutsides", false, "Lets you invert the mask on the outside.");
+        CompassAlpha = ConfigHelper.Bind("Compass", "Alpha", 1f, "Lets you change the alpha value of Compass.", false, new AcceptableValueRange<float>(0f, 1f));
+        #endregion
         #region Misc Binds
         ShowFPSCounter = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
-        ShowPingCounter = ConfigHelper.Bind("Misc", "ShowPingCounter", false, "Display the current network ping (ms) on the HUD.");
-        FPSCounterX = ConfigHelper.Bind("Misc", "FPSCounterX", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 2000f));
-        FPSCounterY = ConfigHelper.Bind("Misc", "FPSCounterY", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 1200f));
+        ShowPingCounter = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
+        MiscLayoutEnum = ConfigHelper.Bind("Misc", "Layout options", FPSPingLayout.Vertical, "Layout of FPS and Ping counters");
+        FPSCounterX = ConfigHelper.Bind("Misc", "Layout position X", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 840f));
+        FPSCounterY = ConfigHelper.Bind("Misc", "Layout position Y", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 480f));
         #endregion
 
         #region Main Changes
@@ -141,6 +156,7 @@ public class ConfigEntries
 
                 if (!SlotColor.Value.Equals(DefaultSlotColor, StringComparison.OrdinalIgnoreCase))
                     SlotColor.Value = DefaultSlotColor;
+                CompassController.SetCompassColor(HUDUtils.ParseHexColor(DefaultCompassColor));
 
                 return;
             }
@@ -194,13 +210,6 @@ public class ConfigEntries
         SlotRainbowColor.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
-        #endregion
-        #region Chat Changes
-        ColoredNames.SettingChanged += (obj, args) => { };
-        LocalNameColor.SettingChanged += (obj, args) => { };
-        GradientNameColorA.SettingChanged += (obj, args) => { };
-        GradientNameColorB.SettingChanged += (obj, args) => { };
-        HandsFullColor.SettingChanged += (obj, args) => { };
         #endregion
         #region HSW Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>

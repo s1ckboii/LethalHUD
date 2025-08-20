@@ -1,26 +1,41 @@
 ﻿using LethalHUD.Configs;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.Misc;
 public class FPSAndPingCounter : NetworkBehaviour
 {
     private float deltaTime;
-    private GUIStyle style;
     private ulong currentPing = 0;
     private float pingTimer = 0f;
     private readonly float pingInterval = 0.5f;
+    private Vector2 offset = Vector2.zero;
 
     private Unity.Netcode.Transports.UTP.UnityTransport transport;
+    private TextMeshProUGUI fpsPingText;
 
     private void Start()
     {
-        style = new GUIStyle
-        {
-            fontSize = 20
-        };
-
         transport = NetworkManager.Singleton.NetworkConfig.NetworkTransport as Unity.Netcode.Transports.UTP.UnityTransport;
+
+        GameObject go = new("FPSAndPingCounter");
+        GameObject ipHUD = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/");
+        go.transform.SetParent(ipHUD.transform, false);
+        fpsPingText = go.AddComponent<TextMeshProUGUI>();
+
+        fpsPingText.font = HUDManager.Instance.chatText.font;
+        fpsPingText.fontSize = 12;
+        fpsPingText.richText = true;
+        fpsPingText.color = ConfigHelper.GetSlotColor();
+        fpsPingText.alignment = TextAlignmentOptions.TopLeft;
+
+        RectTransform rt = fpsPingText.rectTransform;
+        rt.anchorMin = new(0, 1);
+        rt.anchorMax = new(0, 1);
+        rt.pivot = new(0, 1);
+        rt.anchoredPosition = new(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
     }
 
     private void Update()
@@ -39,31 +54,32 @@ public class FPSAndPingCounter : NetworkBehaviour
                     SendPingClientRpc(client.ClientId, rtt);
                 }
             }
-
         }
-    }
 
-    private void OnGUI()
-    {
-        if (!Plugins.ConfigEntries.ShowFPSCounter.Value && !Plugins.ConfigEntries.ShowPingCounter.Value)
-            return;
-
-        style.normal.textColor = ConfigHelper.GetSlotColor();
-
-        float x = Plugins.ConfigEntries.FPSCounterX.Value;
-        float y = Plugins.ConfigEntries.FPSCounterY.Value;
-        int lineHeight = 22;
-
-        if (Plugins.ConfigEntries.ShowFPSCounter.Value)
+        if (Plugins.ConfigEntries.ShowFPSCounter.Value || Plugins.ConfigEntries.ShowPingCounter.Value)
         {
             float fps = 1.0f / deltaTime;
-            GUI.Label(new Rect(x, y, 200, 30), $"FPS: {fps:0}", style);
-            y += lineHeight;
-        }
+            string text = "";
+            string separator = Plugins.ConfigEntries.MiscLayoutEnum.Value == FPSPingLayout.Vertical
+                ? "\n─────────\n"
+                : " | ";
 
-        if (Plugins.ConfigEntries.ShowPingCounter.Value)
-        {
-            GUI.Label(new Rect(x, y, 200, 30), $"Ping: {currentPing} ms", style);
+            if (Plugins.ConfigEntries.ShowFPSCounter.Value)
+                text += $"FPS: {fps:0}";
+
+            if (Plugins.ConfigEntries.ShowPingCounter.Value)
+            {
+                if (!string.IsNullOrEmpty(text))
+                    text += separator;
+                text += $"Ping: {currentPing} ms";
+            }
+
+            fpsPingText.alignment = TextAlignmentOptions.TopLeft;
+            offset = new Vector2(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
+
+            fpsPingText.text = text;
+            fpsPingText.color = ConfigHelper.GetSlotColor();
+            fpsPingText.rectTransform.anchoredPosition = offset;
         }
     }
 
