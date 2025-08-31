@@ -15,6 +15,11 @@ public static class Enums
         Radioactive,
         TideEmber
     }
+    public enum ItemValue
+    {
+        Default,
+        Dollar
+    }
     public enum ScanLines
     {
         Default,
@@ -23,6 +28,11 @@ public static class Enums
         Circuit,
         Noisy,
         Scifi
+    }
+    public enum ScanNodeShape
+    {
+        Default,
+        Triangle
     }
     public enum WeightUnit
     {

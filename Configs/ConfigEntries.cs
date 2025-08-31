@@ -44,11 +44,14 @@ public class ConfigEntries
     public ConfigEntry<string> GradientColorA { get; private set; }
     public ConfigEntry<string> GradientColorB { get; private set; }
     public ConfigEntry<string> HandsFullColor { get; private set; }
+    public ConfigEntry<bool> ShowItemValue { get; private set; }
+    public ConfigEntry<ItemValue> SetDollar { get; private set; }
     #endregion
     #region ScanNode ConfigEntries
-    internal ConfigEntry<bool> ScanNodeFade { get; private set; }
-    internal ConfigEntry<float> ScanNodeLifetime { get; private set; }
-    internal ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
+    public ConfigEntry<bool> ScanNodeFade { get; private set; }
+    public ConfigEntry<float> ScanNodeLifetime { get; private set; }
+    public ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
+    //internal ConfigEntry<ScanNodeShape> ScanNodeShapeChoice { get; private set; }
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> HealthIndicator { get; private set; }
@@ -105,6 +108,7 @@ public class ConfigEntries
         ScanNodeFade = ConfigHelper.Bind("ScanNodes", "FadeAway", true, "Allows you to apply fadeaway for scannodes.");
         ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 10f));
         ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "FadeDuration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
+        //ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", ScanNodeShape.Default, "Choose the shape for scan nodes.");
         #endregion
         #region InventorySlot Binds
         SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors.");
@@ -112,6 +116,8 @@ public class ConfigEntries
         GradientColorA = ConfigHelper.Bind(true, "Inventory", "GradientColorA", "#3226B4", "Start color for custom wavy gradient.");
         GradientColorB = ConfigHelper.Bind(true, "Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
         HandsFullColor = ConfigHelper.Bind(true, "Inventory", "HandsFullColor", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
+        ShowItemValue = ConfigHelper.Bind("Inventory", "ShowItemValue", true, "Enable quality of life visual helper, you can see the value of the items in your inventory");
+        SetDollar = ConfigHelper.Bind("Inventory", "ChangeCurrency", ItemValue.Default, "Let's you change from blocky credit to dollar sign (no Wesley, I'm not doing conversions to world currencies).");
         #endregion
         #region Chat Binds
         ColoredNames = ConfigHelper.Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");

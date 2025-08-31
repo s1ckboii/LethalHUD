@@ -46,6 +46,7 @@ internal static class HUDManagerPatch
         ScanController.SetScanColor();
         ScanController.UpdateScanTexture();
         PlayerHPDisplay.Init();
+        ScrapValueDisplay.Init();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
     }
@@ -78,7 +79,6 @@ internal static class HUDManagerPatch
     {
         ScanController.UpdateScanAlpha();
         PlayerHPDisplay.UpdateNumber();
-
         if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
             self.PingScan_performed(pingScan);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)

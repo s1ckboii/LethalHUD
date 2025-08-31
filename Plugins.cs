@@ -16,13 +16,20 @@ namespace LethalHUD;
 [BepInDependency(ModCompats.BetterScanVision_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
-    internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
+
     internal static Plugins Instance { get; private set; }
     internal static new ManualLogSource Logger { get; private set; }
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
 
-    internal static Texture2D DeadPlayerIconTexture;
+    internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
+    /*internal struct ScanNodeCircleTextures
+    {
+        public Sprite Outer;
+        public Sprite Inner;
+    }
+
+    internal static Dictionary<ScanNodeShape, ScanNodeCircleTextures> ScanNodeSprites = [];*/
 
     public void Awake()
     {
@@ -47,7 +54,6 @@ public class Plugins : BaseUnityPlugin
             Logger.LogError("Failed to load insanelyoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
-        DeadPlayerIconTexture = assetBundle.LoadAsset<Texture2D>("deadIcon");
 
         foreach (ScanLines scanLine in System.Enum.GetValues(typeof(ScanLines)))
         {
@@ -63,5 +69,22 @@ public class Plugins : BaseUnityPlugin
                 Logger.LogWarning($"Texture '{name}' not found in asset bundle.");
             }
         }
+        /*foreach (ScanNodeShape shape in System.Enum.GetValues(typeof(ScanNodeShape)))
+        {
+            string outerName = $"{shape}_Outer";
+            string innerName = $"{shape}_Inner";
+
+            Sprite outerTex = assetBundle.LoadAsset<Sprite>(outerName);
+            Sprite innerTex = assetBundle.LoadAsset<Sprite>(innerName);
+
+            if (outerTex == null) Logger.LogWarning($"ScanNode texture '{outerName}' not found.");
+            if (innerTex == null) Logger.LogWarning($"ScanNode texture '{innerName}' not found.");
+
+            ScanNodeSprites[shape] = new ScanNodeCircleTextures
+            {
+                Outer = outerTex,
+                Inner = innerTex
+            };
+        }*/
     }
 }
