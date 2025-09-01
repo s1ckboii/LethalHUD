@@ -45,13 +45,14 @@ public class ConfigEntries
     public ConfigEntry<string> GradientColorB { get; private set; }
     public ConfigEntry<string> HandsFullColor { get; private set; }
     public ConfigEntry<bool> ShowItemValue { get; private set; }
+    public ConfigEntry<bool> ShowTotalInventoryValue { get; private set; }
     public ConfigEntry<ItemValue> SetDollar { get; private set; }
     #endregion
     #region ScanNode ConfigEntries
     public ConfigEntry<bool> ScanNodeFade { get; private set; }
     public ConfigEntry<float> ScanNodeLifetime { get; private set; }
     public ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
-    //internal ConfigEntry<ScanNodeShape> ScanNodeShapeChoice { get; private set; }
+    //public ConfigEntry<ScanNodeShape> ScanNodeShapeChoice { get; private set; }
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> HealthIndicator { get; private set; }
@@ -117,6 +118,7 @@ public class ConfigEntries
         GradientColorB = ConfigHelper.Bind(true, "Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
         HandsFullColor = ConfigHelper.Bind(true, "Inventory", "HandsFullColor", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
         ShowItemValue = ConfigHelper.Bind("Inventory", "ShowItemValue", true, "Enable quality of life visual helper, you can see the value of the items in your inventory");
+        ShowTotalInventoryValue = ConfigHelper.Bind("Inventory", "ShowTotalInventoryvalue", true, "Enable quality of life visual helper, you can see the total value of the items in your inventory");
         SetDollar = ConfigHelper.Bind("Inventory", "ChangeCurrency", ItemValue.Default, "Let's you change from blocky credit to dollar sign (no Wesley, I'm not doing conversions to world currencies).");
         #endregion
         #region Chat Binds

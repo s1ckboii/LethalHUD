@@ -42,7 +42,6 @@ internal class GoodItemScanProxy // Credits to Xu for the whole class
             scanNodeProperties = scanNode;
             return true;
         }
-
         return false;
     }
 }

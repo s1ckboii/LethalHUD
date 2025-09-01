@@ -6,14 +6,14 @@ using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject" ,"GrabObject", "DamagePlayer", "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject" ,"BeginGrabObject", "DamagePlayer", "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
     public static void Init()
     {
         // Prefix
-        On.GameNetcodeStuff.PlayerControllerB.GrabObject.Prefix(OnPlayerControllerBGrabObject);
+        On.GameNetcodeStuff.PlayerControllerB.BeginGrabObject.Prefix(OnPlayerControllerBBeginGrabObject);
 
         // Postfix
         On.GameNetcodeStuff.PlayerControllerB.SwitchToItemSlot.Postfix(OnPlayerControllerBSwitchToItemSlot);
@@ -24,6 +24,9 @@ internal static class PlayerControllerBPatch
 
     private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB self, ref int slot, ref GrabbableObject fillSlotWithItem)
     {
+        if (self != GameNetworkManager.Instance.localPlayerController)
+            return;
+
         if (!Plugins.ConfigEntries.ShowItemValue.Value && ScrapValueDisplay.slotTexts != null)
             ScrapValueDisplay.Hide(slot);
         if (ScrapValueDisplay.slotTexts == null || slot < 0 || slot >= ScrapValueDisplay.slotTexts.Length)
@@ -45,7 +48,7 @@ internal static class PlayerControllerBPatch
         ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
     }
 
-    private static void OnPlayerControllerBGrabObject(PlayerControllerB self)
+    private static void OnPlayerControllerBBeginGrabObject(PlayerControllerB self)
     {
         InventoryFrames.HandsFull();
     }

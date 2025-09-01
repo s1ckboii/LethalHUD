@@ -30,6 +30,7 @@ internal class LethalHUDMono : MonoBehaviour
         InventoryFrames.SetSlotColors();
         CompassController.SoftMaskStuff();
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
+        ScrapValueDisplay.Tick(Time.deltaTime);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.RecolorWeightText();
         if (ModCompats.IsGoodItemScanPresent && Plugins.ConfigEntries.ScanNodeFade.Value)

@@ -1,77 +1,235 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 internal static class ScrapValueDisplay
 {
     internal static TMP_Text[] slotTexts;
+    private static TMP_Text totalText;
+
+    private static TMP_FontAsset defaultFont;
+    private static TMP_FontAsset dollarFont;
+
+    private static int[] slotValues;
+
+    private static int lastTotal = 0;
+    private static float deltaTimer = 0f;
+    private static string deltaText = "";
+    private static string deltaRaw = "";
+    private static string deltaPlain = "";
+    private static string deltaColor = "green";
+    private static bool erasingDelta = false;
+    private static readonly float eraseSpeed = 0.05f;
+    private static float eraseTimer = 0f;
+
+    private static readonly Color lowColor = new(0.85f, 0.85f, 0.85f);
+    private static readonly Color highColor = Color.green;
 
     internal static void Init()
     {
         HUDManager hud = HUDManager.Instance;
         if (hud == null) return;
 
+        defaultFont = hud.totalValueText.font;
+        dollarFont = hud.chatText.font;
+
         int slotCount = hud.itemSlotIconFrames.Length;
         slotTexts = new TMP_Text[slotCount];
+        slotValues = new int[slotCount];
 
         for (int i = 0; i < slotCount; i++)
         {
             Image slot = hud.itemSlotIconFrames[i];
             if (slot == null) continue;
 
-            GameObject go = new("ScrapValueText");
-            go.transform.SetParent(slot.transform, false);
+            GameObject holder = new("InventoryScrapValueTextHolder");
+            holder.transform.SetParent(slot.transform, false);
+            holder.transform.localPosition = Vector3.zero;
+            holder.transform.localScale = Vector3.one;
+
+            holder.transform.localRotation = Quaternion.Inverse(slot.transform.localRotation);
+
+            GameObject go = new("InventoryScrapValueText");
+            go.transform.SetParent(holder.transform, false);
 
             RectTransform rt = go.AddComponent<RectTransform>();
-            rt.localRotation = Quaternion.Euler(0, 0, 90);
-            rt.localScale = Vector3.one * 0.5f;
+            rt.localScale = Vector3.one * 0.75f;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.localPosition = new Vector2(0f, -3f);
+            rt.localRotation = Quaternion.identity;
 
             TMP_Text tmp = go.AddComponent<TextMeshProUGUI>();
-            SetFont(tmp);
             tmp.fontSize = 14;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.green;
             tmp.raycastTarget = false;
             tmp.text = "";
 
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = new Vector2(0, -27f);
-
             slotTexts[i] = tmp;
         }
+
+        GameObject totalGO = new("InventoryScrapTotalValueText");
+        totalGO.transform.SetParent(hud.itemSlotIconFrames[0].transform, false);
+
+        RectTransform totalRT = totalGO.AddComponent<RectTransform>();
+        totalRT.localScale = Vector3.one * 0.5f;
+        totalRT.localRotation = Quaternion.Euler(0, 0, 90);
+        totalRT.anchorMin = totalRT.anchorMax = new Vector2(0f, 0.5f);
+        totalRT.pivot = new Vector2(1f, 0.5f);
+        totalRT.localPosition = new Vector2(10f, -20f);
+
+        totalText = totalGO.AddComponent<TextMeshProUGUI>();
+        totalText.fontSize = 14;
+        totalText.alignment = TextAlignmentOptions.Right;
+        totalText.color = Color.green;
+        totalText.raycastTarget = false;
+        totalText.text = "";
     }
 
     internal static void UpdateSlot(int slotIndex, int value)
     {
-        if (!Plugins.ConfigEntries.ShowItemValue.Value) { return; }
+        if (!Plugins.ConfigEntries.ShowItemValue.Value) return;
         if (slotTexts == null || slotIndex < 0 || slotIndex >= slotTexts.Length) return;
 
         TMP_Text tmp = slotTexts[slotIndex];
-        SetFont(tmp);
         if (tmp == null) return;
 
+        tmp.font = Plugins.ConfigEntries.SetDollar.Value == Enums.ItemValue.Default
+            ? defaultFont : dollarFont;
+
         tmp.text = value > 0 ? $"${value}" : "";
+        slotValues[slotIndex] = value;
+
+        UpdateInventoryTotal();
+        UpdateSlotTextColors();
     }
 
-    private static void SetFont(TMP_Text tmp)
-    {
-        HUDManager hud = HUDManager.Instance;
-        switch (Plugins.ConfigEntries.SetDollar.Value)
-        {
-            case ItemValue.Default:
-                tmp.font = hud.totalValueText.font;
-                break;
-            case ItemValue.Dollar:
-                tmp.font = hud.chatText.font;
-                break;
-        }
-    }
     internal static void Hide(int slotIndex)
     {
+        if (slotTexts == null || slotIndex < 0 || slotIndex >= slotTexts.Length) return;
+
         TMP_Text tmp = slotTexts[slotIndex];
-        tmp.text = "";
+        if (tmp != null) tmp.text = "";
+
+        slotValues[slotIndex] = 0;
+        UpdateInventoryTotal();
+        UpdateSlotTextColors();
+    }
+
+    private static void UpdateSlotTextColors()
+    {
+        int min = int.MaxValue;
+        int max = int.MinValue;
+        bool hasValues = false;
+
+        for (int i = 0; i < slotValues.Length; i++)
+        {
+            int v = slotValues[i];
+            if (v > 0)
+            {
+                hasValues = true;
+                if (v < min) min = v;
+                if (v > max) max = v;
+            }
+        }
+
+        if (!hasValues) return;
+
+        for (int i = 0; i < slotValues.Length; i++)
+        {
+            TMP_Text tmp = slotTexts[i];
+            if (tmp == null) continue;
+
+            int v = slotValues[i];
+            if (v <= 0)
+            {
+                tmp.color = lowColor;
+                continue;
+            }
+
+            float t = (max == min) ? 1f : Mathf.InverseLerp(min, max, v);
+            tmp.color = Color.Lerp(lowColor, highColor, t);
+        }
+    }
+
+    private static void UpdateInventoryTotal()
+    {
+        if (!Plugins.ConfigEntries.ShowTotalInventoryValue.Value) 
+        {
+            if (totalText.text != string.Empty)
+                totalText.text = string.Empty;
+            return;
+        }
+        int total = 0;
+        for (int i = 0; i < slotValues.Length; i++)
+            total += slotValues[i];
+
+        if (total != lastTotal)
+        {
+            int diff = total - lastTotal;
+            if (diff != 0)
+            {
+                string color = diff > 0 ? "green" : "red";
+                string sign = diff > 0 ? "+" : "-";
+
+                deltaColor = color;
+                deltaRaw = $"<color={color}>({sign}${Mathf.Abs(diff)})</color>";
+                deltaPlain = $"({sign}${Mathf.Abs(diff)})";
+
+                deltaText = deltaRaw;
+                deltaTimer = 1.5f;
+                erasingDelta = false;
+            }
+            lastTotal = total;
+        }
+
+        string display = total > 0 ? $"Total Value: ${total}" : "";
+        if (!string.IsNullOrEmpty(deltaText))
+            display += deltaText;
+
+        if (totalText != null)
+        {
+            totalText.font = Plugins.ConfigEntries.SetDollar.Value == Enums.ItemValue.Default
+                ? defaultFont : dollarFont;
+            totalText.text = display;
+        }
+    }
+
+    internal static void Tick(float deltaTime)
+    {
+        if (!erasingDelta)
+        {
+            if (deltaTimer > 0f)
+            {
+                deltaTimer -= deltaTime;
+                if (deltaTimer <= 0f && !string.IsNullOrEmpty(deltaText))
+                {
+                    erasingDelta = true;
+                    eraseTimer = eraseSpeed;
+                }
+            }
+        }
+        else
+        {
+            eraseTimer -= deltaTime;
+            if (eraseTimer <= 0f && deltaPlain.Length > 0)
+            {
+                deltaPlain = deltaPlain[..^1];
+                deltaText = deltaPlain.Length > 0
+                    ? $"<color={deltaColor}>{deltaPlain}</color>"
+                    : "";
+
+                eraseTimer = eraseSpeed;
+                UpdateInventoryTotal();
+            }
+
+            if (deltaPlain.Length == 0)
+            {
+                erasingDelta = false;
+                UpdateInventoryTotal();
+            }
+        }
     }
 }
