@@ -196,6 +196,21 @@ internal static class ScrapValueDisplay
             totalText.text = display;
         }
     }
+    internal static void ClearItemSlots()
+    {
+        if (slotTexts == null || slotValues == null) return;
+
+        for (int i = 0; i < slotTexts.Length; i++)
+        {
+            if (slotTexts[i] != null)
+                slotTexts[i].text = "";
+
+            slotValues[i] = 0;
+        }
+
+        UpdateInventoryTotal();
+        UpdateSlotTextColors();
+    }
 
     internal static void Tick(float deltaTime)
     {

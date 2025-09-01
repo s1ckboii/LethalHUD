@@ -6,7 +6,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject" ,"BeginGrabObject", "DamagePlayer", "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
@@ -20,6 +20,7 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.DiscardHeldObject.Postfix(OnPlayerControllerBDiscardHeldObject);
         On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerLateUpdate);
         On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
+        On.GameNetcodeStuff.PlayerControllerB.SpawnPlayerAnimation.Postfix(OnPlayerControllerBSpawnPlayerAnimation);
     }
 
     private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB self, ref int slot, ref GrabbableObject fillSlotWithItem)
@@ -52,9 +53,15 @@ internal static class PlayerControllerBPatch
     {
         InventoryFrames.HandsFull();
     }
+
     private static void OnPlayerControllerBDamagePlayer(PlayerControllerB self, ref int damageNumber, ref bool hasDamageSFX, ref bool callRPC, ref CauseOfDeath causeOfDeath, ref int deathAnimation, ref bool fallDamage, ref Vector3 force)
     {
         PlayerHPDisplay.ShakeOnHit();
+    }
+
+    private static void OnPlayerControllerBSpawnPlayerAnimation(PlayerControllerB self)
+    {
+        ScrapValueDisplay.ClearItemSlots();
     }
 
     private static void OnPlayerLateUpdate(PlayerControllerB self)
