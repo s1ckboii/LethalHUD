@@ -1,4 +1,5 @@
 ﻿using LethalHUD.Configs;
+using LethalHUD.HUD;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -12,6 +13,8 @@ public class FPSAndPingCounter : NetworkBehaviour
     private float pingTimer = 0f;
     private readonly float pingInterval = 0.5f;
     private Vector2 offset = Vector2.zero;
+
+    private Color TextColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.MiscToolsColor.Value);
 
     private Unity.Netcode.Transports.UTP.UnityTransport transport;
     private TextMeshProUGUI fpsPingText;
@@ -28,7 +31,7 @@ public class FPSAndPingCounter : NetworkBehaviour
         fpsPingText.font = HUDManager.Instance.chatText.font;
         fpsPingText.fontSize = 12;
         fpsPingText.richText = true;
-        fpsPingText.color = ConfigHelper.GetSlotColor();
+        fpsPingText.color = TextColor;
         fpsPingText.alignment = TextAlignmentOptions.TopLeft;
 
         RectTransform rt = fpsPingText.rectTransform;
@@ -78,7 +81,7 @@ public class FPSAndPingCounter : NetworkBehaviour
             offset = new Vector2(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
 
             fpsPingText.text = text;
-            fpsPingText.color = ConfigHelper.GetSlotColor();
+            fpsPingText.color = TextColor;
             fpsPingText.rectTransform.anchoredPosition = offset;
         }
     }

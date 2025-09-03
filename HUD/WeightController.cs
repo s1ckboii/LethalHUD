@@ -66,7 +66,7 @@ internal static class WeightController
     {
         return " /\\_/\\  \n( x_x )\n  ~~~  ";
     }
-    private static string GetManulAsciiByWeight(float manulsCount)
+    internal static string GetManulAsciiByWeight(float manulsCount)
     {
         if (manulsCount < 2)
             return GetManulAsciiTired();

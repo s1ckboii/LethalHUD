@@ -52,7 +52,7 @@ public class ConfigEntries
     public ConfigEntry<bool> ScanNodeFade { get; private set; }
     public ConfigEntry<float> ScanNodeLifetime { get; private set; }
     public ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
-    //public ConfigEntry<ScanNodeShape> ScanNodeShapeChoice { get; private set; }
+    public ConfigEntry<ScanNodeShape> ScanNodeShapeChoice { get; private set; }
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> HealthIndicator { get; private set; }
@@ -67,13 +67,11 @@ public class ConfigEntries
     public ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
-
     #region Compass ConfigEntries
     public ConfigEntry<bool> CompassInvertMask { get; private set; }
     public ConfigEntry<bool> CompassInvertOutsides { get; private set; }
     public ConfigEntry<float> CompassAlpha { get; private set; }
     #endregion
-
     #region Chat ConfigEntries
     public ConfigEntry<bool> ColoredNames { get; private set; }
     public ConfigEntry<string> LocalNameColor { get; private set; }
@@ -84,6 +82,7 @@ public class ConfigEntries
     public ConfigEntry<bool> ShowFPSCounter { get; private set; }
     public ConfigEntry<bool> ShowPingCounter { get; private set; }
     public ConfigEntry<FPSPingLayout> MiscLayoutEnum { get; private set; }
+    public ConfigEntry<string> MiscToolsColor { get; private set; }
     public ConfigEntry<float> FPSCounterX { get; private set; }
     public ConfigEntry<float> FPSCounterY { get; private set; }
     #endregion
@@ -97,29 +96,29 @@ public class ConfigEntries
 
         #region Scan Binds
         HoldScan = ConfigHelper.Bind("Scan", "Hold Scan Button", false, "Allows you to keep holding scan button.");
-        FadeOut = ConfigHelper.Bind("Scan", "FadeOut", true, "Fade out effect for scan color.");
-        RecolorScanLines = ConfigHelper.Bind("Scan", "RecolorScanLines", true, "Recolor the blue horizontal scan lines texture aswell.");
+        FadeOut = ConfigHelper.Bind("Scan", "Fade Out", true, "Fade out effect for scan color.");
+        RecolorScanLines = ConfigHelper.Bind("Scan", "Recolor Scan Lines", true, "Recolor the blue horizontal scan lines texture aswell.");
         SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.", false);
         DirtIntensity = ConfigHelper.Bind("Scan", "Scanline Intensity", 0f, "Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", false, new AcceptableValueRange<float>(-500f, 500f));
-        ScanColor = ConfigHelper.Bind(true, "Scan", "ScanColor", "#000CFF", "Allows you to change the scan's color in HEX format.");
+        ScanColor = ConfigHelper.Bind(true, "Scan", "Scan Color", "#000CFF", "Allows you to change the scan's color in HEX format.");
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
-        VignetteIntensity = ConfigHelper.Bind("Scan", "VignetteIntensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false, new AcceptableValueRange<float>(0f, 1f));
+        VignetteIntensity = ConfigHelper.Bind("Scan", "Vignette Intensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false, new AcceptableValueRange<float>(0f, 1f));
         #endregion
         #region ScanNode Binds
-        ScanNodeFade = ConfigHelper.Bind("ScanNodes", "FadeAway", true, "Allows you to apply fadeaway for scannodes.");
+        ScanNodeFade = ConfigHelper.Bind("ScanNodes", "Fade Away", true, "Allows you to apply fadeaway for scannodes.");
         ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 10f));
-        ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "FadeDuration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
-        //ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", ScanNodeShape.Default, "Choose the shape for scan nodes.");
+        ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "Fade Duration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
+        ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", ScanNodeShape.Default, "Choose the shape for scan nodes.");
         #endregion
         #region InventorySlot Binds
-        SlotColor = ConfigHelper.Bind(true, "Inventory", "FrameColor", "#3226B4", "Allows you to change the inventoryslot colors.");
-        SlotRainbowColor = ConfigHelper.Bind("Inventory", "RainbowFrames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
-        GradientColorA = ConfigHelper.Bind(true, "Inventory", "GradientColorA", "#3226B4", "Start color for custom wavy gradient.");
-        GradientColorB = ConfigHelper.Bind(true, "Inventory", "GradientColorB", "#3226B4", "End color for custom wavy gradient.");
-        HandsFullColor = ConfigHelper.Bind(true, "Inventory", "HandsFullColor", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
-        ShowItemValue = ConfigHelper.Bind("Inventory", "ShowItemValue", true, "Enable quality of life visual helper, you can see the value of the items in your inventory");
-        ShowTotalInventoryValue = ConfigHelper.Bind("Inventory", "ShowTotalInventoryvalue", true, "Enable quality of life visual helper, you can see the total value of the items in your inventory");
-        SetDollar = ConfigHelper.Bind("Inventory", "ChangeCurrency", ItemValue.Default, "Let's you change from blocky credit to dollar sign (no Wesley, I'm not doing conversions to world currencies).");
+        SlotColor = ConfigHelper.Bind(true, "Inventory", "Frame Color", "#3226B4", "Allows you to change the inventoryslot colors.");
+        SlotRainbowColor = ConfigHelper.Bind("Inventory", "Rainbow Frames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
+        GradientColorA = ConfigHelper.Bind(true, "Inventory", "Gradient Color A", "#3226B4", "Start color for custom wavy gradient.");
+        GradientColorB = ConfigHelper.Bind(true, "Inventory", "Gradient Color B", "#3226B4", "End color for custom wavy gradient.");
+        HandsFullColor = ConfigHelper.Bind(true, "Inventory", "Hands Full Color", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
+        ShowItemValue = ConfigHelper.Bind("Inventory", "Show Item Value", true, "Enable quality of life visual helper, you can see the value of the items in your inventory");
+        ShowTotalInventoryValue = ConfigHelper.Bind("Inventory", "Show Total Inventory Value", true, "Enable quality of life visual helper, you can see the total value of the items in your inventory");
+        SetDollar = ConfigHelper.Bind("Inventory", "Change Currency", ItemValue.Default, "Let's you change from blocky credit to dollar sign (no Wesley, I'm not doing conversions to world currencies).");
         #endregion
         #region Chat Binds
         ColoredNames = ConfigHelper.Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
@@ -151,6 +150,7 @@ public class ConfigEntries
         MiscLayoutEnum = ConfigHelper.Bind("Misc", "Layout options", FPSPingLayout.Vertical, "Layout of FPS and Ping counters");
         FPSCounterX = ConfigHelper.Bind("Misc", "Layout position X", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 840f));
         FPSCounterY = ConfigHelper.Bind("Misc", "Layout position Y", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 480f));
+        MiscToolsColor = ConfigHelper.Bind(true, "Misc", "Misc Tools Color", "#FFFFFF", "Color misc tools (fps and ping counters)");
         #endregion
 
         #region Main Changes
@@ -208,6 +208,7 @@ public class ConfigEntries
             if (Plugins.ConfigEntries.ScanNodeFade.Value)
                 ScanNodeController.fadeDuration = ScanNodeFadeDuration.Value;
         };
+        ScanNodeShapeChoice.SettingChanged += (obj, args) => { ScanNodeTextureManager.ForceRefresh(); };
         #endregion
         #region Inventory Changes
         SlotColor.SettingChanged += (obj, args) =>

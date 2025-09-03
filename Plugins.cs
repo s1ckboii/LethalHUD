@@ -14,6 +14,7 @@ namespace LethalHUD;
 [BepInDependency(ModCompats.NiceChat_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(GoodItemScan.MyPluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(ModCompats.BetterScanVision_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.EladsHUD_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
 
@@ -23,13 +24,13 @@ public class Plugins : BaseUnityPlugin
     internal static ConfigEntries ConfigEntries { get; private set; }
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
-    /*internal struct ScanNodeCircleTextures
+    internal struct ScanNodeCircleTextures
     {
         public Sprite Outer;
         public Sprite Inner;
     }
 
-    internal static Dictionary<ScanNodeShape, ScanNodeCircleTextures> ScanNodeSprites = [];*/
+    internal static Dictionary<ScanNodeShape, ScanNodeCircleTextures> ScanNodeSprites = [];
 
     public void Awake()
     {
@@ -69,7 +70,7 @@ public class Plugins : BaseUnityPlugin
                 Logger.LogWarning($"Texture '{name}' not found in asset bundle.");
             }
         }
-        /*foreach (ScanNodeShape shape in System.Enum.GetValues(typeof(ScanNodeShape)))
+        foreach (ScanNodeShape shape in System.Enum.GetValues(typeof(ScanNodeShape)))
         {
             string outerName = $"{shape}_Outer";
             string innerName = $"{shape}_Inner";
@@ -85,6 +86,6 @@ public class Plugins : BaseUnityPlugin
                 Outer = outerTex,
                 Inner = innerTex
             };
-        }*/
+        }
     }
 }

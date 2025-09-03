@@ -7,6 +7,7 @@ using MonoDetour;
 using MonoDetour.Cil;
 using MonoDetour.HookGen;
 using MonoMod.Cil;
+using System.Collections;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -49,6 +50,9 @@ internal static class HUDManagerPatch
         ScrapValueDisplay.Init();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
+        ScanNodeTextureManager.Init();
+
+        self.StartCoroutine(ScanTextureRoutine());
     }
 
     private static void OnHUDManagerEnable(HUDManager self)
@@ -110,5 +114,15 @@ internal static class HUDManagerPatch
             },
             x => x.MatchLdstr("<color=#7069ff>") && w.SetCurrentTo(x)
         );
+    }
+
+    private static IEnumerator ScanTextureRoutine()
+    {
+        while (true)
+        {
+            ScanNodeTextureManager.Tick();
+            ScanNodeTextureManager.ClearDestroyedObjects();
+            yield return new WaitForSeconds(5f);
+        }
     }
 }

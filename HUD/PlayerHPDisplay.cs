@@ -20,7 +20,7 @@ namespace LethalHUD.HUD
         private static Vector2 basePosition;
         private static float baseFontSize;
 
-        private static Color fullHPColor = Color.green;
+        internal static Color fullHPColor = Color.green;
         private static Color midHPColor = new(1f, 0.3f, 0.3f);
         private static Color lowHPColor = new(0.6f, 0f, 0f);
 

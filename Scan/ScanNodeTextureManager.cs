@@ -1,14 +1,17 @@
-﻿/*using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using LethalHUD.Compats;
 using UnityEngine.UI;
 
 namespace LethalHUD.Scan;
+
 internal static class ScanNodeTextureManager
 {
-    private static readonly HashSet<ScanNodeProperties> updatedNodes = [];
+    private static readonly Dictionary<GameObject, Color> nodeColors = [];
 
-    internal static void ApplySpritesToAll()
+    private static Sprite innerSprite;
+    private static Sprite outerSprite;
+
+    internal static void Init()
     {
         var chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
 
@@ -18,38 +21,56 @@ internal static class ScanNodeTextureManager
             return;
         }
 
-        Sprite innerSprite = spritePair.Inner;
-        Sprite outerSprite = spritePair.Outer;
-
-        if (ModCompats.IsGoodItemScanPresent && GoodItemScan.GoodItemScan.scanner != null)
-        {
-            foreach (ScanNodeProperties node in GoodItemScan.GoodItemScan.scanner._scanNodes.Keys)
-            {
-                ApplySpritesToNode(node, innerSprite, outerSprite);
-            }
-        }
-
-        foreach (ScanNodeProperties node in Object.FindObjectsOfType<ScanNodeProperties>())
-        {
-            ApplySpritesToNode(node, innerSprite, outerSprite);
-        }
+        innerSprite = spritePair.Inner;
+        outerSprite = spritePair.Outer;
     }
 
-    private static void ApplySpritesToNode(ScanNodeProperties node, Sprite innerSprite, Sprite outerSprite)
+    internal static void Tick()
     {
-        if (node == null || !node.gameObject.activeInHierarchy) return;
+        GameObject scanner = GameObject.Find("UI/Canvas/ObjectScanner");
+        if (scanner == null) return;
 
-        if (updatedNodes.Contains(node)) return;
-
-        Image innerRenderer = node.transform.Find("Inner")?.GetComponent<Image>();
-        Image outerRenderer = node.transform.Find("Outer")?.GetComponent<Image>();
-
-        if (innerRenderer != null)
-            innerRenderer.sprite = innerSprite;
-
-        if (outerRenderer != null)
-            outerRenderer.sprite = outerSprite;
-
-        updatedNodes.Add(node);
+        foreach (Transform child in scanner.transform)
+        {
+            if (!child.name.StartsWith("ScanObject")) continue;
+            ApplySpritesToScanObject(child.gameObject);
+        }
     }
-}*/
+
+    private static void ApplySpritesToScanObject(GameObject scanObject)
+    {
+        if (scanObject == null || !scanObject.activeInHierarchy) return;
+
+        Image inner = scanObject.transform.Find("Circle/Inner")?.GetComponent<Image>();
+        Image outer = scanObject.transform.Find("Circle/Outer")?.GetComponent<Image>();
+
+        if (inner == null || outer == null) return;
+
+        if (!nodeColors.ContainsKey(inner.gameObject))
+            nodeColors[inner.gameObject] = inner.color;
+        if (!nodeColors.ContainsKey(outer.gameObject))
+            nodeColors[outer.gameObject] = outer.color;
+
+        inner.sprite = innerSprite;
+        outer.sprite = outerSprite;
+
+        inner.color = nodeColors[inner.gameObject];
+        outer.color = nodeColors[outer.gameObject];
+    }
+
+    internal static void ForceRefresh()
+    {
+        Tick();
+    }
+
+    internal static void ClearDestroyedObjects()
+    {
+        List<GameObject> keysToRemove = [];
+        foreach (var kvp in nodeColors)
+            if (kvp.Key == null)
+                keysToRemove.Add(kvp.Key);
+
+        foreach (var key in keysToRemove)
+            nodeColors.Remove(key);
+    }
+}

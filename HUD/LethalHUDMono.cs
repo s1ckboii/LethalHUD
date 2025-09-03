@@ -37,5 +37,7 @@ internal class LethalHUDMono : MonoBehaviour
             ScanNodeController.UpdateGoodItemScanNodes();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
+        if (ModCompats.IsEladsHUDPresent)
+            EladsHUDProxy.OverrideHUD();
     }
 }
