@@ -8,36 +8,26 @@ internal static class ScanNodeTextureManager
 {
     private static readonly Dictionary<GameObject, Color> nodeColors = [];
 
-    private static Sprite innerSprite;
-    private static Sprite outerSprite;
-
-    internal static void Init()
-    {
-        var chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
-
-        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out var spritePair))
-        {
-            Plugins.Logger.LogWarning($"No sprites found for shape {chosenShape}");
-            return;
-        }
-
-        innerSprite = spritePair.Inner;
-        outerSprite = spritePair.Outer;
-    }
-
     internal static void Tick()
     {
         GameObject scanner = GameObject.Find("UI/Canvas/ObjectScanner");
         if (scanner == null) return;
 
+        var chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
+        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out var spritePair))
+            return;
+
+        Sprite innerSprite = spritePair.Inner;
+        Sprite outerSprite = spritePair.Outer;
+
         foreach (Transform child in scanner.transform)
         {
             if (!child.name.StartsWith("ScanObject")) continue;
-            ApplySpritesToScanObject(child.gameObject);
+            ApplySpritesToScanObject(child.gameObject, innerSprite, outerSprite);
         }
     }
 
-    private static void ApplySpritesToScanObject(GameObject scanObject)
+    private static void ApplySpritesToScanObject(GameObject scanObject, Sprite innerSprite, Sprite outerSprite)
     {
         if (scanObject == null || !scanObject.activeInHierarchy) return;
 

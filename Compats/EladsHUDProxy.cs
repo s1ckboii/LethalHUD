@@ -4,10 +4,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using LethalHUD.HUD;
 using LethalHUD.Configs;
 using GameNetcodeStuff;
+using TMPro;
 
 namespace LethalHUD.Compats;
 internal static class EladsHUDProxy
@@ -21,13 +21,6 @@ internal static class EladsHUDProxy
 
     private static object _hudInstance;
     private static bool _triedFindingType = false;
-
-    private static Image _cachedStaminaBar;
-    private static TextMeshProUGUI _cachedStaminaText;
-    private static Image _cachedHealthBar;
-    private static TextMeshProUGUI _cachedCarryText;
-
-    private static float _lastWeightValue = -1f;
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     internal static void OverrideHUD()
@@ -69,31 +62,24 @@ internal static class EladsHUDProxy
 
         if (_instanceField == null) return;
 
-        _hudInstance ??= _instanceField.GetValue(null);
-        if (_hudInstance == null) return;
+        System.Object hudInstance = _hudInstance ??= _instanceField.GetValue(null);
+        if (hudInstance == null) return;
 
         PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
         if (player == null) return;
 
-        if (_cachedStaminaBar == null)
-            _cachedStaminaBar = _staminaBarField?.GetValue(_hudInstance) as Image;
+        Image staminaBar = _staminaBarField?.GetValue(hudInstance) as Image;
+        TextMeshProUGUI staminaText = _staminaTextField?.GetValue(hudInstance) as TextMeshProUGUI;
 
-        if (_cachedStaminaText == null)
-            _cachedStaminaText = _staminaTextField?.GetValue(_hudInstance) as TextMeshProUGUI;
+        if (staminaBar != null || staminaText != null)
+            ApplyStaminaColors(staminaBar, staminaText);
 
-        if (_cachedHealthBar == null)
-            _cachedHealthBar = _healthBarField?.GetValue(_hudInstance) as Image;
-
-        if (_cachedCarryText == null)
-            _cachedCarryText = _carryTextField?.GetValue(_hudInstance) as TextMeshProUGUI;
-
-        if (_cachedStaminaBar != null || _cachedStaminaText != null)
-            ApplyStaminaColors(_cachedStaminaBar, _cachedStaminaText);
-
-        if (_cachedHealthBar != null && Plugins.ConfigEntries.HealthStarterColor.Value)
+        Image healthBar = _healthBarField?.GetValue(hudInstance) as Image;
+        if (healthBar != null && Plugins.ConfigEntries.HealthStarterColor.Value)
         {
-            _cachedHealthBar.color = ConfigHelper.GetSlotColor();
-            Transform parent = _cachedHealthBar.transform.parent;
+            healthBar.color = ConfigHelper.GetSlotColor();
+
+            Transform parent = healthBar.transform.parent;
             if (parent != null)
             {
                 Image bg = parent.Find("Healthbar BG")?.GetComponent<Image>();
@@ -102,15 +88,9 @@ internal static class EladsHUDProxy
             }
         }
 
-        if (_cachedCarryText != null)
-        {
-            float carryWeight = player.carryWeight;
-            if (!Mathf.Approximately(carryWeight, _lastWeightValue))
-            {
-                UpdateWeightDisplay(_cachedCarryText, carryWeight);
-                _lastWeightValue = carryWeight;
-            }
-        }
+        TextMeshProUGUI carryText = _carryTextField?.GetValue(hudInstance) as TextMeshProUGUI;
+        if (carryText != null)
+            UpdateWeightDisplay(carryText, player);
     }
 
     private static void ApplyStaminaColors(Image staminaBar, TextMeshProUGUI staminaText)
@@ -144,9 +124,9 @@ internal static class EladsHUDProxy
         if (staminaBar != null) staminaBar.color = finalColor;
         if (staminaText != null) staminaText.color = finalColor;
     }
-
-    private static void UpdateWeightDisplay(TextMeshProUGUI carryText, float carryWeight)
+    private static void UpdateWeightDisplay(TextMeshProUGUI carryText, PlayerControllerB player)
     {
+        float carryWeight = player.carryWeight;
         float convertedWeight = WeightController.ConvertWeight(Mathf.RoundToInt(Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f));
         string unitString = WeightController.GetUnitString();
 

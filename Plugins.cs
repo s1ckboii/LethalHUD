@@ -15,6 +15,7 @@ namespace LethalHUD;
 [BepInDependency(GoodItemScan.MyPluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(ModCompats.BetterScanVision_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(ModCompats.EladsHUD_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(ModCompats.HotbarPlus_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
 
@@ -36,23 +37,35 @@ public class Plugins : BaseUnityPlugin
     {
         if (Instance == null) Instance = this;
 
+
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
         Logger.LogInfo("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 
-        Config = ConfigUtils.CreateGlobalConfigFile(this);
+        var bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
+        var useLocalEntry = bootstrapConfig.Bind(
+            "Main",
+            "Use Local Config",
+            false,
+            "If enabled, uses a local config file instead of the global config. Requires restart."
+        );
+        bool useLocal = useLocalEntry.Value;
+
+        Config = useLocal
+            ? ConfigUtils.CreateLocalConfigFile(this)
+            : ConfigUtils.CreateGlobalConfigFile(this);
+
+        ConfigEntries = new ConfigEntries();
 
         Patches.HUDManagerPatch.Init();
         Patches.PlayerControllerBPatch.Init();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "insanelyoriginalassetbundlenameforlethalhud");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "unfathomablyridiculousoriginalassetbundlenameforlethalhud");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
-
-        ConfigEntries = new ConfigEntries();
 
         if (assetBundle == null)
         {
-            Logger.LogError("Failed to load insanelyoriginalassetbundlenameforlethalhud assetbundle.");
+            Logger.LogError("Failed to load unfathomablyridiculousoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
 
@@ -87,5 +100,7 @@ public class Plugins : BaseUnityPlugin
                 Inner = innerTex
             };
         }
+
+        bootstrapConfig.Save();
     }
 }

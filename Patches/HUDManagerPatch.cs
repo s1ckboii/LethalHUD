@@ -16,6 +16,7 @@ namespace LethalHUD.Patches;
 internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
+    private static int lastSlotCount = 0;
 
     [MonoDetourHookInitialize]
     public static void Init()
@@ -50,7 +51,6 @@ internal static class HUDManagerPatch
         ScrapValueDisplay.Init();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
-        ScanNodeTextureManager.Init();
 
         self.StartCoroutine(ScanTextureRoutine());
     }
@@ -87,6 +87,12 @@ internal static class HUDManagerPatch
             self.PingScan_performed(pingScan);
         if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
             WeightController.UpdateWeightDisplay();
+        int currentCount = self.itemSlotIconFrames.Length;
+        if (currentCount != lastSlotCount)
+        {
+            ScrapValueDisplay.RefreshSlots();
+            lastSlotCount = currentCount;
+        }
     }
 
     private static void OnHUDManagerUpdateScanNodes(HUDManager self, ref PlayerControllerB playerScript)
@@ -122,7 +128,7 @@ internal static class HUDManagerPatch
         {
             ScanNodeTextureManager.Tick();
             ScanNodeTextureManager.ClearDestroyedObjects();
-            yield return new WaitForSeconds(5f);
+            yield return new WaitForSeconds(1f);
         }
     }
 }

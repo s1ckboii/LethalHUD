@@ -32,7 +32,8 @@ public static class Enums
     public enum ScanNodeShape
     {
         Default,
-        Triangle
+        Triangle,
+        Target
     }
     public enum WeightUnit
     {
@@ -44,6 +45,12 @@ public static class Enums
     {
         Vertical,
         Horizontal
+    }
+    public enum TotalValuePrefix
+    {
+        Full,
+        Short,
+        None
     }
 
     internal static Color solarFlare = new(1f, 0.8f, 0.3f);

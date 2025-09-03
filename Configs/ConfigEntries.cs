@@ -46,7 +46,11 @@ public class ConfigEntries
     public ConfigEntry<string> HandsFullColor { get; private set; }
     public ConfigEntry<bool> ShowItemValue { get; private set; }
     public ConfigEntry<bool> ShowTotalInventoryValue { get; private set; }
+    public ConfigEntry<bool> ShowTotalDelta { get; private set; }
+    public ConfigEntry<TotalValuePrefix> TotalPrefix { get; private set; }
     public ConfigEntry<ItemValue> SetDollar { get; private set; }
+    public ConfigEntry<float> TotalValueOffsetX { get; private set; }
+    public ConfigEntry<float> TotalValueOffsetY { get; private set; }
     #endregion
     #region ScanNode ConfigEntries
     public ConfigEntry<bool> ScanNodeFade { get; private set; }
@@ -117,16 +121,20 @@ public class ConfigEntries
         GradientColorA = ConfigHelper.Bind(true, "Inventory", "Gradient Color A", "#3226B4", "Start color for custom wavy gradient.");
         GradientColorB = ConfigHelper.Bind(true, "Inventory", "Gradient Color B", "#3226B4", "End color for custom wavy gradient.");
         HandsFullColor = ConfigHelper.Bind(true, "Inventory", "Hands Full Color", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
-        ShowItemValue = ConfigHelper.Bind("Inventory", "Show Item Value", true, "Enable quality of life visual helper, you can see the value of the items in your inventory");
-        ShowTotalInventoryValue = ConfigHelper.Bind("Inventory", "Show Total Inventory Value", true, "Enable quality of life visual helper, you can see the total value of the items in your inventory");
+        ShowItemValue = ConfigHelper.Bind("Inventory", "Show Item Value", false, "Enable quality of life visual helper, you can see the value of the items in your inventory");
+        ShowTotalInventoryValue = ConfigHelper.Bind("Inventory", "Show Total Inventory Value", false, "Enable quality of life visual helper, you can see the total value of the items in your inventory");
+        ShowTotalDelta = ConfigHelper.Bind("Inventory", "Show Total Delta", true, "This shows the + and - numbers next to the inventory total value.");
+        TotalPrefix = ConfigHelper.Bind("Inventory", "Total Prefix", TotalValuePrefix.Full, "Change inventory total value text.");
         SetDollar = ConfigHelper.Bind("Inventory", "Change Currency", ItemValue.Default, "Let's you change from blocky credit to dollar sign (no Wesley, I'm not doing conversions to world currencies).");
+        TotalValueOffsetX = ConfigHelper.Bind("Inventory", "Total Value Offset X", -200f ,"X position of the inventory total value text.", false, new AcceptableValueRange<float>(-360f, 520f));
+        TotalValueOffsetY = ConfigHelper.Bind("Inventory", "Total Value Offset Y", -55f, "Y position of the inventory total value text.", false, new AcceptableValueRange<float>(-250f, 250f));
         #endregion
         #region Chat Binds
         ColoredNames = ConfigHelper.Bind("Chat", "Colored Names", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
         LocalNameColor = ConfigHelper.Bind(true, "Chat", "Local Name Color", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
         GradientNameColorA = ConfigHelper.Bind(true, "Chat", "Gradient Name Color A", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "Gradient Name Color B", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
-        ChatInputText = ConfigHelper.Bind(true, "Chat", "Chat Input Text", "#", "Change input text's color.");
+        ChatInputText = ConfigHelper.Bind(true, "Chat", "Chat Input Text", "#FFFF00", "Change input text's color.");
         #endregion
         #region HSW Binds
         HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "HealthIndicator", true, "Enable health points indicator.");
@@ -256,6 +264,10 @@ public class ConfigEntries
             if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
                 WeightController.UpdateWeightDisplay();
         };
+        ShowTotalDelta.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
+        TotalPrefix.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
+        TotalValueOffsetX.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
+        TotalValueOffsetY.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         #endregion
     }
 }

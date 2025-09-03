@@ -41,9 +41,7 @@ internal static class SprintMeter
 
     private static void ApplySolidMode(PlayerControllerB player)
     {
-        Color solidColor = HUDUtils.ParseHexColor(
-            Plugins.ConfigEntries.SprintMeterColorSolid.Value
-        );
+        Color solidColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColorSolid.Value);
 
         player.sprintMeterUI.color = solidColor;
     }

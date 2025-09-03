@@ -19,7 +19,7 @@ internal static class ConfigUtils
         return new ConfigFile(Path.Combine(path, name), saveOnInit, metadata);
     }
 
-    private static ConfigFile CreateLocalConfigFile(BaseUnityPlugin plugin, string name = null, bool saveOnInit = false)
+    internal static ConfigFile CreateLocalConfigFile(BaseUnityPlugin plugin, string name = null, bool saveOnInit = false)
     {
         return CreateConfigFile(plugin, Paths.ConfigPath, name, saveOnInit);
     }

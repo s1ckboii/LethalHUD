@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalHUD.Compats;
 using LethalHUD.Configs;
 using TMPro;
 using UnityEngine;
@@ -27,6 +28,7 @@ namespace LethalHUD.HUD
         public static void Init()
         {
             if (!Plugins.ConfigEntries.HealthIndicator.Value) return;
+            if (ModCompats.IsEladsHUDPresent) return;
             HUDManager hud = HUDManager.Instance;
             if (hpText != null) return;
 
@@ -58,6 +60,7 @@ namespace LethalHUD.HUD
 
         public static void UpdateNumber()
         {
+            if (ModCompats.IsEladsHUDPresent) return;
             if (hpText == null) return;
             if (localPlayer == null) localPlayer = GameNetworkManager.Instance.localPlayerController;
             if (localPlayer == null) return;

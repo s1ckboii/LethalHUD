@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 internal static class ScrapValueDisplay
@@ -10,6 +11,8 @@ internal static class ScrapValueDisplay
 
     private static TMP_FontAsset defaultFont;
     private static TMP_FontAsset dollarFont;
+
+    private static RectTransform totalRT;
 
     private static int[] slotValues;
 
@@ -34,51 +37,72 @@ internal static class ScrapValueDisplay
         defaultFont = hud.totalValueText.font;
         dollarFont = hud.chatText.font;
 
+        SetupSlots();
+    }
+
+    internal static void SetupSlots()
+    {
+        HUDManager hud = HUDManager.Instance;
+        if (hud == null || hud.itemSlotIconFrames == null || hud.itemSlotIconFrames.Length == 0) return;
+
         int slotCount = hud.itemSlotIconFrames.Length;
-        slotTexts = new TMP_Text[slotCount];
-        slotValues = new int[slotCount];
+
+        if (slotTexts == null || slotTexts.Length != slotCount)
+            slotTexts = new TMP_Text[slotCount];
+        if (slotValues == null || slotValues.Length != slotCount)
+            slotValues = new int[slotCount];
 
         for (int i = 0; i < slotCount; i++)
         {
             Image slot = hud.itemSlotIconFrames[i];
             if (slot == null) continue;
 
-            GameObject holder = new("InventoryScrapValueTextHolder");
-            holder.transform.SetParent(slot.transform, false);
-            holder.transform.localPosition = Vector3.zero;
-            holder.transform.localScale = Vector3.one;
+            if (slotTexts[i] != null) continue;
 
-            holder.transform.localRotation = Quaternion.Inverse(slot.transform.localRotation);
-
-            GameObject go = new("InventoryScrapValueText");
-            go.transform.SetParent(holder.transform, false);
-
-            RectTransform rt = go.AddComponent<RectTransform>();
-            rt.localScale = Vector3.one * 0.75f;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.localPosition = new Vector2(0f, -3f);
-            rt.localRotation = Quaternion.identity;
-
-            TMP_Text tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.fontSize = 14;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.green;
-            tmp.raycastTarget = false;
-            tmp.text = "";
-
-            slotTexts[i] = tmp;
+            CreateSlotTextForIndex(i, slot);
         }
 
-        GameObject totalGO = new("InventoryScrapTotalValueText");
-        totalGO.transform.SetParent(hud.itemSlotIconFrames[0].transform, false);
+        SetupTotalText(hud);
+    }
 
-        RectTransform totalRT = totalGO.AddComponent<RectTransform>();
+    private static void CreateSlotTextForIndex(int index, Image slot)
+    {
+        GameObject go = new("InventoryScrapValueText");
+        go.transform.SetParent(slot.transform, false);
+
+        RectTransform rt = go.AddComponent<RectTransform>();
+        rt.localScale = Vector3.one * 0.75f;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.localPosition = new Vector2(0f, -3f);
+        rt.localRotation = Quaternion.identity;
+
+        TMP_Text tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.fontSize = 14;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = Color.green;
+        tmp.raycastTarget = false;
+        tmp.text = "";
+
+        slotTexts[index] = tmp;
+    }
+
+    private static void SetupTotalText(HUDManager hud)
+    {
+        if (totalText != null)
+            Object.Destroy(totalText.gameObject);
+
+        if (hud.itemSlotIconFrames.Length == 0) return;
+
+        GameObject totalGO = new("InventoryScrapTotalValueText");
+        totalGO.transform.SetParent(hud.itemSlotIconFrames[0].transform.parent, false);
+
+        totalRT = totalGO.AddComponent<RectTransform>();
         totalRT.localScale = Vector3.one * 0.5f;
-        totalRT.localRotation = Quaternion.Euler(0, 0, 90);
+        totalRT.localRotation = Quaternion.identity;
         totalRT.anchorMin = totalRT.anchorMax = new Vector2(0f, 0.5f);
         totalRT.pivot = new Vector2(1f, 0.5f);
-        totalRT.localPosition = new Vector2(10f, -20f);
+        totalRT.localPosition = new Vector2(Plugins.ConfigEntries.TotalValueOffsetX.Value, Plugins.ConfigEntries.TotalValueOffsetY.Value);
 
         totalText = totalGO.AddComponent<TextMeshProUGUI>();
         totalText.fontSize = 14;
@@ -86,6 +110,11 @@ internal static class ScrapValueDisplay
         totalText.color = Color.green;
         totalText.raycastTarget = false;
         totalText.text = "";
+    }
+
+    internal static void RefreshSlots()
+    {
+        SetupSlots();
     }
 
     internal static void UpdateSlot(int slotIndex, int value)
@@ -106,6 +135,17 @@ internal static class ScrapValueDisplay
         UpdateSlotTextColors();
     }
 
+    internal static void UpdateTotalTextPosition()
+    {
+        if (totalText == null) return;
+
+        RectTransform totalRT = totalText.rectTransform;
+        totalRT.localPosition = new Vector2(
+            Plugins.ConfigEntries.TotalValueOffsetX.Value,
+            Plugins.ConfigEntries.TotalValueOffsetY.Value
+        );
+    }
+
     internal static void Hide(int slotIndex)
     {
         if (slotTexts == null || slotIndex < 0 || slotIndex >= slotTexts.Length) return;
@@ -114,6 +154,22 @@ internal static class ScrapValueDisplay
         if (tmp != null) tmp.text = "";
 
         slotValues[slotIndex] = 0;
+        UpdateInventoryTotal();
+        UpdateSlotTextColors();
+    }
+
+    internal static void ClearItemSlots()
+    {
+        if (slotTexts == null || slotValues == null) return;
+
+        for (int i = 0; i < slotTexts.Length; i++)
+        {
+            if (slotTexts[i] != null)
+                slotTexts[i].text = "";
+
+            slotValues[i] = 0;
+        }
+
         UpdateInventoryTotal();
         UpdateSlotTextColors();
     }
@@ -143,25 +199,19 @@ internal static class ScrapValueDisplay
             if (tmp == null) continue;
 
             int v = slotValues[i];
-            if (v <= 0)
-            {
-                tmp.color = lowColor;
-                continue;
-            }
-
-            float t = (max == min) ? 1f : Mathf.InverseLerp(min, max, v);
-            tmp.color = Color.Lerp(lowColor, highColor, t);
+            tmp.color = v <= 0 ? lowColor : Color.Lerp(lowColor, highColor, (max == min) ? 1f : Mathf.InverseLerp(min, max, v));
         }
     }
 
     private static void UpdateInventoryTotal()
     {
-        if (!Plugins.ConfigEntries.ShowTotalInventoryValue.Value) 
+        if (!Plugins.ConfigEntries.ShowTotalInventoryValue.Value)
         {
-            if (totalText.text != string.Empty)
+            if (totalText != null && totalText.text != string.Empty)
                 totalText.text = string.Empty;
             return;
         }
+
         int total = 0;
         for (int i = 0; i < slotValues.Length; i++)
             total += slotValues[i];
@@ -169,7 +219,7 @@ internal static class ScrapValueDisplay
         if (total != lastTotal)
         {
             int diff = total - lastTotal;
-            if (diff != 0)
+            if (diff != 0 && Plugins.ConfigEntries.ShowTotalDelta.Value)
             {
                 string color = diff > 0 ? "green" : "red";
                 string sign = diff > 0 ? "+" : "-";
@@ -185,7 +235,15 @@ internal static class ScrapValueDisplay
             lastTotal = total;
         }
 
-        string display = total > 0 ? $"Total Value: ${total}" : "";
+        string prefix = Plugins.ConfigEntries.TotalPrefix.Value switch
+        {
+            TotalValuePrefix.Full => "Total Value: ",
+            TotalValuePrefix.Short => "Total: ",
+            TotalValuePrefix.None => "",
+            _ => "Total Value: "
+        };
+
+        string display = total > 0 ? $"{prefix}${total}" : "";
         if (!string.IsNullOrEmpty(deltaText))
             display += deltaText;
 
@@ -195,21 +253,6 @@ internal static class ScrapValueDisplay
                 ? defaultFont : dollarFont;
             totalText.text = display;
         }
-    }
-    internal static void ClearItemSlots()
-    {
-        if (slotTexts == null || slotValues == null) return;
-
-        for (int i = 0; i < slotTexts.Length; i++)
-        {
-            if (slotTexts[i] != null)
-                slotTexts[i].text = "";
-
-            slotValues[i] = 0;
-        }
-
-        UpdateInventoryTotal();
-        UpdateSlotTextColors();
     }
 
     internal static void Tick(float deltaTime)
@@ -232,10 +275,7 @@ internal static class ScrapValueDisplay
             if (eraseTimer <= 0f && deltaPlain.Length > 0)
             {
                 deltaPlain = deltaPlain[..^1];
-                deltaText = deltaPlain.Length > 0
-                    ? $"<color={deltaColor}>{deltaPlain}</color>"
-                    : "";
-
+                deltaText = deltaPlain.Length > 0 ? $"<color={deltaColor}>{deltaPlain}</color>" : "";
                 eraseTimer = eraseSpeed;
                 UpdateInventoryTotal();
             }
@@ -246,5 +286,15 @@ internal static class ScrapValueDisplay
                 UpdateInventoryTotal();
             }
         }
+
+        if (slotTexts != null)
+        {
+            for (int i = 0; i < slotTexts.Length; i++)
+                if (slotTexts[i] != null)
+                    slotTexts[i].transform.rotation = Quaternion.identity;
+        }
+
+        if (totalText != null)
+            totalText.transform.rotation = Quaternion.identity;
     }
 }
