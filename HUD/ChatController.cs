@@ -92,7 +92,6 @@ internal static class ChatController
                 case SlotEnums.None:
                     targetColor = ConfigHelper.GetSlotColor();
                     break;
-
                 default:
                     float wave = Mathf.SmoothStep(0f, 1f, Mathf.Sin(time * Mathf.PI * 2f) * 0.5f + 0.5f);
                     targetColor = Color.Lerp(InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor, wave);
@@ -104,8 +103,13 @@ internal static class ChatController
 
         if (inputField.textComponent != null)
         {
-            Color invertedColor = new(1f - targetColor.r, 1f - targetColor.g, 1f - targetColor.b, targetColor.a);
-            inputField.textComponent.color = invertedColor;
+            Color textColor = InventoryFrames.CurrentSlotColorMode switch
+            {
+                SlotEnums.Rainbow => new Color(1f - targetColor.r, 1f - targetColor.g, 1f - targetColor.b, targetColor.a),
+                SlotEnums.None => HUDUtils.ParseHexColor(Plugins.ConfigEntries.ChatInputText.Value),
+                _ => new Color(1f - targetColor.r, 1f - targetColor.g, 1f - targetColor.b, targetColor.a),
+            };
+            inputField.textComponent.color = textColor;
         }
         if (inputField.placeholder is TMP_Text placeholderText)
         {

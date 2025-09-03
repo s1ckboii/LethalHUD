@@ -77,6 +77,7 @@ public class ConfigEntries
     public ConfigEntry<string> LocalNameColor { get; private set; }
     public ConfigEntry<string> GradientNameColorA { get; private set; }
     public ConfigEntry<string> GradientNameColorB { get; private set; }
+    public ConfigEntry<string> ChatInputText { get; private set; }
     #endregion
     #region Misc ConfigEntries
     public ConfigEntry<bool> ShowFPSCounter { get; private set; }
@@ -121,10 +122,11 @@ public class ConfigEntries
         SetDollar = ConfigHelper.Bind("Inventory", "Change Currency", ItemValue.Default, "Let's you change from blocky credit to dollar sign (no Wesley, I'm not doing conversions to world currencies).");
         #endregion
         #region Chat Binds
-        ColoredNames = ConfigHelper.Bind("Chat", "ColoredNames", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
-        LocalNameColor = ConfigHelper.Bind(true, "Chat", "LocalNameColor", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
-        GradientNameColorA = ConfigHelper.Bind(true, "Chat", "GradientNameColorA", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
-        GradientNameColorB = ConfigHelper.Bind(true, "Chat", "GradientNameColorB", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
+        ColoredNames = ConfigHelper.Bind("Chat", "Colored Names", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
+        LocalNameColor = ConfigHelper.Bind(true, "Chat", "Local Name Color", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
+        GradientNameColorA = ConfigHelper.Bind(true, "Chat", "Gradient Name Color A", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
+        GradientNameColorB = ConfigHelper.Bind(true, "Chat", "Gradient Name Color B", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
+        ChatInputText = ConfigHelper.Bind(true, "Chat", "Chat Input Text", "#", "Change input text's color.");
         #endregion
         #region HSW Binds
         HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "HealthIndicator", true, "Enable health points indicator.");
