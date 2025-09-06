@@ -9,7 +9,7 @@ public class ScanUtils
         var colorIntensity = color.r + color.g + color.b;
         var pixels = texture.GetPixels().ToList();
 
-        Plugins.Logger.LogDebug("ScanTexture pixel count: " + pixels.Count);
+        Loggers.Debug("ScanTexture pixel count: " + pixels.Count);
         for (int i = pixels.Count - 1; i >= 0; i--)
         {
             var pixelIntensity = pixels[i].r + pixels[i].g + pixels[i].b;

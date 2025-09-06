@@ -81,6 +81,9 @@ internal static class WeightController
         if (hud == null || hud.weightCounter == null || hud.weightCounterAnimator == null)
             return;
 
+        if (GameNetworkManager.Instance == null || GameNetworkManager.Instance.localPlayerController == null)
+            return;
+
         float carryWeight = GameNetworkManager.Instance.localPlayerController.carryWeight;
         int num2 = Mathf.RoundToInt(Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f);
 

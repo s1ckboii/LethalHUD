@@ -13,7 +13,7 @@ internal static class HUDUtils
             return new Color(color.r, color.g, color.b);
         }
 
-        Plugins.Logger.LogWarning($"Invalid HEX color: {hex}. Defaulting to original blue.");
+        Loggers.Warning($"Invalid HEX color: {hex}. Defaulting to original blue.");
         return new Color(0f, 0.047f, 1f);
     }
     internal static bool HasCustomGradient(string a, string b)

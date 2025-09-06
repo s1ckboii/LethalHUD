@@ -7,7 +7,10 @@ internal static class SprintMeter
     internal const string PlayerPrefsKey = "SprintMeterLastMode";
     internal static void UpdateSprintMeterColor()
     {
-        var player = StartOfRound.Instance?.localPlayerController;
+        if (GameNetworkManager.Instance == null || GameNetworkManager.Instance.localPlayerController == null)
+            return;
+
+        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
         if (player?.sprintMeterUI == null)
             return;
 

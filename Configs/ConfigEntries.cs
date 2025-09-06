@@ -84,8 +84,12 @@ public class ConfigEntries
     public ConfigEntry<string> ChatInputText { get; private set; }
     #endregion
     #region Misc ConfigEntries
-    public ConfigEntry<bool> ShowFPSCounter { get; private set; }
-    public ConfigEntry<bool> ShowPingCounter { get; private set; }
+    public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
+    public ConfigEntry<bool> ShowPingDisplay { get; private set; }
+    public ConfigEntry<bool> ShowSeedDisplay { get; private set; }
+    //public ConfigEntry<bool> ReplaceScrapCounterVisual { get; private set; }
+    //public ConfigEntry<bool> ShowShipLoot { get; private set; }
+    //public ConfigEntry<float> DisplayTime { get; private set; }
     public ConfigEntry<FPSPingLayout> MiscLayoutEnum { get; private set; }
     public ConfigEntry<string> MiscToolsColor { get; private set; }
     public ConfigEntry<float> FPSCounterX { get; private set; }
@@ -155,8 +159,12 @@ public class ConfigEntries
         CompassAlpha = ConfigHelper.Bind("Compass", "Alpha", 1f, "Lets you change the alpha value of Compass.", false, new AcceptableValueRange<float>(0f, 1f));
         #endregion
         #region Misc Binds
-        ShowFPSCounter = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
-        ShowPingCounter = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
+        ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
+        ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
+        ShowSeedDisplay = ConfigHelper.Bind("Misc", "Seed Display", false, "Display current seed.");
+        //ReplaceScrapCounterVisual = ConfigHelper.Bind("Misc", "Scrap Counter Visual", false, "Replace total value scanner with shiploot visual.");
+        //ShowShipLoot = ConfigHelper.Bind("Misc", "Ship Loot", false, "Enable ship loot info");
+        //DisplayTime = ConfigHelper.Bind("Misc", "Ship Loot Display Time", 5f, "Change how long ship loot should be displayed.", false, new AcceptableValueRange<float>(0f, 20f));
         MiscLayoutEnum = ConfigHelper.Bind("Misc", "Layout options", FPSPingLayout.Vertical, "Layout of FPS and Ping counters");
         FPSCounterX = ConfigHelper.Bind("Misc", "Layout position X", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 840f));
         FPSCounterY = ConfigHelper.Bind("Misc", "Layout position Y", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 480f));

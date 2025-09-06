@@ -27,7 +27,7 @@ internal static class InventoryFrames
 
         if (bottomLeftCorner == null)
         {
-            Debug.LogWarning("InventoryFrames: BottomLeftCorner not found.");
+            Loggers.Warning("InventoryFrames: BottomLeftCorner not found.");
             allFrames = frames;
             return;
         }
@@ -35,7 +35,7 @@ internal static class InventoryFrames
         Transform imageTransform = bottomLeftCorner.transform.Find("Image");
         if (imageTransform == null)
         {
-            Debug.LogWarning("InventoryFrames: Image transform not found under BottomLeftCorner.");
+            Loggers.Warning("InventoryFrames: Image transform not found under BottomLeftCorner.");
             allFrames = frames;
             return;
         }
@@ -43,7 +43,7 @@ internal static class InventoryFrames
         Image chatFrame = imageTransform.GetComponent<Image>();
         if (chatFrame == null)
         {
-            Debug.LogWarning("InventoryFrames: Image component not found.");
+            Loggers.Warning("InventoryFrames: Image component not found.");
             allFrames = frames;
             return;
         }

@@ -18,7 +18,7 @@ internal static class HUDManagerPatch
     private static CallbackContext pingScan;
     private static int lastSlotCount = 0;
 
-    [MonoDetourHookInitialize]
+[MonoDetourHookInitialize]
     public static void Init()
     {
         // Prefix
@@ -41,6 +41,7 @@ internal static class HUDManagerPatch
         pingScan = context;
         if (ModCompats.IsGoodItemScanPresent)
             ScanNodeController.ResetGoodItemScanNodes();
+        //LootInfoManager.LootScan();
     }
 
     private static void OnHUDManagerStart(HUDManager self)
@@ -61,9 +62,9 @@ internal static class HUDManagerPatch
         {
             self.gameObject.AddComponent<LethalHUDMono>();
         }
-        if (self.gameObject.GetComponent<FPSAndPingCounter>() == null)
+        if (self.gameObject.GetComponent<StatsDisplay>() == null)
         {
-            self.gameObject.AddComponent<FPSAndPingCounter>();
+            self.gameObject.AddComponent<StatsDisplay>();
         }
         ChatController.ColorChatInputField(self.chatTextField,Time.time * 0.25f);
     }

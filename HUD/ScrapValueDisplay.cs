@@ -132,7 +132,7 @@ internal static class ScrapValueDisplay
         slotValues[slotIndex] = value;
 
         UpdateInventoryTotal();
-        UpdateSlotTextColors();
+        UpdateSlotValueTextColors();
     }
 
     internal static void UpdateTotalTextPosition()
@@ -155,7 +155,7 @@ internal static class ScrapValueDisplay
 
         slotValues[slotIndex] = 0;
         UpdateInventoryTotal();
-        UpdateSlotTextColors();
+        UpdateSlotValueTextColors();
     }
 
     internal static void ClearItemSlots()
@@ -171,10 +171,10 @@ internal static class ScrapValueDisplay
         }
 
         UpdateInventoryTotal();
-        UpdateSlotTextColors();
+        UpdateSlotValueTextColors();
     }
 
-    private static void UpdateSlotTextColors()
+    private static void UpdateSlotValueTextColors()
     {
         int min = int.MaxValue;
         int max = int.MinValue;
@@ -249,7 +249,7 @@ internal static class ScrapValueDisplay
 
         if (totalText != null)
         {
-            totalText.font = Plugins.ConfigEntries.SetDollar.Value == Enums.ItemValue.Default
+            totalText.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
                 ? defaultFont : dollarFont;
             totalText.text = display;
         }

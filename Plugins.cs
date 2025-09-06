@@ -39,7 +39,7 @@ public class Plugins : BaseUnityPlugin
 
 
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
-        Logger.LogInfo("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
+        Loggers.Info("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 
         var bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
         var useLocalEntry = bootstrapConfig.Bind(
@@ -65,7 +65,7 @@ public class Plugins : BaseUnityPlugin
 
         if (assetBundle == null)
         {
-            Logger.LogError("Failed to load unfathomablyridiculousoriginalassetbundlenameforlethalhud assetbundle.");
+            Loggers.Error("Failed to load unfathomablyridiculousoriginalassetbundlenameforlethalhud assetbundle.");
             return;
         }
 
@@ -80,7 +80,7 @@ public class Plugins : BaseUnityPlugin
             }
             else
             {
-                Logger.LogWarning($"Texture '{name}' not found in asset bundle.");
+                Loggers.Warning($"Texture '{name}' not found in asset bundle.");
             }
         }
         foreach (ScanNodeShape shape in System.Enum.GetValues(typeof(ScanNodeShape)))

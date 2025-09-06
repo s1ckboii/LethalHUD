@@ -15,6 +15,9 @@ internal class BetterScanVisionProxy
     {
         if (!ModCompats.IsBetterScanVisionPresent) return;
 
+        if (GameNetworkManager.Instance == null || GameNetworkManager.Instance.localPlayerController == null)
+            return;
+
         if (_nightVisionField == null)
         {
             var t = AppDomain.CurrentDomain.GetAssemblies()
@@ -23,7 +26,7 @@ internal class BetterScanVisionProxy
 
             if (t == null)
             {
-                Plugins.Logger.LogWarning("[BetterScanVisionProxy] Failed to find PlayerControllerBPatches type.");
+                Loggers.Warning("[BetterScanVisionProxy] Failed to find PlayerControllerBPatches type.");
                 return;
             }
 

@@ -6,7 +6,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
@@ -21,6 +21,7 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerLateUpdate);
         On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
         On.GameNetcodeStuff.PlayerControllerB.SpawnPlayerAnimation.Postfix(OnPlayerControllerBSpawnPlayerAnimation);
+        On.GameNetcodeStuff.PlayerControllerB.DropAllHeldItems.Postfix(OnPlayerControllerBDiscardAllHelditems);
     }
 
     private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB self, ref int slot, ref GrabbableObject fillSlotWithItem)
@@ -45,6 +46,10 @@ internal static class PlayerControllerBPatch
     }
 
     private static void OnPlayerControllerBDiscardHeldObject(PlayerControllerB self, ref bool placeObject, ref NetworkObject parentObjectTo, ref Vector3 placePosition, ref bool matchRotationOfParent)
+    {
+        ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
+    }
+    private static void OnPlayerControllerBDiscardAllHelditems(PlayerControllerB self, ref bool itemsFall, ref bool disconnecting)
     {
         ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
     }

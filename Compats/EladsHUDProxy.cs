@@ -36,7 +36,6 @@ internal static class EladsHUDProxy
                     _customHudType = asm.GetTypes().FirstOrDefault(x => x.Name == "CustomHUD_Mono");
                     if (_customHudType != null)
                     {
-                        Plugins.Logger.LogInfo($"[CustomHUDProxy] Found CustomHUD_Mono in {asm.GetName().Name}");
                         break;
                     }
                 }
@@ -47,7 +46,7 @@ internal static class EladsHUDProxy
             {
                 if (!_triedFindingType)
                 {
-                    Plugins.Logger.LogWarning("[CustomHUDProxy] Failed to find CustomHUD_Mono type.");
+                    Loggers.Warning("[CustomHUDProxy] Failed to find CustomHUD_Mono type.");
                     _triedFindingType = true;
                 }
                 return;
@@ -62,8 +61,17 @@ internal static class EladsHUDProxy
 
         if (_instanceField == null) return;
 
-        System.Object hudInstance = _hudInstance ??= _instanceField.GetValue(null);
-        if (hudInstance == null) return;
+        object hudInstance = _instanceField.GetValue(null);
+        if (hudInstance == null)
+        {
+            _hudInstance = null;
+            return;
+        }
+
+        if (!ReferenceEquals(_hudInstance, hudInstance))
+        {
+            _hudInstance = hudInstance;
+        }
 
         PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
         if (player == null) return;
@@ -71,7 +79,7 @@ internal static class EladsHUDProxy
         Image staminaBar = _staminaBarField?.GetValue(hudInstance) as Image;
         TextMeshProUGUI staminaText = _staminaTextField?.GetValue(hudInstance) as TextMeshProUGUI;
 
-        if (staminaBar != null || staminaText != null)
+        if (staminaBar != null || staminaText != null && Plugins.ConfigEntries.SprintMeterBoolean.Value)
             ApplyStaminaColors(staminaBar, staminaText);
 
         Image healthBar = _healthBarField?.GetValue(hudInstance) as Image;

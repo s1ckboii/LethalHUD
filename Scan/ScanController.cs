@@ -114,13 +114,13 @@ internal static class ScanController
         if (Plugins.ScanlineTextures.TryGetValue(selected, out Texture2D tex) && tex != null)
             return tex;
 
-        Plugins.Logger.LogWarning($"Scanline texture '{selected}' missing. Falling back to Default.");
+        Loggers.Warning($"Scanline texture '{selected}' missing. Falling back to Default.");
 
         if (selected != Enums.ScanLines.Default &&
             Plugins.ScanlineTextures.TryGetValue(Enums.ScanLines.Default, out var fallback) && fallback != null)
             return fallback;
 
-        Plugins.Logger.LogError("No scanline textures could be applied.");
+        Loggers.Error("No scanline textures could be applied.");
         return null;
     }
 }
