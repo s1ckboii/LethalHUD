@@ -66,9 +66,7 @@ internal static class ChatController
         if (string.IsNullOrEmpty(message))
             return message;
 
-        if (HUDUtils.HasCustomGradient(
-            Plugins.ConfigEntries.GradientMessageColorA.Value,
-            Plugins.ConfigEntries.GradientMessageColorB.Value))
+        if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientMessageColorA.Value, Plugins.ConfigEntries.GradientMessageColorB.Value))
         {
             if (ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientMessageColorA.Value, out Color colorA) &&
                 ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientMessageColorB.Value, out Color colorB))

@@ -67,6 +67,8 @@ namespace LethalHUD.HUD
 
         public static void UpdateNumber()
         {
+            if (hpObj == null || hpText == null) return;
+
             if (hpObj.activeSelf)
             {
                 if (!Plugins.ConfigEntries.HealthIndicator.Value)

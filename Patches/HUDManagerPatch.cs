@@ -108,9 +108,6 @@ internal static class HUDManagerPatch
 
     private static void OnHUDManagerAddChatMessage(HUDManager self, ref string chatMessage, ref string nameOfUserWhoTyped, ref int playerWhoSent, ref bool dontRepeat)
     {
-        if (self.ChatMessageHistory.Count == 0)
-            return;
-
         string last;
 
         if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
