@@ -41,6 +41,12 @@ public static class Enums
         Kilograms,
         Manuls
     }
+    public enum HPDisplayMode
+    {
+        Plain,
+        Percent,
+        Label
+    }
     public enum FPSPingLayout
     {
         Vertical,

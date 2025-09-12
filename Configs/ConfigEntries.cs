@@ -60,6 +60,9 @@ public class ConfigEntries
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> HealthIndicator { get; private set; }
+    public ConfigEntry<HPDisplayMode> HealthFormat { get; private set; }
+    public ConfigEntry<int> HealthSize { get; private set; }
+    public ConfigEntry<int> HealthRotation { get; private set; }
     public ConfigEntry<bool> HealthStarterColor { get; private set; }
     public ConfigEntry<float> HPIndicatorX { get; private set; }
     public ConfigEntry<float> HPIndicatorY { get; private set; }
@@ -82,6 +85,9 @@ public class ConfigEntries
     public ConfigEntry<string> GradientNameColorA { get; private set; }
     public ConfigEntry<string> GradientNameColorB { get; private set; }
     public ConfigEntry<string> ChatInputText { get; private set; }
+    public ConfigEntry<string> ChatMessageColor { get; private set; }
+    public ConfigEntry<string> GradientMessageColorA { get; private set; }
+    public ConfigEntry<string> GradientMessageColorB { get; private set; }
     #endregion
     #region Misc ConfigEntries
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
@@ -139,24 +145,30 @@ public class ConfigEntries
         GradientNameColorA = ConfigHelper.Bind(true, "Chat", "Gradient Name Color A", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "Gradient Name Color B", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
         ChatInputText = ConfigHelper.Bind(true, "Chat", "Chat Input Text", "#FFFF00", "Change input text's color.");
+        ChatMessageColor = ConfigHelper.Bind(true, "Chat", "Chat Message Color", "#FFFF00", "Change the chat message's color.");
+        GradientMessageColorA = ConfigHelper.Bind(true, "Chat", "Gradient Message Color A", "#FFFF00", "Starting color for a gradient, if both left untouched ChatMessageColor takes priority.");
+        GradientMessageColorB = ConfigHelper.Bind(true, "Chat", "Gradient Message Color B", "#FFFF00", "Ending color for a gradient, if both left untouched ChatMessageColor takes priority.");
         #endregion
         #region HSW Binds
-        HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "HealthIndicator", true, "Enable health points indicator.");
-        HealthStarterColor = ConfigHelper.Bind("Health/Stamina/Weight", "HealthStarterColor", false, "Takes the color of the inventory slots as starter color.");
-        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorX", -295f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
-        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HPIndicatorY", 125f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
-        SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "SprintMeterConfiguration", false, "Enable color configs for sprintmeter.");
-        SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorSolid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
-        SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorGradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
-        SprintMeterColorShades = ConfigHelper.Bind(true, "Health/Stamina/Weight", "SprintMeterColorShades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
-        WeightCounterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "WeightCounterConfiguration", false, "Enable configs for weightcounter.");
-        WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "WeightUnit", WeightUnit.Pounds, "Select the weight unit.");
+        HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "Health Indicator", true, "Enable health points indicator.");
+        HealthFormat = ConfigHelper.Bind("Health/Stamina/Weight", "Health Format", HPDisplayMode.Plain, "Change the display mode of the HP Indicator.");
+        HealthSize = ConfigHelper.Bind("Health/Stamina/Weight", "Health Size", 24, "Change the fontsize of the HP Indicator.", false, new AcceptableValueRange<int>(1, 50));
+        HealthRotation = ConfigHelper.Bind("Health/Stamina/Weight", "Health Rotation", 356, "Change the rotation of the HP Indicator.", false, new AcceptableValueRange<int>(0, 359));
+        HealthStarterColor = ConfigHelper.Bind("Health/Stamina/Weight", "Health Starter Color", false, "Takes the color of the inventory slots as starter color.");
+        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
+        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
+        SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Configuration", false, "Enable color configs for sprintmeter.");
+        SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Solid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
+        SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Gradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
+        SprintMeterColorShades = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Shades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
+        WeightCounterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Counter Configuration", false, "Enable configs for weightcounter.");
+        WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit", WeightUnit.Pounds, "Select the weight unit.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
         #endregion
         #region Compass Binds
-        CompassInvertMask = ConfigHelper.Bind("Compass", "InvertMask", false, "Lets you invert the mask in the inside.");
-        CompassInvertOutsides = ConfigHelper.Bind("Compass", "InvertOutsides", false, "Lets you invert the mask on the outside.");
-        CompassAlpha = ConfigHelper.Bind("Compass", "Alpha", 1f, "Lets you change the alpha value of Compass.", false, new AcceptableValueRange<float>(0f, 1f));
+        CompassInvertMask = ConfigHelper.Bind("Compass", "Compass Invert Mask", false, "Lets you invert the mask in the inside.");
+        CompassInvertOutsides = ConfigHelper.Bind("Compass", "Compass Invert Outsides", false, "Lets you invert the mask on the outside.");
+        CompassAlpha = ConfigHelper.Bind("Compass", "Compass Alpha", 1f, "Lets you change the alpha value of Compass.", false, new AcceptableValueRange<float>(0f, 1f));
         #endregion
         #region Misc Binds
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
@@ -238,6 +250,28 @@ public class ConfigEntries
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         #endregion
+        /*
+        #region Chat Changes
+        LocalNameColor.SettingChanged += (obj, args) =>
+        {
+            ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.LocalNameColor.Value);
+        };
+        GradientNameColorA.SettingChanged += (obj, args) =>
+        {
+            ChatController.ApplyLocalPlayerColor(
+                Plugins.ConfigEntries.GradientNameColorA.Value,
+                Plugins.ConfigEntries.GradientNameColorB.Value
+            );
+        };
+        GradientNameColorB.SettingChanged += (obj, args) =>
+        {
+            ChatController.ApplyLocalPlayerColor(
+                Plugins.ConfigEntries.GradientNameColorA.Value,
+                Plugins.ConfigEntries.GradientNameColorB.Value
+            );
+        };
+        #endregion
+        */
         #region HSW Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>
         {

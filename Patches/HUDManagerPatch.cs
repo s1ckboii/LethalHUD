@@ -4,9 +4,7 @@ using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using MonoDetour;
-using MonoDetour.Cil;
 using MonoDetour.HookGen;
-using MonoMod.Cil;
 using System.Collections;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
@@ -31,9 +29,7 @@ internal static class HUDManagerPatch
         On.HUDManager.DisplayNewScrapFound.Postfix(OnHUDManagerDisplayNewScrapFound);
         On.HUDManager.Update.Postfix(OnHUDManagerUpdate);
         On.HUDManager.UpdateScanNodes.Postfix(OnHUDManagerUpdateScanNodes);
-
-        // Transpiler
-        On.HUDManager.AddChatMessage.ILHook(ILHook_AddChatMessage);
+        On.HUDManager.AddChatMessage.Postfix(OnHUDManagerAddChatMessage);
     }
 
     private static void OnScanTriggered(HUDManager self,ref CallbackContext context)
@@ -66,7 +62,15 @@ internal static class HUDManagerPatch
         {
             self.gameObject.AddComponent<StatsDisplay>();
         }
-        ChatController.ColorChatInputField(self.chatTextField,Time.time * 0.25f);
+        /*
+        if (self.gameObject.GetComponent<ChatNetworkManager>() == null)
+        {
+            self.gameObject.AddComponent<ChatNetworkManager>();
+
+            ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.LocalNameColor.Value, Plugins.ConfigEntries.GradientNameColorB.Value);
+        }
+        */
+        ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
     }
 
     private static void OnHUDManagerDisplayNewScrapFound(HUDManager self)
@@ -102,27 +106,27 @@ internal static class HUDManagerPatch
             ScanNodeController.UpdateTimers(self.scanElements, self.scanNodes);
     }
 
-    private static void ILHook_AddChatMessage(ILManipulationInfo info)
+    private static void OnHUDManagerAddChatMessage(HUDManager self, ref string chatMessage, ref string nameOfUserWhoTyped, ref int playerWhoSent, ref bool dontRepeat)
     {
-        ILWeaver w = new(info);
+        if (self.ChatMessageHistory.Count == 0)
+            return;
 
-        // Patch player name coloring
-        w.MatchMultipleStrict(
-            matchWeaver => { matchWeaver.InsertAfterCurrent(matchWeaver.CreateCall(ChatController.GetColoredPlayerName)); },
-            x => x.MatchLdarg(2) && w.SetCurrentTo(x)
-        );
+        string last;
 
-        // Patch hardcoded blue chat color <color=#7069ff>
-        w.MatchMultipleStrict(
-            matchWeaver =>
-            {
-                matchWeaver.Remove(matchWeaver.Current, out _);
-                matchWeaver.InsertAfterCurrent(matchWeaver.CreateCall(ChatController.GetDefaultChatColorTag));
-            },
-            x => x.MatchLdstr("<color=#7069ff>") && w.SetCurrentTo(x)
-        );
+        if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
+        {
+            string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped, playerWhoSent);
+            string coloredMessage = ChatController.GetColoredChatMessage(chatMessage);
+            last = $"{coloredName}: {coloredMessage}";
+        }
+        else
+        {
+            last = ChatController.GetColoredChatMessage(chatMessage);
+        }
+
+        self.ChatMessageHistory[^1] = last;
+        self.chatText.text = string.Join("\n", self.ChatMessageHistory);
     }
-
     private static IEnumerator ScanTextureRoutine()
     {
         while (true)

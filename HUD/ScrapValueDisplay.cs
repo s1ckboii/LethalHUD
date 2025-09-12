@@ -125,7 +125,7 @@ internal static class ScrapValueDisplay
         TMP_Text tmp = slotTexts[slotIndex];
         if (tmp == null) return;
 
-        tmp.font = Plugins.ConfigEntries.SetDollar.Value == Enums.ItemValue.Default
+        tmp.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
             ? defaultFont : dollarFont;
 
         tmp.text = value > 0 ? $"${value}" : "";

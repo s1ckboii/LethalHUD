@@ -6,7 +6,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "DestroyItemInSlotAndSync", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
@@ -22,6 +22,7 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
         On.GameNetcodeStuff.PlayerControllerB.SpawnPlayerAnimation.Postfix(OnPlayerControllerBSpawnPlayerAnimation);
         On.GameNetcodeStuff.PlayerControllerB.DropAllHeldItems.Postfix(OnPlayerControllerBDiscardAllHelditems);
+        On.GameNetcodeStuff.PlayerControllerB.DestroyItemInSlotAndSync.Postfix(OnPlayerControllerBDestroyItemInSlotAndSync);
     }
 
     private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB self, ref int slot, ref GrabbableObject fillSlotWithItem)
@@ -46,6 +47,10 @@ internal static class PlayerControllerBPatch
     }
 
     private static void OnPlayerControllerBDiscardHeldObject(PlayerControllerB self, ref bool placeObject, ref NetworkObject parentObjectTo, ref Vector3 placePosition, ref bool matchRotationOfParent)
+    {
+        ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
+    }
+    private static void OnPlayerControllerBDestroyItemInSlotAndSync(PlayerControllerB self, ref int itemSlot)
     {
         ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
     }
