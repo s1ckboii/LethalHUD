@@ -16,13 +16,27 @@ internal static class ClockController
     private static Transform clockParent;
     private static Image boxImage;
 
-    // ClockStyle.Regular and Compact to add -> Regular is default, Compact is similar to betterclock where AM/PM is in the same line and the rectangle and image is smaller
+    private static bool _defaultsCached;
 
-    internal static void ApplyInitialClockAppearance()
+    private static Vector3 defaultClockPos;
+    private static Vector3 defaultIconPos;
+    private static Vector2 defaultParentSize;
+    private static Vector2 defaultIconSize;
+    private static bool defaultWordWrap;
+
+    internal static void CacheDefaultLayout()
     {
-        if (HUDManager.Instance == null) return;
+        if (clockParent == null || clockNumber == null || clockIcon == null)
+            return;
 
-        ApplyClockAppearance();
+        RectTransform parentRect = clockParent.GetComponent<RectTransform>();
+        RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
+
+        defaultParentSize = parentRect.sizeDelta;
+        defaultIconSize = iconRect.sizeDelta;
+        defaultClockPos = clockNumber.transform.localPosition;
+        defaultIconPos = clockIcon.transform.localPosition;
+        defaultWordWrap = clockNumber.enableWordWrapping;
     }
 
     internal static void ApplyClockAppearance()
@@ -34,7 +48,8 @@ internal static class ClockController
         clockParent = clockNumber.transform.parent;
         boxImage = clockParent.GetComponent<Image>();
 
-        clockNumber.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockNumberColor.Value, Color.white);
+        if (clockNumber != null )
+            clockNumber.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockNumberColor.Value, Color.white);
         if (boxImage != null)
             boxImage.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockBoxColor.Value, Color.white);
         if (clockIcon != null)
@@ -43,10 +58,25 @@ internal static class ClockController
             HUDManager.Instance.shipLeavingEarlyIcon.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockShipLeaveColor.Value, Color.white);
 
         Vector3 baseScale = new(-0.5893304f, 0.5893304f, 0.5893303f);
+
         clockParent.localScale = baseScale * Plugins.ConfigEntries.ClockSizeMultiplier.Value;
+
+        if (!_defaultsCached)
+        {
+            CacheDefaultLayout();
+            _defaultsCached = true;
+        }
+
+        if (Plugins.ConfigEntries.ClockFormat.Value == ClockStyle.Compact)
+            ApplyCompactLayout();
+        else
+            ApplyRegularLayout();
     }
-    internal static string TryOverrideClock(HUDManager hud, float timeNormalized, float numberOfHours, bool createNewLine)
+    internal static void TryOverrideClock(HUDManager hud, float timeNormalized, float numberOfHours)
     {
+        if (hud == null || hud.clockNumber == null)
+            return;
+
         int totalMinutes = (int)(timeNormalized * (60f * numberOfHours)) + 360;
         int hours = totalMinutes / 60;
         int minutes = totalMinutes % 60;
@@ -59,16 +89,49 @@ internal static class ClockController
         }
         else
         {
-            string newLine = createNewLine ? "\n" : " ";
-            string ampm = hours >= 12 ? "PM" : "AM";
             int displayHour = hours % 12;
-            if (displayHour == 0) displayHour = 12;
-            formatted = $"{displayHour:00}:{minutes:00}{newLine}{ampm}";
+            if (displayHour == 0)
+                displayHour = 12;
+
+            bool compact = Plugins.ConfigEntries.ClockFormat.Value == ClockStyle.Compact;
+            string separator = compact ? " " : "\n";
+            string ampm = hours >= 12 ? "PM" : "AM";
+
+            formatted = $"{displayHour:00}:{minutes:00}{separator}{ampm}";
         }
 
         hud.clockNumber.text = formatted;
+    }
+    internal static void ApplyCompactLayout()
+    {
+        if (clockParent == null || clockNumber == null || clockIcon == null)
+            return;
 
-        return formatted;
+        RectTransform parentRect = clockParent.GetComponent<RectTransform>();
+        parentRect.sizeDelta = new Vector2(parentRect.sizeDelta.x, 50f);
+
+        clockNumber.enableWordWrapping = false;
+
+        RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
+        iconRect.sizeDelta = defaultIconSize * 0.6f;
+
+        clockNumber.transform.localPosition = defaultClockPos + new Vector3(10f, -1f, 0f);
+        clockIcon.transform.localPosition = defaultIconPos + new Vector3(-25f, -2f, 0f);
+    }
+
+    internal static void ApplyRegularLayout()
+    {
+        if (clockParent == null || clockNumber == null || clockIcon == null)
+            return;
+
+        RectTransform parentRect = clockParent.GetComponent<RectTransform>();
+        RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
+
+        parentRect.sizeDelta = defaultParentSize;
+        iconRect.sizeDelta = defaultIconSize;
+        clockNumber.transform.localPosition = defaultClockPos;
+        clockIcon.transform.localPosition = defaultIconPos;
+        clockNumber.enableWordWrapping = defaultWordWrap;
     }
 
     internal static void UpdateClockVisibility(ref bool visible)

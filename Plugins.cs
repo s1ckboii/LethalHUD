@@ -55,6 +55,7 @@ public class Plugins : BaseUnityPlugin
         Patches.HUDManagerPatch.Init();
         Patches.PlayerControllerBPatch.Init();
         Patches.TimeOfDayPatch.Init();
+        Patches.GameNetworkManagerPatch.Init();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unfathomablyridiculousoriginalassetbundlenameforlethalhud");

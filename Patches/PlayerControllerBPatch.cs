@@ -6,7 +6,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "DestroyItemInSlotAndSync", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "NoPunctuation", "DestroyItemInSlotAndSync", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
@@ -16,6 +16,7 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.BeginGrabObject.Prefix(OnPlayerControllerBBeginGrabObject);
 
         // Postfix
+        On.GameNetcodeStuff.PlayerControllerB.NoPunctuation.Postfix(OnPlayerControllerBNoPunctionation);
         On.GameNetcodeStuff.PlayerControllerB.SwitchToItemSlot.Postfix(OnPlayerControllerBSwitchToItemSlot);
         On.GameNetcodeStuff.PlayerControllerB.DiscardHeldObject.Postfix(OnPlayerControllerBDiscardHeldObject);
         On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerLateUpdate);
@@ -23,6 +24,14 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.SpawnPlayerAnimation.Postfix(OnPlayerControllerBSpawnPlayerAnimation);
         On.GameNetcodeStuff.PlayerControllerB.DropAllHeldItems.Postfix(OnPlayerControllerBDiscardAllHelditems);
         On.GameNetcodeStuff.PlayerControllerB.DestroyItemInSlotAndSync.Postfix(OnPlayerControllerBDestroyItemInSlotAndSync);
+    }
+
+    private static void OnPlayerControllerBNoPunctionation(PlayerControllerB self, ref string input, ref string returnValue)
+    {
+        returnValue = ChatController.NoPunctuation(input);
+
+        if (string.IsNullOrEmpty(input))
+            returnValue = "Nameless";
     }
 
     private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB self, ref int slot, ref GrabbableObject fillSlotWithItem)

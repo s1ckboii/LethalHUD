@@ -1,5 +1,6 @@
 ﻿using LethalHUD.Configs;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;
@@ -15,6 +16,11 @@ internal static class ChatController
     }
     private static readonly Dictionary<int, PlayerColorInfo> playerColors = [];
     internal static bool ColoringEnabled => Plugins.ConfigEntries.ColoredNames.Value;
+
+    internal static string NoPunctuation(string input)
+    {
+        return new string(input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.').ToArray());
+    }
 
     internal static void SetPlayerColor(int playerId, string colorA, string colorB = null)
     {

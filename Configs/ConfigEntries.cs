@@ -301,7 +301,7 @@ public class ConfigEntries
         #endregion
         */
         #region Clock Changes
-        ClockFormat.SettingChanged += (obj, args) => { };
+        ClockFormat.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockNumberColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockBoxColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockIconColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
