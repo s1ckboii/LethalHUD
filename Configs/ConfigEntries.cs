@@ -302,6 +302,7 @@ public class ConfigEntries
         */
         #region Clock Changes
         ClockFormat.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
+        ClockSizeMultiplier.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockNumberColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockBoxColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockIconColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
