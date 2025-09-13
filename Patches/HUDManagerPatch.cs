@@ -5,12 +5,13 @@ using LethalHUD.Misc;
 using LethalHUD.Scan;
 using MonoDetour;
 using MonoDetour.HookGen;
+using System;
 using System.Collections;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisableAllScanElements", "DisplayNewScrapFound", "Update", "UpdateScanNodes", "AddChatMessage"])]
+[MonoDetourTargets(typeof(HUDManager), Members = ["PingScan_performed", "Start", "OnEnable", "DisableAllScanElements", "DisplayNewScrapFound", "SetClock", "SetClockVisible", "Update", "UpdateScanNodes", "AddChatMessage"])]
 internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
@@ -22,6 +23,8 @@ internal static class HUDManagerPatch
         // Prefix
         On.HUDManager.PingScan_performed.Prefix(OnScanTriggered);
         On.HUDManager.DisableAllScanElements.Prefix(OnHUDManagerDisabledAllScanElements);
+        On.HUDManager.SetClock.Postfix(OnHUDManagerSetClock);
+        On.HUDManager.SetClockVisible.Prefix(OnHUDManagerSetClockVisible);
 
         // Postfix
         On.HUDManager.Start.Postfix(OnHUDManagerStart);
@@ -46,6 +49,7 @@ internal static class HUDManagerPatch
         ScanController.UpdateScanTexture();
         PlayerHPDisplay.Init();
         ScrapValueDisplay.Init();
+        ClockController.ApplyInitialClockAppearance();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
 
@@ -82,6 +86,15 @@ internal static class HUDManagerPatch
     {
         if (ModCompats.IsGoodItemScanPresent)
             ScanNodeController.ResetGoodItemScanNodes();
+    }
+    private static void OnHUDManagerSetClock(HUDManager self, ref float timeNormalized, ref float numberOfHours, ref bool createNewLine, ref string returnValue)
+    {
+        returnValue = ClockController.TryOverrideClock(self, timeNormalized, numberOfHours, createNewLine);
+    }
+    private static void OnHUDManagerSetClockVisible(HUDManager self, ref bool visible)
+    {
+        ClockController.UpdateClockVisibility(ref visible);
+        ClockController.ApplyClockAlpha();
     }
 
     private static void OnHUDManagerUpdate(HUDManager self)

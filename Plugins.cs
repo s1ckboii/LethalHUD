@@ -41,12 +41,8 @@ public class Plugins : BaseUnityPlugin
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
         Loggers.Info("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 
-        var bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
-        var useLocalEntry = bootstrapConfig.Bind(
-            "Main",
-            "Use Local Config",
-            false,
-            "If enabled, uses a local config file instead of the global config. Requires restart."
+        ConfigFile bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
+        ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart."
         );
         bool useLocal = useLocalEntry.Value;
 
@@ -58,6 +54,7 @@ public class Plugins : BaseUnityPlugin
 
         Patches.HUDManagerPatch.Init();
         Patches.PlayerControllerBPatch.Init();
+        Patches.TimeOfDayPatch.Init();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unfathomablyridiculousoriginalassetbundlenameforlethalhud");

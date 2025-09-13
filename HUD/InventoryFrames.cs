@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
-
 internal static class InventoryFrames
 {
     internal static SlotEnums CurrentSlotColorMode { get; private set; } = SlotEnums.None;

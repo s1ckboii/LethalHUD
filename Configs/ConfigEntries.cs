@@ -89,6 +89,20 @@ public class ConfigEntries
     public ConfigEntry<string> GradientMessageColorA { get; private set; }
     public ConfigEntry<string> GradientMessageColorB { get; private set; }
     #endregion
+    #region Clock ConfigEntries
+    public ConfigEntry<bool> NormalHumanBeingClock { get; private set; }
+    public ConfigEntry<ClockStyle> ClockFormat { get; private set; }
+    public ConfigEntry<bool> RealtimeClock { get; private set; }
+    public ConfigEntry<float> ClockSizeMultiplier { get; private set; }
+    public ConfigEntry<string> ClockNumberColor { get; private set; }
+    public ConfigEntry<string> ClockBoxColor { get; private set; }
+    public ConfigEntry<string> ClockIconColor { get; private set; }
+    public ConfigEntry<string> ClockShipLeaveColor { get; private set; }
+    public ConfigEntry<bool> ShowClockInShip { get; private set; }
+    public ConfigEntry<bool> ShowClockInFacility { get; private set; }
+    public ConfigEntry<float> ClockVisibilityInShip { get; private set; }
+    public ConfigEntry<float> ClockVisibilityInFacility { get; private set; }
+    #endregion
     #region Misc ConfigEntries
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
@@ -169,6 +183,20 @@ public class ConfigEntries
         CompassInvertMask = ConfigHelper.Bind("Compass", "Compass Invert Mask", false, "Lets you invert the mask in the inside.");
         CompassInvertOutsides = ConfigHelper.Bind("Compass", "Compass Invert Outsides", false, "Lets you invert the mask on the outside.");
         CompassAlpha = ConfigHelper.Bind("Compass", "Compass Alpha", 1f, "Lets you change the alpha value of Compass.", false, new AcceptableValueRange<float>(0f, 1f));
+        #endregion
+        #region Clock Binds
+        NormalHumanBeingClock = ConfigHelper.Bind("Clock", "24 Hour Clock", false, ".");
+        ClockFormat = ConfigHelper.Bind("Clock", "Clock Format", ClockStyle.Regular, "Choose a clock format.");
+        RealtimeClock = ConfigHelper.Bind("Clock", "Realtime Clock", false, ".");
+        ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, ".", false, new AcceptableValueRange<float>(0.1f, 3f));
+        ClockNumberColor = ConfigHelper.Bind(true, "Clock", "Clock Number Color", "#FF4C00", ".");
+        ClockBoxColor = ConfigHelper.Bind(true, "Clock", "Clock Box Color", "#FF4C00", ".");
+        ClockIconColor = ConfigHelper.Bind(true, "Clock", "Clock Icon Color", "#FF4C00", ".");
+        ClockShipLeaveColor = ConfigHelper.Bind(true, "Clock", "Clock Ship Leave Color", "#FF4C00", ".");
+        ShowClockInShip = ConfigHelper.Bind("Clock", "Show Clock In Ship", false, ".");
+        ShowClockInFacility = ConfigHelper.Bind("Clock", "Show Clock Inside", false, ".");
+        ClockVisibilityInShip = ConfigHelper.Bind("Clock", "Clock Visibility In Ship", 1f, ".", false, new AcceptableValueRange<float>(0.01f, 1f));
+        ClockVisibilityInFacility = ConfigHelper.Bind("Clock", "Clock Visibility Inside", 1f, ".", false, new AcceptableValueRange<float>(0.01f, 1f));
         #endregion
         #region Misc Binds
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
@@ -272,6 +300,13 @@ public class ConfigEntries
         };
         #endregion
         */
+        #region Clock Changes
+        ClockFormat.SettingChanged += (obj, args) => { };
+        ClockNumberColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
+        ClockBoxColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
+        ClockIconColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
+        ClockShipLeaveColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
+        #endregion
         #region HSW Changes
         SprintMeterColorSolid.SettingChanged += (obj, args) =>
         {

@@ -12,7 +12,6 @@ public class StatsDisplay : NetworkBehaviour
     private ulong currentPing = 0;
     private float pingTimer = 0f;
     private readonly float pingInterval = 0.5f;
-    private Vector2 offset = Vector2.zero;
 
     private Color TextColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.MiscToolsColor.Value);
 

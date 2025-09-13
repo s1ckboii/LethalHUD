@@ -41,6 +41,11 @@ public static class Enums
         Kilograms,
         Manuls
     }
+    public enum ClockStyle
+    {
+        Regular,
+        Compact
+    }
     public enum HPDisplayMode
     {
         Plain,

@@ -6,6 +6,9 @@ namespace LethalHUD.HUD;
 internal static class HUDUtils
 {
     #region Basic Helpers
+
+    // Change ParseHexColor logic to the latter one but I'd need to look thru all base colors first to switch.
+
     internal static Color ParseHexColor(string hex)
     {
         if (ColorUtility.TryParseHtmlString(hex, out Color color))
@@ -16,6 +19,19 @@ internal static class HUDUtils
         Loggers.Warning($"Invalid HEX color: {hex}. Defaulting to original blue.");
         return new Color(0f, 0.047f, 1f);
     }
+
+    internal static Color ParseHexColor(string hex, Color fallback)
+    {
+        if (string.IsNullOrWhiteSpace(hex))
+            return fallback;
+
+        if (ColorUtility.TryParseHtmlString(hex, out var color))
+            return color;
+
+        Loggers.Warning($"Invalid HEX color: {hex}. Defaulting to original blue.");
+        return fallback;
+    }
+
     internal static bool HasCustomGradient(string a, string b)
     {
         return !string.IsNullOrWhiteSpace(a)
