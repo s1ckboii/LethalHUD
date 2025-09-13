@@ -188,7 +188,7 @@ public class ConfigEntries
         NormalHumanBeingClock = ConfigHelper.Bind("Clock", "24 Hour Clock", false, ".");
         ClockFormat = ConfigHelper.Bind("Clock", "Clock Format", ClockStyle.Regular, "Choose a clock format.");
         RealtimeClock = ConfigHelper.Bind("Clock", "Realtime Clock", false, ".");
-        ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, ".", false, new AcceptableValueRange<float>(0.1f, 3f));
+        ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, ".", false, new AcceptableValueRange<float>(0.69f, 3f));
         ClockNumberColor = ConfigHelper.Bind(true, "Clock", "Clock Number Color", "#FF4C00", ".");
         ClockBoxColor = ConfigHelper.Bind(true, "Clock", "Clock Box Color", "#FF4C00", ".");
         ClockIconColor = ConfigHelper.Bind(true, "Clock", "Clock Icon Color", "#FF4C00", ".");
