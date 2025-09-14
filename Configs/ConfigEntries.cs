@@ -185,18 +185,18 @@ public class ConfigEntries
         CompassAlpha = ConfigHelper.Bind("Compass", "Compass Alpha", 1f, "Lets you change the alpha value of Compass.", false, new AcceptableValueRange<float>(0f, 1f));
         #endregion
         #region Clock Binds
-        NormalHumanBeingClock = ConfigHelper.Bind("Clock", "24 Hour Clock", false, ".");
+        NormalHumanBeingClock = ConfigHelper.Bind("Clock", "24 Hour Clock", false, "Toggle between 12-hour (AM/PM) and 24-hour clock formats.");
         ClockFormat = ConfigHelper.Bind("Clock", "Clock Format", ClockStyle.Regular, "Choose a clock format.");
-        RealtimeClock = ConfigHelper.Bind("Clock", "Realtime Clock", false, ".");
-        ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, ".", false, new AcceptableValueRange<float>(0.69f, 3f));
-        ClockNumberColor = ConfigHelper.Bind(true, "Clock", "Clock Number Color", "#FF4C00", ".");
-        ClockBoxColor = ConfigHelper.Bind(true, "Clock", "Clock Box Color", "#FF4C00", ".");
-        ClockIconColor = ConfigHelper.Bind(true, "Clock", "Clock Icon Color", "#FF4C00", ".");
-        ClockShipLeaveColor = ConfigHelper.Bind(true, "Clock", "Clock Ship Leave Color", "#FF4C00", ".");
-        ShowClockInShip = ConfigHelper.Bind("Clock", "Show Clock In Ship", false, ".");
-        ShowClockInFacility = ConfigHelper.Bind("Clock", "Show Clock Inside", false, ".");
-        ClockVisibilityInShip = ConfigHelper.Bind("Clock", "Clock Visibility In Ship", 1f, ".", false, new AcceptableValueRange<float>(0.01f, 1f));
-        ClockVisibilityInFacility = ConfigHelper.Bind("Clock", "Clock Visibility Inside", 1f, ".", false, new AcceptableValueRange<float>(0.01f, 1f));
+        RealtimeClock = ConfigHelper.Bind("Clock", "Realtime Clock", false, "Toggle fixed clock numbers, no more jumpy numbers.");
+        ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, "Change the size of the clock.", false, new AcceptableValueRange<float>(0.69f, 3f));
+        ClockNumberColor = ConfigHelper.Bind(true, "Clock", "Clock Number Color", "#FF4C00", "Color of the clock’s numbers.");
+        ClockBoxColor = ConfigHelper.Bind(true, "Clock", "Clock Box Color", "#FF4C00", "Color of the box around the clock.");
+        ClockIconColor = ConfigHelper.Bind(true, "Clock", "Clock Icon Color", "#FF4C00", "Color of the icon.");
+        ClockShipLeaveColor = ConfigHelper.Bind(true, "Clock", "Clock Ship Leave Color", "#FF4C00", "Color of the ship leave icon.");
+        ShowClockInShip = ConfigHelper.Bind("Clock", "Show Clock In Ship", false, "Toggle whether the clock is visible while you’re inside the ship.");
+        ShowClockInFacility = ConfigHelper.Bind("Clock", "Show Clock Inside", false, "Toggle whether the clock is visible inside facilities.");
+        ClockVisibilityInShip = ConfigHelper.Bind("Clock", "Clock Visibility In Ship", 1f, "Adjust transparency of the clock while in the ship.", false, new AcceptableValueRange<float>(0.01f, 1f));
+        ClockVisibilityInFacility = ConfigHelper.Bind("Clock", "Clock Visibility Inside", 1f, "Adjust transparency of the clock while inside facilities.", false, new AcceptableValueRange<float>(0.01f, 1f));
         #endregion
         #region Misc Binds
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");

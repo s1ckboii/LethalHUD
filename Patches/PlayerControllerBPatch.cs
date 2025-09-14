@@ -6,7 +6,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "NoPunctuation", "DestroyItemInSlotAndSync", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
+[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "NoPunctuation", "DestroyItemInSlot", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
 internal static class PlayerControllerBPatch
 {
     [MonoDetourHookInitialize]
@@ -23,7 +23,7 @@ internal static class PlayerControllerBPatch
         On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
         On.GameNetcodeStuff.PlayerControllerB.SpawnPlayerAnimation.Postfix(OnPlayerControllerBSpawnPlayerAnimation);
         On.GameNetcodeStuff.PlayerControllerB.DropAllHeldItems.Postfix(OnPlayerControllerBDiscardAllHelditems);
-        On.GameNetcodeStuff.PlayerControllerB.DestroyItemInSlotAndSync.Postfix(OnPlayerControllerBDestroyItemInSlotAndSync);
+        On.GameNetcodeStuff.PlayerControllerB.DestroyItemInSlot.Postfix(OnPlayerControllerBDestroyItemInSlotAndSync);
     }
 
     private static void OnPlayerControllerBNoPunctionation(PlayerControllerB self, ref string input, ref string returnValue)
