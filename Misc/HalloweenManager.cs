@@ -81,8 +81,8 @@ public class HalloweenManager
         Plugins.ConfigEntries.ClockShipLeaveColor.Value = "#FF8800";
         Plugins.ConfigEntries.SignalTextColor.Value = "#AA55EE";
         Plugins.ConfigEntries.MiscToolsColor.Value = "#FFFFFF";
-        Plugins.ConfigEntries.GradientNameColorA.Value = "#55D4EE";
-        Plugins.ConfigEntries.GradientNameColorB.Value = "#00FF86";
+        Plugins.ConfigEntries.GradientNameColorA.Value = "#AA55EE";
+        Plugins.ConfigEntries.GradientNameColorB.Value = "#FF8800";
         Plugins.ConfigEntries.ChatInputText.Value = "#6611BB";
         Plugins.ConfigEntries.ChatMessageColor.Value = "#AA55EE";
         Plugins.ConfigEntries.GradientMessageColorA.Value = "#FF8800";

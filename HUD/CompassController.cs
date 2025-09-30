@@ -1,4 +1,5 @@
-﻿using LethalHUD.Configs;
+﻿using GameNetcodeStuff;
+using LethalHUD.Configs;
 using SoftMasking;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,11 @@ internal static class CompassController
         if (CompassImage == null)
             return;
 
+        PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
+
+        if (player.isPlayerDead)
+            return;
+
         Color color = overrideColor ?? ConfigHelper.GetSlotColor();
 
         color.a = CompassImage.color.a;
@@ -20,11 +26,21 @@ internal static class CompassController
     }
     internal static void SetCompassWavyGradient()
     {
+        PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
+
+        if (player.isPlayerDead)
+            return;
+
         HUDUtils.ApplyCompassWavyGradient(InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor);
     }
     internal static void SoftMaskStuff()
     {
         if (CompassImage == null)
+            return;
+
+        PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
+
+        if (player.isPlayerDead)
             return;
 
         SoftMask softMask = CompassImage.GetComponentInParent<SoftMask>();
