@@ -27,13 +27,12 @@ public static class PlayerHPDisplay
     private static readonly float percentSizeMult = 0.7f;
     private static readonly float labelSizeMult = 0.65f;
 
-    internal static Color fullHPColor = Color.green;
+    internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
     private static Color midHPColor = new(1f, 0.3f, 0.3f);
     private static Color lowHPColor = new(0.6f, 0f, 0f);
 
     public static void Init()
     {
-        if (!Plugins.ConfigEntries.HealthIndicator.Value) return;
         if (ModCompats.IsEladsHUDPresent) return;
         HUDManager hud = HUDManager.Instance;
         if (hpText != null) return;
@@ -49,7 +48,7 @@ public static class PlayerHPDisplay
         hpText.font = hud.HUDQuotaNumerator.font;
         hpText.fontSize = BaseFontSize;
         hpText.alignment = TextAlignmentOptions.Left;
-        hpText.color = Plugins.ConfigEntries.HealthStarterColor.Value ? ConfigHelper.GetSlotColor() : fullHPColor;
+        hpText.color = FullHPColor;
 
         hpText.enableVertexGradient = false;
         hpText.enableWordWrapping = false;
@@ -133,14 +132,11 @@ public static class PlayerHPDisplay
         }
 
         hpText.fontSize = Mathf.Lerp(hpText.fontSize, targetSize, Time.deltaTime * sizeLerpSpeed);
-
-        if (Plugins.ConfigEntries.HealthStarterColor.Value && hp >= 30)
+        
+        if (hp >= 30)
         {
-            hpText.color = ConfigHelper.GetSlotColor();
-        }
-        else if (hp >= 30)
-        {
-            hpText.color = fullHPColor;
+            float t = (hp - 30f) / 70f;
+            hpText.color = Color.Lerp(midHPColor, FullHPColor, t);
         }
         else if (hp >= 20)
         {

@@ -8,69 +8,78 @@ using static LethalHUD.Enums;
 namespace LethalHUD.HUD;
 internal static class ChatController
 {
-    public struct PlayerColorInfo(string a, string b, bool gradient)
-    {
-        public string colorA = a;
-        public string colorB = b;
-        public bool isGradient = gradient;
-    }
-    private static readonly Dictionary<int, PlayerColorInfo> playerColors = [];
+    //private static readonly Dictionary<int, PlayerColorInfo> playerColors = [];
+    private static readonly Dictionary<string, string> localPlayerColors = [];
     internal static bool ColoringEnabled => Plugins.ConfigEntries.ColoredNames.Value;
 
     internal static string NoPunctuation(string input)
     {
-        return new string(input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.').ToArray());
+        return new string([.. input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.')]);
     }
 
-    internal static void SetPlayerColor(int playerId, string colorA, string colorB = null)
+    /*internal static void SetPlayerColor(int playerId, string colorA, string colorB = null)
     {
-        bool gradient = !string.IsNullOrEmpty(colorB) && !string.Equals(colorA, colorB, System.StringComparison.OrdinalIgnoreCase);
-        playerColors[playerId] = new PlayerColorInfo(colorA, colorB, gradient);
-    }
+        playerColors[playerId] = new PlayerColorInfo(colorA, colorB);
+    }*/
 
-    /*
     internal static void ApplyLocalPlayerColor(string colorA, string colorB = null)
     {
-        int localId = (int)NetworkManager.Singleton.LocalClientId;
+        const string localKey = "LocalPlayer";
 
+        if (string.IsNullOrEmpty(colorA) || string.IsNullOrEmpty(colorB))
+            return;
+
+        localPlayerColors[localKey] = colorA;
+        localPlayerColors[localKey + "_B"] = colorB;
+
+        /*var info = new PlayerColorInfo(colorA, colorB);
+        int localId = (int)NetworkManager.Singleton.LocalClientId;
         SetPlayerColor(localId, colorA, colorB);
 
-        if (ChatNetworkManager.Instance != null)
-            ChatNetworkManager.SendColorToServer(colorA, colorB);
+        ChatNetworkManager.SendColorToServer(info);*/
     }
-    */
 
-    internal static string GetColoredPlayerName(string playerName, int playerId = -1)
+    /*internal static string GetColoredPlayerName(string playerName, int playerId = -1)
     {
         if (!ColoringEnabled || string.IsNullOrEmpty(playerName))
             return playerName;
 
         if (playerId != -1 && playerColors.TryGetValue(playerId, out PlayerColorInfo info))
         {
-            if (info.isGradient)
-            {
-                ColorUtility.TryParseHtmlString(info.colorA, out Color colorA);
-                ColorUtility.TryParseHtmlString(info.colorB, out Color colorB);
-                return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
-            }
-            return $"<color={info.colorA}>{playerName}</color>";
-        }
-
-        if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value))
-        {
-            ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorA.Value, out Color colorA);
-            ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorB.Value, out Color colorB);
+            ColorUtility.TryParseHtmlString(info.colorA, out Color colorA);
+            ColorUtility.TryParseHtmlString(info.colorB, out Color colorB);
             return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
         }
+        return $"<color=#FF0000>{playerName}</color>";
+    }*/
 
-        return $"<color={Plugins.ConfigEntries.LocalNameColor.Value}>{playerName}</color>";
+    internal static string GetColoredPlayerName(string playerName)
+    {
+        if (!ColoringEnabled || string.IsNullOrEmpty(playerName))
+            return $"<color=#FF0000>{playerName}</color>";
+
+        const string localKey = "LocalPlayer";
+
+        if (localPlayerColors.TryGetValue(localKey, out string colorA) &&
+            localPlayerColors.TryGetValue(localKey + "_B", out string colorB))
+        {
+            ColorUtility.TryParseHtmlString(colorA, out Color startColor);
+            ColorUtility.TryParseHtmlString(colorB, out Color endColor);
+            return HUDUtils.ApplyStaticGradient(playerName, startColor, endColor);
+        }
+
+        ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorA.Value, out Color globalStart);
+        ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorB.Value, out Color globalEnd);
+
+        return HUDUtils.ApplyStaticGradient(playerName, globalStart, globalEnd);
     }
-    internal static string GetDefaultChatColorTag() => $"<color={Plugins.ConfigEntries.LocalNameColor.Value}></color>";
 
     internal static string GetColoredChatMessage(string message)
     {
-        if (string.IsNullOrEmpty(message))
-            return message;
+        if (string.IsNullOrWhiteSpace(message))
+            return null;
+
+        message = message.Trim();
 
         if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientMessageColorA.Value, Plugins.ConfigEntries.GradientMessageColorB.Value))
         {

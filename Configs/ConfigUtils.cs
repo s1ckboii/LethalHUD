@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using System;
 using System.IO;
 using UnityEngine;
 
@@ -29,5 +30,49 @@ internal static class ConfigUtils
         string path = GetPluginPersistentDataPath();
         name ??= "global";
         return CreateConfigFile(plugin, path, name, saveOnInit);
+    }
+
+    private const string JsonFileName = "OriginalColors.json";
+
+    private static string GetPluginFolder()
+    {
+        string folder = Path.Combine(Application.persistentDataPath, MyPluginInfo.PLUGIN_NAME);
+        if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+        return folder;
+    }
+
+    private static string GetJsonPath(string fileName = JsonFileName)
+    {
+        return Path.Combine(GetPluginFolder(), fileName);
+    }
+
+    public static void SaveStoredValues(object values, string name = "Default")
+    {
+        try
+        {
+            string path = GetJsonPath(name + ".json");
+            string json = JsonUtility.ToJson(values, true);
+            File.WriteAllText(path, json);
+        }
+        catch (Exception e)
+        {
+            Plugins.Logger.LogError($"Failed to save stored values '{name}': {e}");
+        }
+    }
+
+    public static T LoadStoredValues<T>(string name = "Default") where T : class
+    {
+        try
+        {
+            string path = GetJsonPath(name + ".json");
+            if (!File.Exists(path)) return null;
+            string json = File.ReadAllText(path);
+            return JsonUtility.FromJson<T>(json);
+        }
+        catch (Exception e)
+        {
+            Plugins.Logger.LogError($"Failed to load stored values '{name}': {e}");
+            return null;
+        }
     }
 }

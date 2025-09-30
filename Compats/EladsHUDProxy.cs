@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 using LethalHUD.HUD;
-using LethalHUD.Configs;
 using GameNetcodeStuff;
 using TMPro;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.Compats;
 internal static class EladsHUDProxy
@@ -83,16 +83,16 @@ internal static class EladsHUDProxy
             ApplyStaminaColors(staminaBar, staminaText);
 
         Image healthBar = _healthBarField?.GetValue(hudInstance) as Image;
-        if (healthBar != null && Plugins.ConfigEntries.HealthStarterColor.Value)
+        if (healthBar != null)
         {
-            healthBar.color = ConfigHelper.GetSlotColor();
+            healthBar.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
 
             Transform parent = healthBar.transform.parent;
             if (parent != null)
             {
                 Image bg = parent.Find("Healthbar BG")?.GetComponent<Image>();
                 if (bg != null)
-                    bg.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.UnifyMostColors.Value);
+                    bg.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SlotColor.Value);
             }
         }
 
@@ -103,32 +103,14 @@ internal static class EladsHUDProxy
 
     private static void ApplyStaminaColors(Image staminaBar, TextMeshProUGUI staminaText)
     {
-        string lastMode = PlayerPrefs.GetString(SprintMeter.PlayerPrefsKey, "Solid");
-        Color finalColor;
-
-        switch (lastMode)
+        Color baseColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColor.Value);
+        float fill = staminaBar != null ? staminaBar.fillAmount : 1f;
+        var finalColor = Plugins.ConfigEntries.SprintColoring.Value switch
         {
-            case "Solid":
-                finalColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColorSolid.Value);
-                break;
-
-            case "Shades":
-                {
-                    Color baseColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColorShades.Value);
-                    float fill = staminaBar != null ? staminaBar.fillAmount : 1f;
-                    finalColor = HUDUtils.GetShadeColor(baseColor, fill);
-                }
-                break;
-
-            default:
-                {
-                    Color baseColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColorGradient.Value);
-                    float fill = staminaBar != null ? staminaBar.fillAmount : 1f;
-                    finalColor = HUDUtils.GetGradientColor(baseColor, fill);
-                }
-                break;
-        }
-
+            SprintStyle.Gradient => HUDUtils.GetGradientColor(baseColor, fill),
+            SprintStyle.Shades => HUDUtils.GetShadeColor(baseColor, fill),
+            _ => HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColor.Value),
+        };
         if (staminaBar != null) staminaBar.color = finalColor;
         if (staminaText != null) staminaText.color = finalColor;
     }
@@ -140,9 +122,9 @@ internal static class EladsHUDProxy
 
         float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
-            Enums.WeightUnit.Pounds => 130f,
-            Enums.WeightUnit.Kilograms => 130f * 0.453592f,
-            Enums.WeightUnit.Manuls => 130f / 9.9f,
+            WeightUnit.Pounds => 130f,
+            WeightUnit.Kilograms => 130f * 0.453592f,
+            WeightUnit.Manuls => 130f / 9.9f,
             _ => 130f
         };
 

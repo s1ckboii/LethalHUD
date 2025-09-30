@@ -1,8 +1,10 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using HarmonyLib;
 using LethalHUD.Compats;
 using LethalHUD.Configs;
+using LethalHUD.Misc;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -20,6 +22,7 @@ public class Plugins : BaseUnityPlugin
 {
 
     internal static Plugins Instance { get; private set; }
+    internal static Harmony Harmony { get; private set; }
     internal static new ManualLogSource Logger { get; private set; }
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
@@ -37,6 +40,10 @@ public class Plugins : BaseUnityPlugin
     {
         if (Instance == null) Instance = this;
 
+        Harmony = new(MyPluginInfo.PLUGIN_GUID);
+
+
+        //NetcodeProxy.NetcodePatcher();
 
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
         Loggers.Info("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
@@ -51,11 +58,6 @@ public class Plugins : BaseUnityPlugin
             : ConfigUtils.CreateGlobalConfigFile(this);
 
         ConfigEntries = new ConfigEntries();
-
-        Patches.HUDManagerPatch.Init();
-        Patches.PlayerControllerBPatch.Init();
-        Patches.TimeOfDayPatch.Init();
-        Patches.GameNetworkManagerPatch.Init();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unfathomablyridiculousoriginalassetbundlenameforlethalhud");
@@ -98,7 +100,9 @@ public class Plugins : BaseUnityPlugin
                 Inner = innerTex
             };
         }
-
+        Harmony.PatchAll();
         bootstrapConfig.Save();
+
+        HalloweenManager.Instance.RestoreOnLoad();
     }
 }

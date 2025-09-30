@@ -41,6 +41,12 @@ public static class Enums
         Kilograms,
         Manuls
     }
+    public enum SprintStyle
+    {
+        Solid,
+        Shades,
+        Gradient
+    }
     public enum ClockStyle
     {
         Regular,

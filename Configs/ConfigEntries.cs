@@ -1,8 +1,8 @@
 ﻿using BepInEx.Configuration;
 using LethalHUD.HUD;
 using LethalHUD.Scan;
+using LethalHUD.Misc;
 using System;
-using UnityEngine;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.Configs;
@@ -14,7 +14,7 @@ public class ConfigEntries
     internal DateTime _lastSlotColorChange = DateTime.MinValue;
     internal DateTime _lastLocalNameColorChange = DateTime.MinValue;
 
-    private const string DefaultMainColor = "#000CFF";
+    internal const string DefaultMainColor = "#000CFF";
     private const string DefaultSlotColor = "#3226B4";
     private const string DefaultCompassColor = "#2C265B";
 
@@ -26,6 +26,7 @@ public class ConfigEntries
 
     #region Main ConfigEntries
     public ConfigEntry<string> UnifyMostColors { get; private set; }
+    public ConfigEntry<bool> HalloweenMode { get; private set; }
     #endregion
 
     #region Scan ConfigEntries
@@ -63,13 +64,12 @@ public class ConfigEntries
     public ConfigEntry<HPDisplayMode> HealthFormat { get; private set; }
     public ConfigEntry<int> HealthSize { get; private set; }
     public ConfigEntry<int> HealthRotation { get; private set; }
-    public ConfigEntry<bool> HealthStarterColor { get; private set; }
+    public ConfigEntry<string> HealthColor { get; private set; }
     public ConfigEntry<float> HPIndicatorX { get; private set; }
     public ConfigEntry<float> HPIndicatorY { get; private set; }
     public ConfigEntry<bool> SprintMeterBoolean { get; private set; }
-    public ConfigEntry<string> SprintMeterColorGradient { get; private set; }
-    public ConfigEntry<string> SprintMeterColorSolid { get; private set; }
-    public ConfigEntry<string> SprintMeterColorShades { get; private set; }
+    public ConfigEntry<SprintStyle> SprintColoring { get; private set; }
+    public ConfigEntry<string> SprintMeterColor { get; private set; }
     public ConfigEntry<bool> WeightCounterBoolean { get; private set; }
     public ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
@@ -81,7 +81,6 @@ public class ConfigEntries
     #endregion
     #region Chat ConfigEntries
     public ConfigEntry<bool> ColoredNames { get; private set; }
-    public ConfigEntry<string> LocalNameColor { get; private set; }
     public ConfigEntry<string> GradientNameColorA { get; private set; }
     public ConfigEntry<string> GradientNameColorB { get; private set; }
     public ConfigEntry<string> ChatInputText { get; private set; }
@@ -103,6 +102,12 @@ public class ConfigEntries
     public ConfigEntry<float> ClockVisibilityInShip { get; private set; }
     public ConfigEntry<float> ClockVisibilityInFacility { get; private set; }
     #endregion
+    #region Signal ConfigEntries
+    public ConfigEntry<bool> CenterSTText { get; private set; }
+    public ConfigEntry<string> SignalTextColor { get; private set; }
+    public ConfigEntry<float> SignalLetterDisplay { get; private set; }
+
+    #endregion
     #region Misc ConfigEntries
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
@@ -121,6 +126,7 @@ public class ConfigEntries
 
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
+        HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", false, "Overrides your config options with Halloween themed ones during October.");
         #endregion
 
         #region Scan Binds
@@ -155,7 +161,6 @@ public class ConfigEntries
         #endregion
         #region Chat Binds
         ColoredNames = ConfigHelper.Bind("Chat", "Colored Names", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
-        LocalNameColor = ConfigHelper.Bind(true, "Chat", "Local Name Color", "#FF0000", "Change your name's (currently everyones) color in chat in HEX format.");
         GradientNameColorA = ConfigHelper.Bind(true, "Chat", "Gradient Name Color A", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "Gradient Name Color B", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
         ChatInputText = ConfigHelper.Bind(true, "Chat", "Chat Input Text", "#FFFF00", "Change input text's color.");
@@ -168,13 +173,12 @@ public class ConfigEntries
         HealthFormat = ConfigHelper.Bind("Health/Stamina/Weight", "Health Format", HPDisplayMode.Plain, "Change the display mode of the HP Indicator.");
         HealthSize = ConfigHelper.Bind("Health/Stamina/Weight", "Health Size", 24, "Change the fontsize of the HP Indicator.", false, new AcceptableValueRange<int>(1, 50));
         HealthRotation = ConfigHelper.Bind("Health/Stamina/Weight", "Health Rotation", 356, "Change the rotation of the HP Indicator.", false, new AcceptableValueRange<int>(0, 359));
-        HealthStarterColor = ConfigHelper.Bind("Health/Stamina/Weight", "Health Starter Color", false, "Takes the color of the inventory slots as starter color.");
+        HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#00CC00", "Base color for HP Indicator.");
         HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
         HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
         SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Configuration", false, "Enable color configs for sprintmeter.");
-        SprintMeterColorSolid = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Solid", "#FF7600", "Fixed solid color for [SOLID] sprint meter mode.");
-        SprintMeterColorGradient = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Gradient", "#FF7600", "Base color for [GRADIENT] sprint meter mode.");
-        SprintMeterColorShades = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Shades", "#FF7600", "Base color for [SHADES] sprint meter mode.");
+        SprintColoring = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Style", SprintStyle.Solid, "Choose a style for the sprint meter.");
+        SprintMeterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Solid", "#FF7600", "Base color for sprint meter");
         WeightCounterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Counter Configuration", false, "Enable configs for weightcounter.");
         WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit", WeightUnit.Pounds, "Select the weight unit.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
@@ -198,6 +202,11 @@ public class ConfigEntries
         ClockVisibilityInShip = ConfigHelper.Bind("Clock", "Clock Visibility In Ship", 1f, "Adjust transparency of the clock while in the ship.", false, new AcceptableValueRange<float>(0.01f, 1f));
         ClockVisibilityInFacility = ConfigHelper.Bind("Clock", "Clock Visibility Inside", 1f, "Adjust transparency of the clock while inside facilities.", false, new AcceptableValueRange<float>(0.01f, 1f));
         #endregion
+        #region Signal Binds
+        CenterSTText = ConfigHelper.Bind("Signal Translator", "Center Transmitter Text", false, "Center the message.");
+        SignalTextColor = ConfigHelper.Bind(true, "Signal Translator", "Signal Message Color", "#FFFFFF", "Color of the signal message.");
+        SignalLetterDisplay = ConfigHelper.Bind("Signal Translator", "Signal Letter Display", 0.7f, "Change the speed of the message (the smaller the number, the faster it is.)", false, new AcceptableValueRange<float>(0.01f, 1f));
+        #endregion
         #region Misc Binds
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
         ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
@@ -214,7 +223,10 @@ public class ConfigEntries
         #region Main Changes
         UnifyMostColors.SettingChanged += (obj, args) =>
         {
+            if (HalloweenManager.Instance.IgnoreUnifyMostColors) return;
+
             _lastUnifyMostColorsChange = DateTime.Now;
+
             if (UnifyMostColors.Value.Equals(DefaultMainColor, StringComparison.OrdinalIgnoreCase))
             {
                 if (!ScanColor.Value.Equals(DefaultMainColor, StringComparison.OrdinalIgnoreCase))
@@ -239,6 +251,13 @@ public class ConfigEntries
             {
                 SlotColor.Value = UnifyMostColors.Value;
             }
+        };
+        HalloweenMode.SettingChanged += (obj, args) =>
+        {
+            if (Plugins.ConfigEntries.HalloweenMode.Value)
+                HalloweenManager.Instance.ApplyHalloweenMode();
+            else
+                HalloweenManager.Instance.RestoreOriginalValues();
         };
         #endregion
 
@@ -278,28 +297,12 @@ public class ConfigEntries
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         #endregion
-        /*
+
         #region Chat Changes
-        LocalNameColor.SettingChanged += (obj, args) =>
-        {
-            ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.LocalNameColor.Value);
-        };
-        GradientNameColorA.SettingChanged += (obj, args) =>
-        {
-            ChatController.ApplyLocalPlayerColor(
-                Plugins.ConfigEntries.GradientNameColorA.Value,
-                Plugins.ConfigEntries.GradientNameColorB.Value
-            );
-        };
-        GradientNameColorB.SettingChanged += (obj, args) =>
-        {
-            ChatController.ApplyLocalPlayerColor(
-                Plugins.ConfigEntries.GradientNameColorA.Value,
-                Plugins.ConfigEntries.GradientNameColorB.Value
-            );
-        };
+        GradientNameColorA.SettingChanged += (obj, args) => { ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value); };
+        GradientNameColorB.SettingChanged += (obj, args) => { ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value); };
         #endregion
-        */
+
         #region Clock Changes
         ClockFormat.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockSizeMultiplier.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
@@ -309,33 +312,15 @@ public class ConfigEntries
         ClockShipLeaveColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         #endregion
         #region HSW Changes
-        SprintMeterColorSolid.SettingChanged += (obj, args) =>
+        SprintColoring.SettingChanged += (obj, args) =>
         {
             if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-            {
-                PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Solid");
-                PlayerPrefs.Save();
-                SprintMeter.UpdateSprintMeterColor();
-            }
-
+                SprintMeterController.UpdateSprintMeterColor();
         };
-        SprintMeterColorGradient.SettingChanged += (obj, args) =>
+        SprintMeterColor.SettingChanged += (obj, args) =>
         {
             if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-            {
-                PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Gradient");
-                PlayerPrefs.Save();
-                SprintMeter.UpdateSprintMeterColor();
-            }
-        };
-        SprintMeterColorShades.SettingChanged += (obj, args) =>
-        {
-            if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-            {
-                PlayerPrefs.SetString(SprintMeter.PlayerPrefsKey, "Shades");
-                PlayerPrefs.Save();
-                SprintMeter.UpdateSprintMeterColor();
-            }
+                SprintMeterController.UpdateSprintMeterColor();
         };
         WeightUnitConfig.SettingChanged += (obj, args) =>
         {
@@ -346,6 +331,9 @@ public class ConfigEntries
         TotalPrefix.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalValueOffsetX.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalValueOffsetY.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
+        #endregion
+        #region Signal Changes
+        CenterSTText.SettingChanged += (obj, args) => { SignalTranslatorController.CenterText(); };
         #endregion
     }
 }

@@ -13,7 +13,7 @@ public class StatsDisplay : NetworkBehaviour
     private float pingTimer = 0f;
     private readonly float pingInterval = 0.5f;
 
-    private Color TextColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.MiscToolsColor.Value);
+    private Color TextColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.MiscToolsColor.Value, Color.white);
 
     private Unity.Netcode.Transports.UTP.UnityTransport transport;
     private TextMeshProUGUI statsText;

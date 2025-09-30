@@ -1,42 +1,40 @@
 ﻿using GameNetcodeStuff;
 using LethalHUD.HUD;
-using MonoDetour;
-using MonoDetour.HookGen;
-using Unity.Netcode;
-using UnityEngine;
+using HarmonyLib;
 
 namespace LethalHUD.Patches;
-[MonoDetourTargets(typeof(PlayerControllerB), Members = ["SwitchToItemSlot", "DiscardHeldObject", "NoPunctuation", "DestroyItemInSlot", "DropAllHeldItems" ,"BeginGrabObject", "DamagePlayer", "SpawnPlayerAnimation" , "LateUpdate"])]
+[HarmonyPatch(typeof(PlayerControllerB))]
 internal static class PlayerControllerBPatch
 {
-    [MonoDetourHookInitialize]
-    public static void Init()
+    [HarmonyPrefix]
+    [HarmonyPatch("BeginGrabObject")]
+    private static void OnPlayerControllerBBeginGrabObject()
     {
-        // Prefix
-        On.GameNetcodeStuff.PlayerControllerB.BeginGrabObject.Prefix(OnPlayerControllerBBeginGrabObject);
-
-        // Postfix
-        On.GameNetcodeStuff.PlayerControllerB.NoPunctuation.Postfix(OnPlayerControllerBNoPunctionation);
-        On.GameNetcodeStuff.PlayerControllerB.SwitchToItemSlot.Postfix(OnPlayerControllerBSwitchToItemSlot);
-        On.GameNetcodeStuff.PlayerControllerB.DiscardHeldObject.Postfix(OnPlayerControllerBDiscardHeldObject);
-        On.GameNetcodeStuff.PlayerControllerB.LateUpdate.Postfix(OnPlayerLateUpdate);
-        On.GameNetcodeStuff.PlayerControllerB.DamagePlayer.Postfix(OnPlayerControllerBDamagePlayer);
-        On.GameNetcodeStuff.PlayerControllerB.SpawnPlayerAnimation.Postfix(OnPlayerControllerBSpawnPlayerAnimation);
-        On.GameNetcodeStuff.PlayerControllerB.DropAllHeldItems.Postfix(OnPlayerControllerBDiscardAllHelditems);
-        On.GameNetcodeStuff.PlayerControllerB.DestroyItemInSlot.Postfix(OnPlayerControllerBDestroyItemInSlotAndSync);
+        InventoryFrames.HandsFull();
     }
 
-    private static void OnPlayerControllerBNoPunctionation(PlayerControllerB self, ref string input, ref string returnValue)
-    {
-        returnValue = ChatController.NoPunctuation(input);
 
+    [HarmonyPrefix]
+    [HarmonyPatch("NoPunctuation")]
+    private static bool NoPunctuation_Prefix(string input, ref string __result)
+    {
         if (string.IsNullOrEmpty(input))
-            returnValue = "Nameless";
+        {
+            __result = "Nameless";
+        }
+        else
+        {
+            __result = ChatController.NoPunctuation(input);
+        }
+
+        return false;
     }
 
-    private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB self, ref int slot, ref GrabbableObject fillSlotWithItem)
+    [HarmonyPostfix]
+    [HarmonyPatch("SwitchToItemSlot")]
+    private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB __instance, int slot)
     {
-        if (self != GameNetworkManager.Instance.localPlayerController)
+        if (__instance != GameNetworkManager.Instance.localPlayerController)
             return;
 
         if (!Plugins.ConfigEntries.ShowItemValue.Value && ScrapValueDisplay.slotTexts != null)
@@ -44,9 +42,9 @@ internal static class PlayerControllerBPatch
         if (ScrapValueDisplay.slotTexts == null || slot < 0 || slot >= ScrapValueDisplay.slotTexts.Length)
             return;
 
-        if (self.ItemSlots[slot] != null)
+        if (__instance.ItemSlots[slot] != null)
         {
-            int scrapValue = self.ItemSlots[slot].scrapValue;
+            int scrapValue = __instance.ItemSlots[slot].scrapValue;
             ScrapValueDisplay.UpdateSlot(slot, scrapValue);
         }
         else
@@ -55,39 +53,55 @@ internal static class PlayerControllerBPatch
         }
     }
 
-    private static void OnPlayerControllerBDiscardHeldObject(PlayerControllerB self, ref bool placeObject, ref NetworkObject parentObjectTo, ref Vector3 placePosition, ref bool matchRotationOfParent)
+    [HarmonyPostfix]
+    [HarmonyPatch("DespawnHeldObject")]
+    private static void OnPlayerControllerBDespawnHeldObject(PlayerControllerB __instance)
     {
-        ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
-    }
-    private static void OnPlayerControllerBDestroyItemInSlotAndSync(PlayerControllerB self, ref int itemSlot)
-    {
-        ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
-    }
-    private static void OnPlayerControllerBDiscardAllHelditems(PlayerControllerB self, ref bool itemsFall, ref bool disconnecting)
-    {
-        ScrapValueDisplay.UpdateSlot(self.currentItemSlot, 0);
+        ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
     }
 
-    private static void OnPlayerControllerBBeginGrabObject(PlayerControllerB self)
+    [HarmonyPostfix]
+    [HarmonyPatch("DiscardHeldObject")]
+    private static void OnPlayerControllerBDiscardHeldObject(PlayerControllerB __instance)
     {
-        InventoryFrames.HandsFull();
+        ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
     }
 
-    private static void OnPlayerControllerBDamagePlayer(PlayerControllerB self, ref int damageNumber, ref bool hasDamageSFX, ref bool callRPC, ref CauseOfDeath causeOfDeath, ref int deathAnimation, ref bool fallDamage, ref Vector3 force)
+    [HarmonyPostfix]
+    [HarmonyPatch("DestroyItemInSlot")]
+    private static void OnPlayerControllerBDestroyItemInSlot(PlayerControllerB __instance)
+    {
+        ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("DropAllHeldItems")]
+    private static void OnPlayerControllerBDiscardAllHelditems(PlayerControllerB __instance)
+    {
+        ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("DamagePlayer")]
+    private static void OnPlayerControllerBDamagePlayer()
     {
         PlayerHPDisplay.ShakeOnHit();
     }
 
-    private static void OnPlayerControllerBSpawnPlayerAnimation(PlayerControllerB self)
+    [HarmonyPostfix]
+    [HarmonyPatch("SpawnPlayerAnimation")]
+    private static void OnPlayerControllerBSpawnPlayerAnimation()
     {
         ScrapValueDisplay.ClearItemSlots();
     }
 
-    private static void OnPlayerLateUpdate(PlayerControllerB self)
+    [HarmonyPostfix]
+    [HarmonyPatch("LateUpdate")]
+    private static void OnPlayerLateUpdate(PlayerControllerB __instance)
     {
-        if (self.isTypingChat)
+        if (__instance.isTypingChat)
             ChatController.PlayerTypingIndicator();
         if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-            SprintMeter.UpdateSprintMeterColor();
+            SprintMeterController.UpdateSprintMeterColor();
     }
 }

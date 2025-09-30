@@ -60,6 +60,9 @@ internal static class ScanController
     }
     internal static void UpdateScanAlpha()
     {
+        if (HUDManager.Instance == null) return;
+        if (ScanRenderer == null) return;
+
         float baseAlpha = Plugins.ConfigEntries.Alpha.Value;
         float finalAlpha = baseAlpha;
 

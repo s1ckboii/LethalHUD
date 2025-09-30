@@ -1,19 +1,14 @@
 ﻿using LethalHUD.HUD;
-using MonoDetour;
-using MonoDetour.HookGen;
+using HarmonyLib;
 
 namespace LethalHUD.Patches;
 
-[MonoDetourTargets(typeof(TimeOfDay), Members = ["MoveTimeOfDay"])]
+[HarmonyPatch(typeof(TimeOfDay))]
 internal static class TimeOfDayPatch
 {
-    [MonoDetourHookInitialize]
-    public static void Init()
-    {
-        On.TimeOfDay.MoveTimeOfDay.Prefix(OnTimeOfDayMoveTimeOfDay);
-    }
-
-    private static void OnTimeOfDayMoveTimeOfDay(TimeOfDay self)
+    [HarmonyPostfix]
+    [HarmonyPatch("MoveTimeOfDay")]
+    private static void OnTimeOfDayMoveTimeOfDay()
     {
         ClockController.ApplyRealtimeClock();
     }
