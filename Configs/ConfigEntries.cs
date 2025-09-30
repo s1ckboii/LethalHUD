@@ -108,6 +108,13 @@ public class ConfigEntries
     public ConfigEntry<float> SignalLetterDisplay { get; private set; }
 
     #endregion
+    #region MoreDisplay ConfigEntries
+    public ConfigEntry<string> LoadingTextColor { get; private set; }
+    public ConfigEntry<string> DarkenScreenColor { get; private set; }
+    public ConfigEntry<string> PlanetSummaryColor { get; private set; }
+    public ConfigEntry<string> PlanetHeaderColor { get; private set; }
+    public ConfigEntry<bool> PlanetRisk { get; private set; }
+    #endregion
     #region Misc ConfigEntries
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
@@ -206,6 +213,12 @@ public class ConfigEntries
         CenterSTText = ConfigHelper.Bind("Signal Translator", "Center Transmitter Text", false, "Center the message.");
         SignalTextColor = ConfigHelper.Bind(true, "Signal Translator", "Signal Message Color", "#FFFFFF", "Color of the signal message.");
         SignalLetterDisplay = ConfigHelper.Bind("Signal Translator", "Signal Letter Display", 0.7f, "Change the speed of the message (the smaller the number, the faster it is.)", false, new AcceptableValueRange<float>(0.01f, 1f));
+        #endregion
+        #region MoreDisplay Binds
+        LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#00FFFF", "Color of the loading text.");
+        PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#FFFFFF", "Color of the planet summary text.");
+        PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#FFFFFF", "Color of the planet header text.");
+        PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", true, "Custom coloring based on risk level.");
         #endregion
         #region Misc Binds
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
@@ -334,6 +347,12 @@ public class ConfigEntries
         #endregion
         #region Signal Changes
         CenterSTText.SettingChanged += (obj, args) => { SignalTranslatorController.CenterText(); };
+        #endregion
+        #region MoreDisplay Changes
+        LoadingTextColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
+        PlanetSummaryColor.SettingChanged += (ob, args) => { PlanetInfoDisplay.ApplyColors(); };
+        PlanetHeaderColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
+        PlanetRisk.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
         #endregion
     }
 }

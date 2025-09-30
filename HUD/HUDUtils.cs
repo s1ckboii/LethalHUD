@@ -224,4 +224,50 @@ internal static class HUDUtils
         }
     }
     #endregion
+    #region PlanetInfo Helpers
+    private static float _loadingOffset;
+    public static void AnimateLoadingText(TextMeshProUGUI text, string hexColor)
+    {
+        if (text == null) return;
+
+        Color baseColor = ParseHexColor(hexColor, Color.grey);
+
+        text.ForceMeshUpdate();
+        TMP_TextInfo textInfo = text.textInfo;
+        int characterCount = textInfo.characterCount;
+        if (characterCount == 0) return;
+
+        _loadingOffset += Time.deltaTime * 2.5f;
+        if (_loadingOffset > 1f) _loadingOffset -= 1f;
+
+        for (int i = 0; i < characterCount; i++)
+        {
+            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+            if (!charInfo.isVisible) continue;
+
+            int vertexIndex = charInfo.vertexIndex;
+            int meshIndex = charInfo.materialReferenceIndex;
+            Color32[] vertexColors = textInfo.meshInfo[meshIndex].colors32;
+
+            float t = ((float)i / characterCount + _loadingOffset) % 1f;
+            Color color;
+            if (Plugins.ConfigEntries.HalloweenMode.Value)
+            {
+                color = Color.Lerp(new Color(0.8f, 0.2f, 0.8f), baseColor, Mathf.PingPong(t * 2f, 1f));
+            }
+            else
+            {
+                color = Color.Lerp(Color.gray, baseColor, Mathf.PingPong(t * 2f, 1f));
+            }
+
+            vertexColors[vertexIndex + 0] = color;
+            vertexColors[vertexIndex + 1] = color;
+            vertexColors[vertexIndex + 2] = color;
+            vertexColors[vertexIndex + 3] = color;
+        }
+
+        for (int i = 0; i < textInfo.meshInfo.Length; i++)
+            text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+    }
+    #endregion
 }

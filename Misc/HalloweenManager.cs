@@ -27,6 +27,9 @@ public class HalloweenManager
         public string ChatMessageColor;
         public string GradientMessageColorA;
         public string GradientMessageColorB;
+        public string LoadingTextColor;
+        public string PlanetHeaderColor;
+        public string PlanetSummaryColor;
     }
 
     private StoredValues _originalValues;
@@ -60,7 +63,10 @@ public class HalloweenManager
                                   ChatInputText = Plugins.ConfigEntries.ChatInputText.Value,
                                   ChatMessageColor = Plugins.ConfigEntries.ChatMessageColor.Value,
                                   GradientMessageColorA = Plugins.ConfigEntries.GradientMessageColorA.Value,
-                                  GradientMessageColorB = Plugins.ConfigEntries.GradientMessageColorB.Value
+                                  GradientMessageColorB = Plugins.ConfigEntries.GradientMessageColorB.Value,
+                                  LoadingTextColor = Plugins.ConfigEntries.LoadingTextColor.Value,
+                                  PlanetHeaderColor = Plugins.ConfigEntries.PlanetHeaderColor.Value,
+                                  PlanetSummaryColor = Plugins.ConfigEntries.PlanetSummaryColor.Value
                               };
 
             ConfigUtils.SaveStoredValues(_originalValues, "Halloween");
@@ -87,6 +93,9 @@ public class HalloweenManager
         Plugins.ConfigEntries.ChatMessageColor.Value = "#AA55EE";
         Plugins.ConfigEntries.GradientMessageColorA.Value = "#FF8800";
         Plugins.ConfigEntries.GradientMessageColorB.Value = "#AA55EE";
+        Plugins.ConfigEntries.LoadingTextColor.Value = "#FF8800";
+        Plugins.ConfigEntries.PlanetHeaderColor.Value = "#AA55EE";
+        Plugins.ConfigEntries.PlanetSummaryColor.Value = "#FF8800";
 
         RefreshUI();
         _ignoreUnifyMostColors = false;
@@ -117,6 +126,9 @@ public class HalloweenManager
         Plugins.ConfigEntries.ChatMessageColor.Value = _originalValues.ChatMessageColor;
         Plugins.ConfigEntries.GradientMessageColorA.Value = _originalValues.GradientMessageColorA;
         Plugins.ConfigEntries.GradientMessageColorB.Value = _originalValues.GradientMessageColorB;
+        Plugins.ConfigEntries.LoadingTextColor.Value = _originalValues.LoadingTextColor;
+        Plugins.ConfigEntries.PlanetHeaderColor.Value = _originalValues.PlanetHeaderColor;
+        Plugins.ConfigEntries.PlanetSummaryColor.Value = _originalValues.PlanetSummaryColor;
 
         RefreshUI();
         _ignoreUnifyMostColors = false;

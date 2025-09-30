@@ -56,6 +56,7 @@ internal static class HUDManagerPatch
         PlayerHPDisplay.Init();
         ScrapValueDisplay.Init();
         ClockController.ApplyClockAppearance();
+        PlanetInfoDisplay.ApplyColors();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
 

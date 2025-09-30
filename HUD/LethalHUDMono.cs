@@ -39,5 +39,10 @@ internal class LethalHUDMono : MonoBehaviour
             BetterScanVisionProxy.OverrideNightVisionColor();
         if (ModCompats.IsEladsHUDPresent)
             EladsHUDProxy.OverrideHUD();
+        if (hud.loadingText != null)
+        {
+            HUDUtils.AnimateLoadingText(hud.loadingText, Plugins.ConfigEntries.LoadingTextColor.Value);
+        }
+        PlanetInfoDisplay.UpdateColors();
     }
 }
