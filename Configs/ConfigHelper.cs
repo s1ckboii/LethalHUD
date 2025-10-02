@@ -99,8 +99,39 @@ internal static class ConfigHelper
         orphanedEntries.Clear();
         configFile.Save();
     }
+    #region DevTool
+#if DEBUG
+    internal static void ResetMyConfigs()
+    {
+        var cfg = Plugins.ConfigEntries;
+        if (cfg == null) return;
 
+        var fields = typeof(ConfigEntries).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
+        foreach (var field in fields)
+        {
+            Type fieldType = field.FieldType;
+
+            if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(ConfigEntry<>))
+            {
+                object configEntry = field.GetValue(cfg);
+                if (configEntry == null) continue;
+
+                PropertyInfo defaultProp = fieldType.GetProperty("DefaultValue");
+                PropertyInfo valueProp = fieldType.GetProperty("Value");
+                if (defaultProp != null && valueProp != null)
+                {
+                    object defaultValue = defaultProp.GetValue(configEntry);
+                    valueProp.SetValue(configEntry, defaultValue);
+                }
+            }
+        }
+
+        ClearUnusedEntries();
+        Plugins.Logger.LogInfo("LethalHUD configs have been reset to default values.");
+    }
+#endif
+    #endregion
     internal static Color GetScanColor()
     {
         var cfg = Plugins.ConfigEntries;
