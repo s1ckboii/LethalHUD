@@ -40,6 +40,8 @@ public class ConfigEntries
     public ConfigEntry<ScanLines> SelectedScanlineMode { get; private set; }
     #endregion
     #region InventorySlot ConfigEntries
+    public ConfigEntry<float> SlotFade { get; private set; }
+    public ConfigEntry<float> SlotFadeDelayTime { get; private set; }
     public ConfigEntry<string> SlotColor { get; private set; }
     public ConfigEntry<SlotEnums> SlotRainbowColor { get; private set; }
     public ConfigEntry<string> GradientColorA { get; private set; }
@@ -67,10 +69,8 @@ public class ConfigEntries
     public ConfigEntry<string> HealthColor { get; private set; }
     public ConfigEntry<float> HPIndicatorX { get; private set; }
     public ConfigEntry<float> HPIndicatorY { get; private set; }
-    public ConfigEntry<bool> SprintMeterBoolean { get; private set; }
     public ConfigEntry<SprintStyle> SprintColoring { get; private set; }
     public ConfigEntry<string> SprintMeterColor { get; private set; }
-    public ConfigEntry<bool> WeightCounterBoolean { get; private set; }
     public ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
@@ -80,6 +80,7 @@ public class ConfigEntries
     public ConfigEntry<float> CompassAlpha { get; private set; }
     #endregion
     #region Chat ConfigEntries
+    public ConfigEntry<float> ChatFadeDelayTime { get; private set; }
     public ConfigEntry<bool> ColoredNames { get; private set; }
     public ConfigEntry<string> GradientNameColorA { get; private set; }
     public ConfigEntry<string> GradientNameColorB { get; private set; }
@@ -110,12 +111,12 @@ public class ConfigEntries
     #endregion
     #region MoreDisplay ConfigEntries
     public ConfigEntry<string> LoadingTextColor { get; private set; }
-    public ConfigEntry<string> DarkenScreenColor { get; private set; }
     public ConfigEntry<string> PlanetSummaryColor { get; private set; }
     public ConfigEntry<string> PlanetHeaderColor { get; private set; }
     public ConfigEntry<bool> PlanetRisk { get; private set; }
     #endregion
     #region Misc ConfigEntries
+    public ConfigEntry<float> TerminalFadeDelaysTime { get; private set; }
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
     public ConfigEntry<bool> ShowSeedDisplay { get; private set; }
@@ -123,7 +124,10 @@ public class ConfigEntries
     //public ConfigEntry<bool> ShowShipLoot { get; private set; }
     //public ConfigEntry<float> DisplayTime { get; private set; }
     public ConfigEntry<FPSPingLayout> MiscLayoutEnum { get; private set; }
-    public ConfigEntry<string> MiscToolsColor { get; private set; }
+    public ConfigEntry<MTColorMode> MTColorSelection { get; private set; }
+    public ConfigEntry<string> MTColorGradientA { get; private set; }
+    public ConfigEntry<string> MTColorGradientB { get; private set; }
+
     public ConfigEntry<float> FPSCounterX { get; private set; }
     public ConfigEntry<float> FPSCounterY { get; private set; }
     #endregion
@@ -133,7 +137,7 @@ public class ConfigEntries
 
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
-        HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", false, "Overrides your config options with Halloween themed ones during October.");
+        HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", true, "Overrides your config options with Halloween themed ones during October.");
         #endregion
 
         #region Scan Binds
@@ -153,6 +157,8 @@ public class ConfigEntries
         ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", ScanNodeShape.Default, "Choose the shape for scan nodes.");
         #endregion
         #region InventorySlot Binds
+        SlotFade = ConfigHelper.Bind("Inventory", "Inventory Fade", 0.13f, "Change the base fadeout for the inventory.", false, new AcceptableValueRange<float>(0f, 0.99f));
+        SlotFadeDelayTime = ConfigHelper.Bind("Inventory", "Inventory Fade Delay", 1.5f, "Change the delay time for fading out.", false, new AcceptableValueRange<float>(0f, 10f));
         SlotColor = ConfigHelper.Bind(true, "Inventory", "Frame Color", "#3226B4", "Allows you to change the inventoryslot colors.");
         SlotRainbowColor = ConfigHelper.Bind("Inventory", "Rainbow Frames", SlotEnums.None, "If true, inventory slot frames are colored with a rainbow gradient.");
         GradientColorA = ConfigHelper.Bind(true, "Inventory", "Gradient Color A", "#3226B4", "Start color for custom wavy gradient.");
@@ -167,6 +173,7 @@ public class ConfigEntries
         TotalValueOffsetY = ConfigHelper.Bind("Inventory", "Total Value Offset Y", -55f, "Y position of the inventory total value text.", false, new AcceptableValueRange<float>(-250f, 250f));
         #endregion
         #region Chat Binds
+        ChatFadeDelayTime = ConfigHelper.Bind("Chat", "Chat Fade Delay", 5f, "Change the delay time for fading out chat.", false, new AcceptableValueRange<float>(0f, 20f));
         ColoredNames = ConfigHelper.Bind("Chat", "Colored Names", false, "Enable colored player names in chat (In the future, currently its only client-sided -> only visible to others who also have this enabled).");
         GradientNameColorA = ConfigHelper.Bind(true, "Chat", "Gradient Name Color A", "#FF0000", "Starting color for a gradient, if both left untouched LocalNameColor takes priority.");
         GradientNameColorB = ConfigHelper.Bind(true, "Chat", "Gradient Name Color B", "#FF0000", "Ending color for a gradient, if both left untouched LocalNameColor takes priority.");
@@ -183,10 +190,8 @@ public class ConfigEntries
         HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#00CC00", "Base color for HP Indicator.");
         HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
         HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
-        SprintMeterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Configuration", false, "Enable color configs for sprintmeter.");
         SprintColoring = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Style", SprintStyle.Solid, "Choose a style for the sprint meter.");
         SprintMeterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Solid", "#FF7600", "Base color for sprint meter");
-        WeightCounterBoolean = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Counter Configuration", false, "Enable configs for weightcounter.");
         WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit", WeightUnit.Pounds, "Select the weight unit.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
         #endregion
@@ -221,6 +226,7 @@ public class ConfigEntries
         PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", true, "Custom coloring based on risk level.");
         #endregion
         #region Misc Binds
+        TerminalFadeDelaysTime = ConfigHelper.Bind("Misc", "Terminal Fade Delay", 0.5f, "Change the delay time for fading out HUD stuff.", false, new AcceptableValueRange<float>(0f, 5f));
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
         ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
         ShowSeedDisplay = ConfigHelper.Bind("Misc", "Seed Display", false, "Display current seed.");
@@ -230,7 +236,9 @@ public class ConfigEntries
         MiscLayoutEnum = ConfigHelper.Bind("Misc", "Layout options", FPSPingLayout.Vertical, "Layout of FPS and Ping counters");
         FPSCounterX = ConfigHelper.Bind("Misc", "Layout position X", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 840f));
         FPSCounterY = ConfigHelper.Bind("Misc", "Layout position Y", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 480f));
-        MiscToolsColor = ConfigHelper.Bind(true, "Misc", "Misc Tools Color", "#FFFFFF", "Color misc tools (fps and ping counters)");
+        MTColorSelection = ConfigHelper.Bind("Misc", "Control Tip Color Mode", MTColorMode.Solid, "Change the color mode of control tips (On solid you only use 'Misc Tools Gradient Color A').");
+        MTColorGradientA = ConfigHelper.Bind(true, "Misc", "Misc Tools Gradient Color A", "#FFFFFF", "Starting color for misc and tooltips.");
+        MTColorGradientB = ConfigHelper.Bind(true, "Misc", "Misc Tools Gradient Color B", "#FFFFFF", "Ending color for misc and tooltips.");
         #endregion
 
         #region Main Changes
@@ -327,18 +335,15 @@ public class ConfigEntries
         #region HSW Changes
         SprintColoring.SettingChanged += (obj, args) =>
         {
-            if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-                SprintMeterController.UpdateSprintMeterColor();
+            SprintMeterController.UpdateSprintMeterColor();
         };
         SprintMeterColor.SettingChanged += (obj, args) =>
         {
-            if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-                SprintMeterController.UpdateSprintMeterColor();
+            SprintMeterController.UpdateSprintMeterColor();
         };
         WeightUnitConfig.SettingChanged += (obj, args) =>
         {
-            if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
-                WeightController.UpdateWeightDisplay();
+            WeightController.UpdateWeightDisplay();
         };
         ShowTotalDelta.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalPrefix.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };

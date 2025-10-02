@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using LethalHUD.HUD;
 using HarmonyLib;
+using System;
 
 namespace LethalHUD.Patches;
 [HarmonyPatch(typeof(PlayerControllerB))]
@@ -50,6 +51,14 @@ internal static class PlayerControllerBPatch
         else
         {
             ScrapValueDisplay.UpdateSlot(slot, 0);
+        }
+        if (__instance.twoHanded)
+        {
+            HUDManager.Instance.PingHUDElement(HUDManager.Instance.Inventory, Plugins.ConfigEntries.SlotFadeDelayTime.Value / 2f, Math.Clamp(Plugins.ConfigEntries.SlotFade.Value + 0.25f, 0f, 1f), Plugins.ConfigEntries.SlotFade.Value);
+        }
+        else
+        {
+            HUDManager.Instance.PingHUDElement(HUDManager.Instance.Inventory, Plugins.ConfigEntries.SlotFadeDelayTime.Value, 1f, Plugins.ConfigEntries.SlotFade.Value);
         }
     }
 
@@ -101,7 +110,6 @@ internal static class PlayerControllerBPatch
     {
         if (__instance.isTypingChat)
             ChatController.PlayerTypingIndicator();
-        if (Plugins.ConfigEntries.SprintMeterBoolean.Value)
-            SprintMeterController.UpdateSprintMeterColor();
+        SprintMeterController.UpdateSprintMeterColor();
     }
 }

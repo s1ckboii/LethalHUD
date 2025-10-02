@@ -1,4 +1,5 @@
 ﻿using LethalHUD.Compats;
+using LethalHUD.Misc;
 using LethalHUD.Scan;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -31,8 +32,7 @@ internal class LethalHUDMono : MonoBehaviour
         CompassController.SoftMaskStuff();
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
         ScrapValueDisplay.Tick(Time.deltaTime);
-        if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
-            WeightController.RecolorWeightText();
+        WeightController.RecolorWeightText();
         if (ModCompats.IsGoodItemScanPresent && Plugins.ConfigEntries.ScanNodeFade.Value)
             ScanNodeController.UpdateGoodItemScanNodes();
         if (ModCompats.IsBetterScanVisionPresent)
@@ -44,5 +44,6 @@ internal class LethalHUDMono : MonoBehaviour
             HUDUtils.AnimateLoadingText(hud.loadingText, Plugins.ConfigEntries.LoadingTextColor.Value);
         }
         PlanetInfoDisplay.UpdateColors();
+        ControlTipController.ApplyColor();
     }
 }

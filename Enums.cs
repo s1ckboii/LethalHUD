@@ -41,6 +41,13 @@ public static class Enums
         Kilograms,
         Manuls
     }
+
+    public enum MTColorMode
+    {
+        Solid,
+        Gradient
+    }
+
     public enum SprintStyle
     {
         Solid,

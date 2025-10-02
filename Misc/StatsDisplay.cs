@@ -13,10 +13,13 @@ public class StatsDisplay : NetworkBehaviour
     private float pingTimer = 0f;
     private readonly float pingInterval = 0.5f;
 
-    private Color TextColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.MiscToolsColor.Value, Color.white);
-
-    private Unity.Netcode.Transports.UTP.UnityTransport transport;
     private TextMeshProUGUI statsText;
+    private Unity.Netcode.Transports.UTP.UnityTransport transport;
+
+    private string lastText = "";
+    private MTColorMode lastMode;
+    private string lastHexA = "";
+    private string lastHexB = "";
 
     private void Start()
     {
@@ -30,7 +33,6 @@ public class StatsDisplay : NetworkBehaviour
         statsText.font = HUDManager.Instance.chatText.font;
         statsText.fontSize = 12;
         statsText.richText = true;
-        statsText.color = TextColor;
         statsText.alignment = TextAlignmentOptions.TopLeft;
 
         RectTransform rt = statsText.rectTransform;
@@ -64,42 +66,102 @@ public class StatsDisplay : NetworkBehaviour
         {
             List<string> parts = [];
 
-            // FPS
             if (Plugins.ConfigEntries.ShowFPSDisplay.Value)
             {
-                float fps = 1.0f / deltaTime;
-                parts.Add($"FPS: {fps:0}");
+                int fps = Mathf.RoundToInt(1.0f / deltaTime);
+                parts.Add($"FPS: {fps}");
             }
 
-            // Ping
             if (Plugins.ConfigEntries.ShowPingDisplay.Value)
-            {
                 parts.Add($"Ping: {currentPing} ms");
-            }
 
-            // Seed
             if (Plugins.ConfigEntries.ShowSeedDisplay.Value &&
                 StartOfRound.Instance != null &&
                 !StartOfRound.Instance.inShipPhase)
             {
-                int seed = StartOfRound.Instance.randomMapSeed;
-                parts.Add($"Seed: {seed}");
+                parts.Add($"Seed: {StartOfRound.Instance.randomMapSeed}");
             }
 
             string separator = Plugins.ConfigEntries.MiscLayoutEnum.Value == FPSPingLayout.Vertical
                 ? "\n─────────\n"
                 : " | ";
 
-            statsText.text = string.Join(separator, parts);
-            statsText.color = TextColor;
-            statsText.alignment = TextAlignmentOptions.TopLeft;
-            statsText.rectTransform.anchoredPosition =
-                new Vector2(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
-            statsText.enableWordWrapping = false;
+            string currentText = string.Join(separator, parts);
+
+            if (currentText != lastText ||
+                Plugins.ConfigEntries.MTColorSelection.Value != lastMode || Plugins.ConfigEntries.MTColorGradientA.Value != lastHexA || Plugins.ConfigEntries.MTColorGradientB.Value != lastHexB)
+            {
+                statsText.text = currentText;
+                statsText.alignment = TextAlignmentOptions.TopLeft;
+                statsText.rectTransform.anchoredPosition =
+                    new Vector2(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
+                statsText.enableWordWrapping = false;
+
+                ApplyTextColor(statsText);
+
+                lastText = currentText;
+                lastMode = Plugins.ConfigEntries.MTColorSelection.Value;
+                lastHexA = Plugins.ConfigEntries.MTColorGradientA.Value;
+                lastHexB = Plugins.ConfigEntries.MTColorGradientB.Value;
+            }
         }
         else
         {
             statsText.text = "";
+            lastText = "";
+        }
+    }
+
+    private void ApplyTextColor(TextMeshProUGUI tmp)
+    {
+        string hexA = Plugins.ConfigEntries.MTColorGradientA.Value;
+        string hexB = Plugins.ConfigEntries.MTColorGradientB.Value;
+
+        switch (Plugins.ConfigEntries.MTColorSelection.Value)
+        {
+            case MTColorMode.Solid:
+                tmp.color = HUDUtils.ParseHexColor(hexA, Color.white);
+                break;
+
+            case MTColorMode.Gradient:
+                if (HUDUtils.HasCustomGradient(hexA, hexB))
+                {
+                    tmp.ForceMeshUpdate();
+                    TMP_TextInfo textInfo = tmp.textInfo;
+                    int charCount = textInfo.characterCount;
+                    if (charCount == 0) return;
+
+                    Color colorA = HUDUtils.ParseHexColor(hexA, Color.white);
+                    Color colorB = HUDUtils.ParseHexColor(hexB, Color.white);
+
+                    for (int i = 0; i < charCount; i++)
+                    {
+                        TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+                        if (!charInfo.isVisible) continue;
+
+                        float t = (charCount > 1) ? i / (float)(charCount - 1) : 0f;
+                        Color charColor = Color.Lerp(colorA, colorB, t);
+
+                        int vertexIndex = charInfo.vertexIndex;
+                        var meshInfo = textInfo.meshInfo[charInfo.materialReferenceIndex];
+
+                        meshInfo.colors32[vertexIndex + 0] = charColor;
+                        meshInfo.colors32[vertexIndex + 1] = charColor;
+                        meshInfo.colors32[vertexIndex + 2] = charColor;
+                        meshInfo.colors32[vertexIndex + 3] = charColor;
+                    }
+
+                    for (int i = 0; i < tmp.textInfo.meshInfo.Length; i++)
+                    {
+                        tmp.textInfo.meshInfo[i].mesh.colors32 = tmp.textInfo.meshInfo[i].colors32;
+                        tmp.UpdateGeometry(tmp.textInfo.meshInfo[i].mesh, i);
+                    }
+                }
+                else
+                {
+                    tmp.color = HUDUtils.ParseHexColor(hexA, Color.white);
+                }
+                break;
         }
     }
 
@@ -107,8 +169,6 @@ public class StatsDisplay : NetworkBehaviour
     private void SendPingClientRpc(ulong targetClientId, ulong ping)
     {
         if (NetworkManager.Singleton.LocalClientId == targetClientId)
-        {
             currentPing = ping;
-        }
     }
 }

@@ -79,7 +79,7 @@ internal static class EladsHUDProxy
         Image staminaBar = _staminaBarField?.GetValue(hudInstance) as Image;
         TextMeshProUGUI staminaText = _staminaTextField?.GetValue(hudInstance) as TextMeshProUGUI;
 
-        if (staminaBar != null || staminaText != null && Plugins.ConfigEntries.SprintMeterBoolean.Value)
+        if (staminaBar != null || staminaText != null)
             ApplyStaminaColors(staminaBar, staminaText);
 
         Image healthBar = _healthBarField?.GetValue(hudInstance) as Image;

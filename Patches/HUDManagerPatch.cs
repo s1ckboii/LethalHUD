@@ -111,10 +111,9 @@ internal static class HUDManagerPatch
     {
         ScanController.UpdateScanAlpha();
         PlayerHPDisplay.UpdateNumber();
+        WeightController.UpdateWeightDisplay();
         if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
             __instance.PingScan_performed(pingScan);
-        if (Plugins.ConfigEntries.WeightCounterBoolean.Value)
-            WeightController.UpdateWeightDisplay();
         int currentCount = __instance.itemSlotIconFrames.Length;
         if (currentCount != lastSlotCount)
         {
@@ -157,7 +156,23 @@ internal static class HUDManagerPatch
             __instance.ChatMessageHistory[^1] = last;
             __instance.chatText.text = string.Join("\n", __instance.ChatMessageHistory);
         }
+        __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("OpenMenu_performed")]
+    private static void OnHUDManagerOpenMenu_performed(HUDManager __instance)
+    {
+        __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch("SubmitChat_performed")]
+    private static void OnHUDManagerSubmitChat_performed(HUDManager __instance)
+    {
+        __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
+    }
+
     private static IEnumerator ScanTextureRoutine()
     {
         while (true)
