@@ -223,6 +223,31 @@ internal static class HUDUtils
             return Color.Lerp(brightRed, darkRed, t);
         }
     }
+
+    internal static VertexGradient GetWeightGradient(float normalizedWeight)
+    {
+        ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.WeightStarterColor.Value, out Color starter);
+
+        Color brightRed = new(1f, 0f, 0f);
+        Color darkRed = new(0.5f, 0f, 0f);
+
+        Color topColor, bottomColor;
+
+        if (normalizedWeight <= 0.5f)
+        {
+            float t = normalizedWeight / 0.5f;
+            topColor = Color.Lerp(starter, brightRed, t);
+            bottomColor = Color.Lerp(starter, brightRed, t * 0.8f);
+        }
+        else
+        {
+            float t = (normalizedWeight - 0.5f) / 0.5f;
+            topColor = Color.Lerp(brightRed, darkRed, t);
+            bottomColor = Color.Lerp(brightRed, darkRed, t * 0.8f);
+        }
+
+        return new VertexGradient(topColor, topColor, bottomColor, bottomColor);
+    }
     #endregion
     #region PlanetInfo Helpers
     private static float _loadingOffset;

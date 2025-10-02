@@ -8,6 +8,9 @@ internal static class SprintMeterController
 
     internal static void UpdateSprintMeterColor()
     {
+        if (!Plugins.ConfigEntries.SprintBool.Value)
+            return;
+
         if (GameNetworkManager.Instance == null || GameNetworkManager.Instance.localPlayerController == null)
             return;
 

@@ -69,9 +69,12 @@ public class ConfigEntries
     public ConfigEntry<string> HealthColor { get; private set; }
     public ConfigEntry<float> HPIndicatorX { get; private set; }
     public ConfigEntry<float> HPIndicatorY { get; private set; }
+    public ConfigEntry<bool> SprintBool { get; private set; }
     public ConfigEntry<SprintStyle> SprintColoring { get; private set; }
     public ConfigEntry<string> SprintMeterColor { get; private set; }
     public ConfigEntry<WeightUnit> WeightUnitConfig { get; private set; }
+    public ConfigEntry<WeightDecimalFormat> WeightDecimalFormatConfig { get; private set; }
+    public ConfigEntry<WeightUnitDisplay> WeightUnitDisplayConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
     #endregion
     #region Compass ConfigEntries
@@ -190,9 +193,12 @@ public class ConfigEntries
         HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#00CC00", "Base color for HP Indicator.");
         HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
         HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
+        SprintBool = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter", true, "Enable sprint meter coloring.");
         SprintColoring = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Style", SprintStyle.Solid, "Choose a style for the sprint meter.");
         SprintMeterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Solid", "#FF7600", "Base color for sprint meter");
         WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit", WeightUnit.Pounds, "Select the weight unit.");
+        WeightDecimalFormatConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Decimal Format", WeightDecimalFormat.Rounded, "Choose how many decimals should be shown.");
+        WeightUnitDisplayConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit Display", WeightUnitDisplay.OnlyOne, "Choose how the weight unit should be displayed.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
         #endregion
         #region Compass Binds
@@ -342,6 +348,14 @@ public class ConfigEntries
             SprintMeterController.UpdateSprintMeterColor();
         };
         WeightUnitConfig.SettingChanged += (obj, args) =>
+        {
+            WeightController.UpdateWeightDisplay();
+        };
+        WeightUnitDisplayConfig.SettingChanged += (obj, args) =>
+        {
+            WeightController.UpdateWeightDisplay();
+        };
+        WeightDecimalFormatConfig.SettingChanged += (obj, args) =>
         {
             WeightController.UpdateWeightDisplay();
         };

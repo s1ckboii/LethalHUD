@@ -42,6 +42,22 @@ public static class Enums
         Manuls
     }
 
+    public enum WeightUnitDisplay
+    {
+        OnlyOne,
+        KgAndPounds,
+        PoundsAndManuls,
+        KgAndManuls,
+        KgPoundsAndManuls
+    }
+
+    public enum WeightDecimalFormat
+    {
+        Rounded,
+        TwoDecimalsDot,
+        TwoDecimalsComma
+    }
+
     public enum MTColorMode
     {
         Solid,

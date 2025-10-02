@@ -117,8 +117,19 @@ internal static class EladsHUDProxy
     private static void UpdateWeightDisplay(TextMeshProUGUI carryText, PlayerControllerB player)
     {
         float carryWeight = player.carryWeight;
-        float convertedWeight = WeightController.ConvertWeight(Mathf.RoundToInt(Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f));
-        string unitString = WeightController.GetUnitString();
+        int num2 = Mathf.RoundToInt(Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f);
+
+        float convertedWeight = WeightController.ConvertWeight(num2);
+
+        string displayText;
+        if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
+        {
+            displayText = $"{WeightController.FormatWeight(convertedWeight)} manuls\n{WeightController.GetManulAsciiByWeight(convertedWeight)}";
+        }
+        else
+        {
+            displayText = WeightController.GetUnitString(num2, true);
+        }
 
         float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
@@ -127,11 +138,11 @@ internal static class EladsHUDProxy
             WeightUnit.Manuls => 130f / 9.9f,
             _ => 130f
         };
-
         float normalizedWeight = Mathf.Clamp01(convertedWeight / maxWeight);
         Color color = HUDUtils.GetWeightColor(normalizedWeight);
 
-        carryText.text = $"{convertedWeight:F0} {unitString}";
+        carryText.text = displayText;
         carryText.color = color;
     }
+
 }

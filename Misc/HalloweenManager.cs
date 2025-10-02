@@ -45,41 +45,7 @@ public class HalloweenManager
 
     public void ApplyHalloweenMode()
     {
-        if (_originalValues == null)
-        {
-            _originalValues = ConfigUtils.LoadStoredValues<StoredValues>("Halloween")
-                              ?? new StoredValues
-                              {
-                                  ScanColor = Plugins.ConfigEntries.ScanColor.Value,
-                                  SlotColor = Plugins.ConfigEntries.SlotColor.Value,
-                                  GradientColorA = Plugins.ConfigEntries.GradientColorA.Value,
-                                  GradientColorB = Plugins.ConfigEntries.GradientColorB.Value,
-                                  HandsFullColor = Plugins.ConfigEntries.HandsFullColor.Value,
-                                  SprintColoring = Plugins.ConfigEntries.SprintColoring.Value,
-                                  SprintMeterColor = Plugins.ConfigEntries.SprintMeterColor.Value,
-                                  WeightStarterColor = Plugins.ConfigEntries.WeightStarterColor.Value,
-                                  ClockNumberColor = Plugins.ConfigEntries.ClockNumberColor.Value,
-                                  ClockBoxColor = Plugins.ConfigEntries.ClockBoxColor.Value,
-                                  ClockIconColor = Plugins.ConfigEntries.ClockIconColor.Value,
-                                  ClockShipLeaveColor = Plugins.ConfigEntries.ClockShipLeaveColor.Value,
-                                  SignalTextColor = Plugins.ConfigEntries.SignalTextColor.Value,
-                                  GradientNameColorA = Plugins.ConfigEntries.GradientNameColorA.Value,
-                                  GradientNameColorB = Plugins.ConfigEntries.GradientNameColorB.Value,
-                                  ChatInputText = Plugins.ConfigEntries.ChatInputText.Value,
-                                  ChatMessageColor = Plugins.ConfigEntries.ChatMessageColor.Value,
-                                  GradientMessageColorA = Plugins.ConfigEntries.GradientMessageColorA.Value,
-                                  GradientMessageColorB = Plugins.ConfigEntries.GradientMessageColorB.Value,
-                                  LoadingTextColor = Plugins.ConfigEntries.LoadingTextColor.Value,
-                                  PlanetHeaderColor = Plugins.ConfigEntries.PlanetHeaderColor.Value,
-                                  PlanetSummaryColor = Plugins.ConfigEntries.PlanetSummaryColor.Value,
-                                  MTColorMode = Plugins.ConfigEntries.MTColorSelection.Value,
-                                  MTColorGradientA = Plugins.ConfigEntries.MTColorGradientA.Value,
-                                  MTColorGradientB = Plugins.ConfigEntries.MTColorGradientB.Value,
-                                  HealthColor = Plugins.ConfigEntries.HealthColor.Value
-                              };
-
-            ConfigUtils.SaveStoredValues(_originalValues, "Halloween");
-        }
+        EnsureOriginalValues();
 
         _ignoreUnifyMostColors = true;
 
@@ -168,8 +134,53 @@ public class HalloweenManager
         InventoryFrames.SetSlotColors();
         ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value);
         ClockController.ApplyClockAppearance();
-        
+
         SprintMeterController.UpdateSprintMeterColor();
         WeightController.UpdateWeightDisplay();
+    }
+
+    private void EnsureOriginalValues()
+    {
+        _originalValues ??= ConfigUtils.LoadStoredValues<StoredValues>("Halloween") ?? new StoredValues();
+
+        bool updated = false;
+        void UpdateField<T>(ref T field, T value)
+        {
+            if (!Equals(field, value))
+            {
+                field = value;
+                updated = true;
+            }
+        }
+
+        UpdateField(ref _originalValues.ScanColor, Plugins.ConfigEntries.ScanColor.Value);
+        UpdateField(ref _originalValues.SlotColor, Plugins.ConfigEntries.SlotColor.Value);
+        UpdateField(ref _originalValues.GradientColorA, Plugins.ConfigEntries.GradientColorA.Value);
+        UpdateField(ref _originalValues.GradientColorB, Plugins.ConfigEntries.GradientColorB.Value);
+        UpdateField(ref _originalValues.HandsFullColor, Plugins.ConfigEntries.HandsFullColor.Value);
+        UpdateField(ref _originalValues.SprintColoring, Plugins.ConfigEntries.SprintColoring.Value);
+        UpdateField(ref _originalValues.SprintMeterColor, Plugins.ConfigEntries.SprintMeterColor.Value);
+        UpdateField(ref _originalValues.WeightStarterColor, Plugins.ConfigEntries.WeightStarterColor.Value);
+        UpdateField(ref _originalValues.ClockNumberColor, Plugins.ConfigEntries.ClockNumberColor.Value);
+        UpdateField(ref _originalValues.ClockBoxColor, Plugins.ConfigEntries.ClockBoxColor.Value);
+        UpdateField(ref _originalValues.ClockIconColor, Plugins.ConfigEntries.ClockIconColor.Value);
+        UpdateField(ref _originalValues.ClockShipLeaveColor, Plugins.ConfigEntries.ClockShipLeaveColor.Value);
+        UpdateField(ref _originalValues.SignalTextColor, Plugins.ConfigEntries.SignalTextColor.Value);
+        UpdateField(ref _originalValues.GradientNameColorA, Plugins.ConfigEntries.GradientNameColorA.Value);
+        UpdateField(ref _originalValues.GradientNameColorB, Plugins.ConfigEntries.GradientNameColorB.Value);
+        UpdateField(ref _originalValues.ChatInputText, Plugins.ConfigEntries.ChatInputText.Value);
+        UpdateField(ref _originalValues.ChatMessageColor, Plugins.ConfigEntries.ChatMessageColor.Value);
+        UpdateField(ref _originalValues.GradientMessageColorA, Plugins.ConfigEntries.GradientMessageColorA.Value);
+        UpdateField(ref _originalValues.GradientMessageColorB, Plugins.ConfigEntries.GradientMessageColorB.Value);
+        UpdateField(ref _originalValues.LoadingTextColor, Plugins.ConfigEntries.LoadingTextColor.Value);
+        UpdateField(ref _originalValues.PlanetHeaderColor, Plugins.ConfigEntries.PlanetHeaderColor.Value);
+        UpdateField(ref _originalValues.PlanetSummaryColor, Plugins.ConfigEntries.PlanetSummaryColor.Value);
+        UpdateField(ref _originalValues.MTColorMode, Plugins.ConfigEntries.MTColorSelection.Value);
+        UpdateField(ref _originalValues.MTColorGradientA, Plugins.ConfigEntries.MTColorGradientA.Value);
+        UpdateField(ref _originalValues.MTColorGradientB, Plugins.ConfigEntries.MTColorGradientB.Value);
+        UpdateField(ref _originalValues.HealthColor, Plugins.ConfigEntries.HealthColor.Value);
+
+        if (updated)
+            ConfigUtils.SaveStoredValues(_originalValues, "Halloween");
     }
 }
