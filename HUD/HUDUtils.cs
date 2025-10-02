@@ -231,22 +231,37 @@ internal static class HUDUtils
         Color brightRed = new(1f, 0f, 0f);
         Color darkRed = new(0.5f, 0f, 0f);
 
-        Color topColor, bottomColor;
+        Color color;
 
         if (normalizedWeight <= 0.5f)
         {
             float t = normalizedWeight / 0.5f;
-            topColor = Color.Lerp(starter, brightRed, t);
-            bottomColor = Color.Lerp(starter, brightRed, t * 0.8f);
+            color = Color.Lerp(starter, brightRed, t);
         }
         else
         {
             float t = (normalizedWeight - 0.5f) / 0.5f;
-            topColor = Color.Lerp(brightRed, darkRed, t);
-            bottomColor = Color.Lerp(brightRed, darkRed, t * 0.8f);
+            color = Color.Lerp(brightRed, darkRed, t);
         }
 
-        return new VertexGradient(topColor, topColor, bottomColor, bottomColor);
+        return new VertexGradient(color);
+    }
+
+    internal static string ApplyRichTextGradient(string text, Color startColor, Color endColor)
+    {
+        char[] chars = text.ToCharArray();
+        int length = chars.Length;
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+        for (int i = 0; i < length; i++)
+        {
+            float t = length > 1 ? i / (float)(length - 1) : 0f;
+            Color c = Color.Lerp(startColor, endColor, t);
+            string hex = ColorUtility.ToHtmlStringRGB(c);
+            sb.Append($"<color=#{hex}>{chars[i]}</color>");
+        }
+
+        return sb.ToString();
     }
     #endregion
     #region PlanetInfo Helpers

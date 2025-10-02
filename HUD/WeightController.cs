@@ -151,18 +151,21 @@ internal static class WeightController
             hud.weightCounter.text = GetUnitString(num2);
         }
 
+        hud.weightCounter.color = Color.white;
+        hud.weightCounter.enableVertexGradient = true;
+
         if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
-            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
-            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
-            hud.weightCounter.colorGradient = new TMPro.VertexGradient(startColor, endColor, startColor, endColor);
+            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value); // orange
+            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor); // purple
+
+            hud.weightCounter.colorGradient = new TMPro.VertexGradient(startColor);
+
+            hud.weightCounter.text = HUDUtils.ApplyRichTextGradient(hud.weightCounter.text, startColor, endColor);
         }
         else
         {
-            hud.weightCounter.color = Color.white;
-
             hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
-            hud.weightCounter.enableVertexGradient = true;
         }
     }
 }
