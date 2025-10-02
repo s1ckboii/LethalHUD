@@ -156,8 +156,8 @@ internal static class WeightController
 
         if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
-            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value); // orange
-            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor); // purple
+            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
+            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
 
             hud.weightCounter.colorGradient = new TMPro.VertexGradient(startColor);
 

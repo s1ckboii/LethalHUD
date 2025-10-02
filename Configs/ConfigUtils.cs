@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using Newtonsoft.Json;
 using System;
 using System.IO;
 using UnityEngine;
@@ -52,7 +51,7 @@ internal static class ConfigUtils
         try
         {
             string path = GetJsonPath(name + ".json");
-            string json = JsonConvert.SerializeObject(values, Formatting.Indented);
+            string json = JsonUtility.ToJson(values, true);
             File.WriteAllText(path, json);
         }
         catch (Exception e)
@@ -61,46 +60,14 @@ internal static class ConfigUtils
         }
     }
 
-    public static T LoadStoredValues<T>(string name = "Default") where T : class, new()
+    public static T LoadStoredValues<T>(string name = "Default") where T : class
     {
         try
         {
             string path = GetJsonPath(name + ".json");
             if (!File.Exists(path)) return null;
-
             string json = File.ReadAllText(path);
-            var loaded = JsonConvert.DeserializeObject<T>(json);
-
-            if (loaded == null) return null;
-
-            bool needsResave = false;
-            var defaults = new T();
-
-            foreach (var field in typeof(T).GetFields())
-            {
-                var currentVal = field.GetValue(loaded);
-                var defaultVal = field.GetValue(defaults);
-
-                if (currentVal == null || currentVal.Equals(defaultVal))
-                {
-                    var configEntries = Plugins.ConfigEntries;
-                    var configField = configEntries.GetType().GetField(field.Name);
-                    if (configField != null)
-                    {
-                        var configVal = configField.GetValue(configEntries);
-                        if (configVal != null)
-                        {
-                            field.SetValue(loaded, configVal);
-                            needsResave = true;
-                        }
-                    }
-                }
-            }
-
-            if (needsResave)
-                SaveStoredValues(loaded, name);
-
-            return loaded;
+            return JsonUtility.FromJson<T>(json);
         }
         catch (Exception e)
         {

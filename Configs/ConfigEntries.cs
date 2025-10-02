@@ -1,7 +1,8 @@
 ﻿using BepInEx.Configuration;
+using LethalHUD.Compats;
 using LethalHUD.HUD;
-using LethalHUD.Scan;
 using LethalHUD.Misc;
+using LethalHUD.Scan;
 using System;
 using static LethalHUD.Enums;
 
@@ -137,6 +138,10 @@ public class ConfigEntries
     public void Setup()
     {
         ConfigHelper.SkipAutoGen();
+
+#if DEBUG
+        LethalConfigProxy.AddButton("Dev", "Reset Configs", "Resets all configs to default for testing.", "Reset", () => Plugins.ConfigEntries.DevResetConfigs());
+#endif
 
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
@@ -374,4 +379,122 @@ public class ConfigEntries
         PlanetRisk.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
         #endregion
     }
+
+    #region Developer Tools
+    public void DevResetConfigs()
+    {
+        _lastScanColorChange = DateTime.MinValue;
+        _lastSlotColorChange = DateTime.MinValue;
+        _lastUnifyMostColorsChange = DateTime.MinValue;
+        _lastLocalNameColorChange = DateTime.MinValue;
+
+        UnifyMostColors.Value = DefaultMainColor;
+        HalloweenMode.Value = false;
+
+        HoldScan.Value = false;
+        FadeOut.Value = true;
+        RecolorScanLines.Value = true;
+        Alpha.Value = 0.26f;
+        DirtIntensity.Value = 0f;
+        ScanColor.Value = DefaultMainColor;
+        VignetteIntensity.Value = 0.46f;
+        SelectedScanlineMode.Value = ScanLines.Default;
+
+        SlotFade.Value = 0.13f;
+        SlotFadeDelayTime.Value = 1.5f;
+        SlotColor.Value = DefaultSlotColor;
+        SlotRainbowColor.Value = SlotEnums.None;
+        GradientColorA.Value = DefaultSlotColor;
+        GradientColorB.Value = DefaultSlotColor;
+        HandsFullColor.Value = "#3A00FF";
+        ShowItemValue.Value = false;
+        ShowTotalInventoryValue.Value = false;
+        ShowTotalDelta.Value = true;
+        TotalPrefix.Value = TotalValuePrefix.Full;
+        SetDollar.Value = ItemValue.Default;
+        TotalValueOffsetX.Value = -200f;
+        TotalValueOffsetY.Value = -55f;
+
+        ChatFadeDelayTime.Value = 5f;
+        ColoredNames.Value = false;
+        GradientNameColorA.Value = "#FF0000";
+        GradientNameColorB.Value = "#FF0000";
+        ChatInputText.Value = "#FFFF00";
+        ChatMessageColor.Value = "#FFFF00";
+        GradientMessageColorA.Value = "#FFFF00";
+        GradientMessageColorB.Value = "#FFFF00";
+
+        HealthIndicator.Value = true;
+        HealthFormat.Value = HPDisplayMode.Plain;
+        HealthSize.Value = 24;
+        HealthRotation.Value = 356;
+        HealthColor.Value = "#00CC00";
+        HPIndicatorX.Value = -300f;
+        HPIndicatorY.Value = 110f;
+        SprintBool.Value = true;
+        SprintColoring.Value = SprintStyle.Solid;
+        SprintMeterColor.Value = "#FF7600";
+        WeightUnitConfig.Value = WeightUnit.Pounds;
+        WeightDecimalFormatConfig.Value = WeightDecimalFormat.Rounded;
+        WeightUnitDisplayConfig.Value = WeightUnitDisplay.OnlyOne;
+        WeightStarterColor.Value = "#E55901";
+
+        CompassInvertMask.Value = false;
+        CompassInvertOutsides.Value = false;
+        CompassAlpha.Value = 1f;
+
+        NormalHumanBeingClock.Value = false;
+        ClockFormat.Value = ClockStyle.Regular;
+        RealtimeClock.Value = false;
+        ClockSizeMultiplier.Value = 1f;
+        ClockNumberColor.Value = "#FF4C00";
+        ClockBoxColor.Value = "#FF4C00";
+        ClockIconColor.Value = "#FF4C00";
+        ClockShipLeaveColor.Value = "#FF4C00";
+        ShowClockInShip.Value = false;
+        ShowClockInFacility.Value = false;
+        ClockVisibilityInShip.Value = 1f;
+        ClockVisibilityInFacility.Value = 1f;
+
+        CenterSTText.Value = false;
+        SignalTextColor.Value = "#FFFFFF";
+        SignalLetterDisplay.Value = 0.7f;
+
+        LoadingTextColor.Value = "#00FFFF";
+        PlanetSummaryColor.Value = "#FFFFFF";
+        PlanetHeaderColor.Value = "#FFFFFF";
+        PlanetRisk.Value = true;
+
+        TerminalFadeDelaysTime.Value = 0.5f;
+        ShowFPSDisplay.Value = false;
+        ShowPingDisplay.Value = false;
+        ShowSeedDisplay.Value = false;
+        MiscLayoutEnum.Value = FPSPingLayout.Vertical;
+        FPSCounterX.Value = 10f;
+        FPSCounterY.Value = 10f;
+        MTColorSelection.Value = MTColorMode.Solid;
+        MTColorGradientA.Value = "#FFFFFF";
+        MTColorGradientB.Value = "#FFFFFF";
+
+        if (HalloweenMode.Value)
+            HalloweenManager.Instance.ApplyHalloweenMode();
+        else
+            HalloweenManager.Instance.RestoreOriginalValues();
+
+        ScanController.SetScanColor();
+        ScanController.UpdateScanAlpha();
+        ScanController.UpdateVignetteIntensity();
+        ScanController.UpdateScanTexture();
+
+        InventoryFrames.SetSlotColors();
+        ChatController.ApplyLocalPlayerColor(GradientNameColorA.Value, GradientNameColorB.Value);
+        ClockController.ApplyClockAppearance();
+        ScrapValueDisplay.UpdateTotalTextPosition();
+        SprintMeterController.UpdateSprintMeterColor();
+        WeightController.UpdateWeightDisplay();
+        PlanetInfoDisplay.ApplyColors();
+        SignalTranslatorController.CenterText();
+        CompassController.SetCompassColor(HUDUtils.ParseHexColor(DefaultCompassColor));
+    }
+    #endregion
 }

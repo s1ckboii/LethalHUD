@@ -251,7 +251,7 @@ internal static class HUDUtils
     {
         char[] chars = text.ToCharArray();
         int length = chars.Length;
-        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        System.Text.StringBuilder sb = new();
 
         for (int i = 0; i < length; i++)
         {

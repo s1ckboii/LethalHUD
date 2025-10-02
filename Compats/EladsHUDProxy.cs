@@ -116,9 +116,10 @@ internal static class EladsHUDProxy
     }
     private static void UpdateWeightDisplay(TextMeshProUGUI carryText, PlayerControllerB player)
     {
+        if (carryText == null || player == null) return;
+
         float carryWeight = player.carryWeight;
         int num2 = Mathf.RoundToInt(Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f);
-
         float convertedWeight = WeightController.ConvertWeight(num2);
 
         string displayText;
@@ -131,18 +132,31 @@ internal static class EladsHUDProxy
             displayText = WeightController.GetUnitString(num2, true);
         }
 
-        float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
+        carryText.enableVertexGradient = true;
+        carryText.color = Color.white;
+
+        if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
-            WeightUnit.Pounds => 130f,
-            WeightUnit.Kilograms => 130f * 0.453592f,
-            WeightUnit.Manuls => 130f / 9.9f,
-            _ => 130f
-        };
-        float normalizedWeight = Mathf.Clamp01(convertedWeight / maxWeight);
-        Color color = HUDUtils.GetWeightColor(normalizedWeight);
+            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
+            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
 
-        carryText.text = displayText;
-        carryText.color = color;
+            carryText.colorGradient = new VertexGradient(startColor, startColor, startColor, startColor);
+
+            carryText.text = HUDUtils.ApplyRichTextGradient(displayText, startColor, endColor);
+        }
+        else
+        {
+            float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
+            {
+                WeightUnit.Pounds => 130f,
+                WeightUnit.Kilograms => 130f * 0.453592f,
+                WeightUnit.Manuls => 130f / 9.9f,
+                _ => 130f
+            };
+            float normalizedWeight = Mathf.Clamp01(convertedWeight / maxWeight);
+
+            carryText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
+            carryText.text = displayText;
+        }
     }
-
 }

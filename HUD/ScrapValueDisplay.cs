@@ -19,7 +19,6 @@ internal static class ScrapValueDisplay
     private static int lastTotal = 0;
     private static float deltaTimer = 0f;
     private static string deltaText = "";
-    private static string deltaRaw = "";
     private static string deltaPlain = "";
     private static string deltaColor = "green";
     private static bool erasingDelta = false;
@@ -128,7 +127,20 @@ internal static class ScrapValueDisplay
         tmp.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
             ? defaultFont : dollarFont;
 
-        tmp.text = value > 0 ? $"${value}" : "";
+        string text = value > 0 ? $"${value}" : "";
+
+
+        if (Plugins.ConfigEntries.HalloweenMode.Value && value > 0)
+        {
+            ColorUtility.TryParseHtmlString("#FF8800", out Color startColor);
+            ColorUtility.TryParseHtmlString("#AA55EE", out Color endColor);
+            tmp.text = HUDUtils.ApplyRichTextGradient(text, startColor, endColor);
+        }
+        else
+        {
+            tmp.text = text;
+        }
+
         slotValues[slotIndex] = value;
 
         UpdateInventoryTotal();
@@ -140,10 +152,7 @@ internal static class ScrapValueDisplay
         if (totalText == null) return;
 
         RectTransform totalRT = totalText.rectTransform;
-        totalRT.localPosition = new Vector2(
-            Plugins.ConfigEntries.TotalValueOffsetX.Value,
-            Plugins.ConfigEntries.TotalValueOffsetY.Value
-        );
+        totalRT.localPosition = new Vector2(Plugins.ConfigEntries.TotalValueOffsetX.Value, Plugins.ConfigEntries.TotalValueOffsetY.Value);
     }
 
     internal static void Hide(int slotIndex)
@@ -221,18 +230,33 @@ internal static class ScrapValueDisplay
             int diff = total - lastTotal;
             if (diff != 0 && Plugins.ConfigEntries.ShowTotalDelta.Value)
             {
-                string color = diff > 0 ? "green" : "red";
                 string sign = diff > 0 ? "+" : "-";
+                string numeric = $"{sign}${Mathf.Abs(diff)}";
 
-                deltaColor = color;
-                deltaRaw = $"<color={color}>({sign}${Mathf.Abs(diff)})</color>";
-                deltaPlain = $"({sign}${Mathf.Abs(diff)})";
+                deltaPlain = $"({numeric})";
 
-                deltaText = deltaRaw;
+                if (Plugins.ConfigEntries.HalloweenMode.Value)
+                {
+                    deltaText = deltaPlain;
+                }
+                else
+                {
+                    string color = diff > 0 ? "green" : "red";
+                    deltaColor = color;
+                    deltaText = $"<color={color}>({numeric})</color>";
+                }
+
                 deltaTimer = 1.5f;
                 erasingDelta = false;
             }
             lastTotal = total;
+        }
+
+        if (Plugins.ConfigEntries.HalloweenMode.Value && total == 0)
+        {
+            deltaPlain = "";
+            deltaText = "";
+            erasingDelta = false;
         }
 
         string prefix = Plugins.ConfigEntries.TotalPrefix.Value switch
@@ -251,7 +275,17 @@ internal static class ScrapValueDisplay
         {
             totalText.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
                 ? defaultFont : dollarFont;
-            totalText.text = display;
+
+            if (Plugins.ConfigEntries.HalloweenMode.Value && total > 0)
+            {
+                Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
+                ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
+                totalText.text = HUDUtils.ApplyRichTextGradient(display, startColor, endColor);
+            }
+            else
+            {
+                totalText.text = display;
+            }
         }
     }
 
@@ -275,7 +309,11 @@ internal static class ScrapValueDisplay
             if (eraseTimer <= 0f && deltaPlain.Length > 0)
             {
                 deltaPlain = deltaPlain[..^1];
-                deltaText = deltaPlain.Length > 0 ? $"<color={deltaColor}>{deltaPlain}</color>" : "";
+
+                deltaText = Plugins.ConfigEntries.HalloweenMode.Value
+                    ? deltaPlain
+                    : (deltaPlain.Length > 0 ? $"<color={deltaColor}>{deltaPlain}</color>" : "");
+
                 eraseTimer = eraseSpeed;
                 UpdateInventoryTotal();
             }
