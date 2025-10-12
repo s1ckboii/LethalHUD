@@ -1,9 +1,17 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LethalHUD.HUD;
 internal static class PlanetInfoDisplay
 {
+    private static TMP_Text hazardTMP;
+    private static Image[] targetImages;
+
+    private static Color headerColor;
+    private static Color summaryColor;
     internal static void ApplyColors()
     {
         HUDManager hud = HUDManager.Instance;
@@ -30,18 +38,44 @@ internal static class PlanetInfoDisplay
                 hud.planetRiskLevelText.color = Color.white;
         }
     }
-
-
-    private static Color GetRiskLevelColor(string level)
+    internal static void Init()
     {
-        if (string.IsNullOrEmpty(level)) return Color.white;
+        GameObject hazardLevel = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HazardLevel");
+        if (hazardLevel != null)
+            hazardTMP = hazardLevel.GetComponent<TMP_Text>();
 
-        level = StartOfRound.Instance.currentLevel.riskLevel;
+        targetImages =
+        [
+                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (2)")?.GetComponent<Image>(),
+                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (3)")?.GetComponent<Image>(),
+                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (2)")?.GetComponent<Image>(),
+                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (3)")?.GetComponent<Image>()
+        ];
+    }
+    internal static void HeaderAndFooterAndHazardLevel()
+    {
+        headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, Color.white);
+        summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, Color.white);
 
+        if (hazardTMP != null)
+            hazardTMP.color = summaryColor;
+
+        if (targetImages != null)
+        {
+            foreach (Image img in targetImages)
+                img.color = headerColor;
+        }
+    }
+
+    private static Color GetRiskLevelColor(string riskLetter)
+    {
+        if (string.IsNullOrEmpty(riskLetter)) return Color.white;
+
+        riskLetter = StartOfRound.Instance.currentLevel.riskLevel;
         if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
-            if (level.StartsWith("S")) return new Color(0.6f, 0f, 0.3f);
-            return level[0] switch
+            if (riskLetter.StartsWith("S")) return new Color(0.6f, 0f, 0.3f);
+            return riskLetter[0] switch
             {
                 'A' => new Color(1f, 0.5f, 0f),
                 'B' => new Color(1f, 0.65f, 0f),
@@ -52,18 +86,18 @@ internal static class PlanetInfoDisplay
             };
         }
 
-        if (level.Equals("Safe", StringComparison.OrdinalIgnoreCase))
+        if (riskLetter.Equals("Safe", StringComparison.OrdinalIgnoreCase))
             return Color.green;
 
-        if (level.StartsWith("S"))
+        if (riskLetter.StartsWith("S"))
         {
             int sCount = 1;
-            while (sCount < level.Length && level[sCount] == 'S') sCount++;
+            while (sCount < riskLetter.Length && riskLetter[sCount] == 'S') sCount++;
             float t = Mathf.Clamp01((sCount - 1) / 4f);
             return Color.Lerp(Color.red, new Color(0.5f, 0f, 0f), t);
         }
 
-        return level[0] switch
+        return riskLetter[0] switch
         {
             'A' => new Color(1f, 0.5f, 0f),
             'B' => new Color(1f, 0.65f, 0f),

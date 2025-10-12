@@ -42,9 +42,6 @@ public class Plugins : BaseUnityPlugin
 
         Harmony = new(MyPluginInfo.PLUGIN_GUID);
 
-
-        //NetcodeProxy.NetcodePatcher();
-
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
         Loggers.Info("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
 

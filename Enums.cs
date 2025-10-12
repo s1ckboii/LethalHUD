@@ -20,6 +20,12 @@ public static class Enums
         Default,
         Dollar
     }
+    public enum ScanMode
+    {
+        Default,
+        Hold,
+        Toggle
+    }
     public enum ScanLines
     {
         Default,

@@ -1,8 +1,8 @@
-﻿/*using Unity.Netcode;
+﻿/*
+using Unity.Netcode;
 using System.Collections.Generic;
 
 namespace LethalHUD.HUD;
-
 internal class ChatNetworkManager : NetworkBehaviour
 {
     private readonly Dictionary<ulong, PlayerColorInfo> hostPlayerColors = [];

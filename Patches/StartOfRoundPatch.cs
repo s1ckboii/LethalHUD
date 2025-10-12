@@ -1,4 +1,5 @@
-﻿/*using HarmonyLib;
+﻿/*
+using HarmonyLib;
 using LethalHUD.HUD;
 using Unity.Netcode;
 
@@ -27,4 +28,5 @@ internal static class StartOfRoundPatch
             ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value);
         }
     }
-}*/
+}
+*/

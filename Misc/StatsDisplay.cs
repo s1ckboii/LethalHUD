@@ -20,6 +20,8 @@ public class StatsDisplay : NetworkBehaviour
     private MTColorMode lastMode;
     private string lastHexA = "";
     private string lastHexB = "";
+    private bool lastSplit;
+    private string lastSeparateHex = "";
 
     private void Start()
     {
@@ -34,6 +36,14 @@ public class StatsDisplay : NetworkBehaviour
         statsText.fontSize = 12;
         statsText.richText = true;
         statsText.alignment = TextAlignmentOptions.TopLeft;
+
+        Material mat = Instantiate(statsText.fontMaterial);
+        mat.EnableKeyword("UNDERLAY_ON");
+        mat.SetColor("_UnderlayColor", Color.black);
+        mat.SetFloat("_UnderlayOffsetX", 1.2f);
+        mat.SetFloat("_UnderlayOffsetY", -1.2f);
+        mat.SetFloat("_UnderlaySoftness", 0.35f);
+        statsText.fontMaterial = mat;
 
         RectTransform rt = statsText.rectTransform;
         rt.anchorMin = new(0, 1);
@@ -52,7 +62,7 @@ public class StatsDisplay : NetworkBehaviour
             if (pingTimer >= pingInterval)
             {
                 pingTimer = 0f;
-                foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+                foreach (NetworkClient client in NetworkManager.Singleton.ConnectedClientsList)
                 {
                     ulong rtt = transport.GetCurrentRtt(client.ClientId);
                     SendPingClientRpc(client.ClientId, rtt);
@@ -88,13 +98,19 @@ public class StatsDisplay : NetworkBehaviour
 
             string currentText = string.Join(separator, parts);
 
+            bool split = Plugins.ConfigEntries.SplitAdditionalMTFromToolTips.Value;
+            string separateHex = Plugins.ConfigEntries.SeperateAdditionalMiscToolsColors.Value;
+
             if (currentText != lastText ||
-                Plugins.ConfigEntries.MTColorSelection.Value != lastMode || Plugins.ConfigEntries.MTColorGradientA.Value != lastHexA || Plugins.ConfigEntries.MTColorGradientB.Value != lastHexB)
+                Plugins.ConfigEntries.MTColorSelection.Value != lastMode ||
+                Plugins.ConfigEntries.MTColorGradientA.Value != lastHexA ||
+                Plugins.ConfigEntries.MTColorGradientB.Value != lastHexB ||
+                split != lastSplit ||
+                separateHex != lastSeparateHex)
             {
                 statsText.text = currentText;
                 statsText.alignment = TextAlignmentOptions.TopLeft;
-                statsText.rectTransform.anchoredPosition =
-                    new Vector2(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
+                statsText.rectTransform.anchoredPosition = new(Plugins.ConfigEntries.FPSCounterX.Value, -Plugins.ConfigEntries.FPSCounterY.Value);
                 statsText.enableWordWrapping = false;
 
                 ApplyTextColor(statsText);
@@ -103,6 +119,8 @@ public class StatsDisplay : NetworkBehaviour
                 lastMode = Plugins.ConfigEntries.MTColorSelection.Value;
                 lastHexA = Plugins.ConfigEntries.MTColorGradientA.Value;
                 lastHexB = Plugins.ConfigEntries.MTColorGradientB.Value;
+                lastSplit = split;
+                lastSeparateHex = separateHex;
             }
         }
         else
@@ -114,8 +132,14 @@ public class StatsDisplay : NetworkBehaviour
 
     private void ApplyTextColor(TextMeshProUGUI tmp)
     {
-        string hexA = Plugins.ConfigEntries.MTColorGradientA.Value;
-        string hexB = Plugins.ConfigEntries.MTColorGradientB.Value;
+        bool useSeparate = Plugins.ConfigEntries.SplitAdditionalMTFromToolTips.Value;
+
+        string hexA = useSeparate
+            ? Plugins.ConfigEntries.SeperateAdditionalMiscToolsColors.Value
+            : Plugins.ConfigEntries.MTColorGradientA.Value;
+        string hexB = useSeparate
+            ? Plugins.ConfigEntries.SeperateAdditionalMiscToolsColors.Value
+            : Plugins.ConfigEntries.MTColorGradientB.Value;
 
         switch (Plugins.ConfigEntries.MTColorSelection.Value)
         {
@@ -124,7 +148,7 @@ public class StatsDisplay : NetworkBehaviour
                 break;
 
             case MTColorMode.Gradient:
-                if (HUDUtils.HasCustomGradient(hexA, hexB))
+                if (HUDUtils.HasCustomGradient(hexA, hexB) && !useSeparate)
                 {
                     tmp.ForceMeshUpdate();
                     TMP_TextInfo textInfo = tmp.textInfo;
@@ -143,7 +167,7 @@ public class StatsDisplay : NetworkBehaviour
                         Color charColor = Color.Lerp(colorA, colorB, t);
 
                         int vertexIndex = charInfo.vertexIndex;
-                        var meshInfo = textInfo.meshInfo[charInfo.materialReferenceIndex];
+                        TMP_MeshInfo meshInfo = textInfo.meshInfo[charInfo.materialReferenceIndex];
 
                         meshInfo.colors32[vertexIndex + 0] = charColor;
                         meshInfo.colors32[vertexIndex + 1] = charColor;

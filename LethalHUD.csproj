@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -49,8 +49,8 @@
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-    <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="70.0.0-ngd.0" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="73.0.0-ngd.0" PrivateAssets="all" />
     <PackageReference Include="TestAccount666-GoodItemScan" Version="1.14.0" PrivateAssets="all" Publicize="true" />
   </ItemGroup>
   <ItemGroup>
@@ -63,11 +63,19 @@
   </ItemGroup>
 
 <ItemGroup>
-    <PackageReference Include="Evaisa.NetcodePatcher.MSBuild" Version="4.3.0" PrivateAssets="all"/>
+    <PackageReference Include="Evaisa.NetcodePatcher.MSBuild" Version="4.4.2" PrivateAssets="all"/>
 </ItemGroup>
-<ItemGroup>
-    <NetcodePatch Include="$(TargetPath)"/>
-</ItemGroup>
+  <!-- Netcode Patcher -->
+  <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
+    <!-- Create dependencies directory -->
+    <MakeDir Directories="$(TargetDir)dependencies" />
+    <MakeDir Directories="$(TargetDir)patchedPlugin" />
+
+    <ItemGroup>
+      <PluginFiles Include="$(TargetPath)" />
+      <PluginFiles Include="$(TargetDir)$(TargetName).pdb" />
+    </ItemGroup>
+  </Target>
   
   <!-- Import settings from .csproj.user file -->
   <Import Project="$(MSBuildProjectFile).user" Condition="Exists('$(MSBuildProjectFile).user')" />

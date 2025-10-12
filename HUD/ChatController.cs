@@ -28,18 +28,22 @@ internal static class ChatController
 
         if (string.IsNullOrEmpty(colorA) || string.IsNullOrEmpty(colorB))
             return;
-
+        
         localPlayerColors[localKey] = colorA;
         localPlayerColors[localKey + "_B"] = colorB;
+        
+        /*
+        if (NetworkManager.Singleton == null)
+            return;
 
-        /*var info = new PlayerColorInfo(colorA, colorB);
+        var info = new PlayerColorInfo(colorA, colorB);
         int localId = (int)NetworkManager.Singleton.LocalClientId;
         SetPlayerColor(localId, colorA, colorB);
 
         ChatNetworkManager.SendColorToServer(info);*/
     }
-
-    /*internal static string GetColoredPlayerName(string playerName, int playerId = -1)
+    /*
+    internal static string GetColoredPlayerName(string playerName, int playerId = -1)
     {
         if (!ColoringEnabled || string.IsNullOrEmpty(playerName))
             return playerName;
@@ -51,8 +55,8 @@ internal static class ChatController
             return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
         }
         return $"<color=#FF0000>{playerName}</color>";
-    }*/
-
+    }
+    */
     internal static string GetColoredPlayerName(string playerName)
     {
         if (!ColoringEnabled || string.IsNullOrEmpty(playerName))

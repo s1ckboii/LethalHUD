@@ -17,7 +17,7 @@ internal static class PlayerControllerBPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("NoPunctuation")]
-    private static bool NoPunctuation_Prefix(string input, ref string __result)
+    private static bool OnPlayerControllerBNoPunctuation(string input, ref string __result)
     {
         if (string.IsNullOrEmpty(input))
         {

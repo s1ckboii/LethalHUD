@@ -1,10 +1,14 @@
-﻿using LethalHUD.Compats;
+﻿using GameNetcodeStuff;
+using HarmonyLib;
+using LethalHUD.Compats;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
-using HarmonyLib;
 using System.Collections;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using static LethalHUD.Enums;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace LethalHUD.Patches;
@@ -12,6 +16,9 @@ namespace LethalHUD.Patches;
 internal static class HUDManagerPatch
 {
     private static CallbackContext pingScan;
+    private static bool _isScanToggled = false;
+    private static Coroutine _toggleCoroutine;
+
     private static int lastSlotCount = 0;
 
     [HarmonyPrefix]
@@ -19,6 +26,7 @@ internal static class HUDManagerPatch
     private static void OnScanTriggered(ref CallbackContext context)
     {
         pingScan = context;
+
         if (ModCompats.IsGoodItemScanPresent)
             ScanNodeController.ResetGoodItemScanNodes();
         //LootInfoManager.LootScan();
@@ -80,7 +88,7 @@ internal static class HUDManagerPatch
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
-    private static bool DisplaySignalTranslatorMessage_Prefix(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
+    private static bool OnHUDManagerDisplaySignalTranslatorMessage(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
     {
         if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
         {
@@ -112,8 +120,33 @@ internal static class HUDManagerPatch
         ScanController.UpdateScanAlpha();
         PlayerHPDisplay.UpdateNumber();
         WeightController.UpdateWeightDisplay();
-        if (Plugins.ConfigEntries.HoldScan.Value && IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan").IsPressed())
-            __instance.PingScan_performed(pingScan);
+
+        InputAction scanAction = IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan");
+        ScanMode scanMode = Plugins.ConfigEntries.ScanModeType.Value;
+
+        switch (scanMode)
+        {
+            case ScanMode.Default:
+                StopToggleScan(__instance);
+                break;
+
+            case ScanMode.Hold:
+                StopToggleScan(__instance);
+                if (scanAction.IsPressed())
+                    __instance.PingScan_performed(pingScan);
+                break;
+
+            case ScanMode.Toggle:
+                if (scanAction.WasPressedThisFrame())
+                {
+                    if (_isScanToggled)
+                        StopToggleScan(__instance);
+                    else
+                        StartToggleScan(__instance);
+                }
+                break;
+        }
+
         int currentCount = __instance.itemSlotIconFrames.Length;
         if (currentCount != lastSlotCount)
         {
@@ -132,7 +165,7 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("AddChatMessage")]
-    private static void OnHUDManagerAddChatMessage(HUDManager __instance, string chatMessage, string nameOfUserWhoTyped)
+    private static void OnHUDManagerAddChatMessage(HUDManager __instance, string chatMessage, string nameOfUserWhoTyped, int playerWhoSent)
     {
         if (string.IsNullOrEmpty(chatMessage))
             return;
@@ -141,8 +174,8 @@ internal static class HUDManagerPatch
 
         if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
         {
-            //string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped, playerWhoSent);
             string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped);
+            //string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped);
             string coloredMessage = ChatController.GetColoredChatMessage(chatMessage);
             last = $"{coloredName}: {coloredMessage}";
         }
@@ -173,6 +206,20 @@ internal static class HUDManagerPatch
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
 
+    [HarmonyPostfix]
+    [HarmonyPatch("ChangeControlTipMultiple")]
+    private static void AfterChangeControlTipMultiple()
+    {
+        ControlTipController.ApplyColor();
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("ClearControlTips")]
+    private static void AfterClearControlTips()
+    {
+        ControlTipController.ApplyColor();
+    }
+
     private static IEnumerator ScanTextureRoutine()
     {
         while (true)
@@ -180,6 +227,49 @@ internal static class HUDManagerPatch
             ScanNodeTextureManager.Tick();
             ScanNodeTextureManager.ClearDestroyedObjects();
             yield return new WaitForSeconds(1f);
+        }
+    }
+
+    private static void StartToggleScan(HUDManager __instance)
+    {
+        if (_toggleCoroutine != null) return;
+        _isScanToggled = true;
+
+        _toggleCoroutine = __instance.StartCoroutine(ToggleScanRoutine(__instance));
+    }
+
+    private static void StopToggleScan(HUDManager __instance)
+    {
+        if (_toggleCoroutine == null) return;
+        __instance.StopCoroutine(_toggleCoroutine);
+        _toggleCoroutine = null;
+        _isScanToggled = false;
+    }
+
+    private static IEnumerator ToggleScanRoutine(HUDManager __instance)
+    {
+        while (true)
+        {
+            TryPerformScan(__instance);
+
+            yield return null;
+        }
+    }
+    private static void TryPerformScan(HUDManager __instance)
+    {
+        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+        if (player == null) return;
+
+        FieldInfo field = AccessTools.Field(typeof(HUDManager), "playerPingingScan");
+        float cooldown = (float)field.GetValue(__instance);
+
+        if (cooldown <= -1f && __instance.CanPlayerScan())
+        {
+            field.SetValue(__instance, 0.3f);
+            __instance.scanEffectAnimator.transform.position = player.gameplayCamera.transform.position;
+            __instance.scanEffectAnimator.SetTrigger("scan");
+            __instance.PingHUDElement(__instance.Compass, 1f, 0.8f, 0.12f);
+            __instance.UIAudio.PlayOneShot(__instance.scanSFX);
         }
     }
 }

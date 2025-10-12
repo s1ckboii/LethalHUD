@@ -10,16 +10,18 @@ internal class LethalHUDMono : MonoBehaviour
     private bool togglePressed = false;
     private HUDManager hud;
     private Keyboard keyboard;
+    private Key ToggleKey => Plugins.ConfigEntries.HideHUDButton.Value;
 
     private void Awake()
     {
         hud = HUDManager.Instance;
         keyboard = Keyboard.current;
+        PlanetInfoDisplay.Init();
     }
     private void Update()
     {
         if (keyboard == null) return;
-        if (keyboard.numpad5Key.wasPressedThisFrame)
+        if (keyboard[ToggleKey].wasPressedThisFrame)
         {
             togglePressed = !togglePressed;
             hud?.HideHUD(togglePressed);
@@ -45,5 +47,7 @@ internal class LethalHUDMono : MonoBehaviour
         }
         PlanetInfoDisplay.UpdateColors();
         ControlTipController.ApplyColor();
+        PlanetInfoDisplay.HeaderAndFooterAndHazardLevel();
+        SignalTranslatorController.ApplyInMono();
     }
 }

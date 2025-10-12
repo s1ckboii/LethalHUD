@@ -42,14 +42,12 @@ internal static class ScanNodeController
     }
     internal static void UpdateGoodItemScanNodes()
     {
-        if (!ModCompats.IsGoodItemScanPresent && !Plugins.ConfigEntries.ScanNodeFade.Value) return;
+        if (!ModCompats.IsGoodItemScanPresent || GoodItemScan.GoodItemScan.scanner == null) return;
 
-        var scanner = GoodItemScan.GoodItemScan.scanner;
-        if (scanner == null) return;
+        GoodItemScan.Scanner scanner = GoodItemScan.GoodItemScan.scanner;
+        List<ScanNodeProperties> keys = [.. scanner._scanNodes.Keys];
 
-        var keys = new List<ScanNodeProperties>(scanner._scanNodes.Keys);
-
-        foreach (var node in keys)
+        foreach (ScanNodeProperties node in keys)
         {
             if (!GoodItemScanProxy.TryGetRectTransform(node, out RectTransform rect) || rect == null)
             {
@@ -67,9 +65,7 @@ internal static class ScanNodeController
                 nodeAppearTimes[node] = Time.time;
 
             float elapsed = Time.time - nodeAppearTimes[node];
-            float alpha = elapsed > lifetime
-                ? fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration)
-                : 1f;
+            float alpha = elapsed > lifetime ? fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration) : 1f;
 
             CanvasGroup canvasGroup = rect.GetComponent<CanvasGroup>();
             if (canvasGroup != null)
@@ -80,10 +76,11 @@ internal static class ScanNodeController
     }
     internal static void ResetGoodItemScanNodes()
     {
-        if (!ModCompats.IsGoodItemScanPresent && !Plugins.ConfigEntries.ScanNodeFade.Value) return;
+        if (!ModCompats.IsGoodItemScanPresent || GoodItemScan.GoodItemScan.scanner == null) return;
 
-        var scanner = GoodItemScan.GoodItemScan.scanner;
-        if (scanner == null) return;
+        GoodItemScan.Scanner scanner = GoodItemScan.GoodItemScan.scanner;
+            if (scanner == null || scanner._scannedNodes == null)
+        return;
 
         foreach (var kvp in scanner._scanNodes)
         {
@@ -91,11 +88,13 @@ internal static class ScanNodeController
             if (rect == null) continue;
 
             nodeAppearTimes[kvp.Key] = Time.time;
+
             rect.gameObject.SetActive(true);
 
-            var canvasGroup = rect.GetComponent<CanvasGroup>();
+            CanvasGroup canvasGroup = rect.GetComponent<CanvasGroup>();
             if (canvasGroup != null)
                 canvasGroup.alpha = 1f;
+
         }
     }
 
@@ -113,7 +112,7 @@ internal static class ScanNodeController
             if (kvp.Key == null)
                 toRemove.Add(kvp.Key);
 
-        foreach (var key in toRemove)
+        foreach (ScanNodeProperties key in toRemove)
             nodeAppearTimes.Remove(key);
     }
 }

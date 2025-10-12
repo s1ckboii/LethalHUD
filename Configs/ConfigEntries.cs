@@ -4,6 +4,7 @@ using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System;
+using UnityEngine.InputSystem;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.Configs;
@@ -31,7 +32,7 @@ public class ConfigEntries
     #endregion
 
     #region Scan ConfigEntries
-    public ConfigEntry<bool> HoldScan { get; private set; }
+    public ConfigEntry<ScanMode> ScanModeType { get; private set; }
     public ConfigEntry<bool> FadeOut { get; private set; }
     public ConfigEntry<bool> RecolorScanLines { get; private set; }
     public ConfigEntry<float> Alpha { get; private set; }
@@ -95,6 +96,7 @@ public class ConfigEntries
     #endregion
     #region Clock ConfigEntries
     public ConfigEntry<bool> NormalHumanBeingClock { get; private set; }
+    //public ConfigEntry<float> SpectatorClockVisibility { get; private set; }
     public ConfigEntry<ClockStyle> ClockFormat { get; private set; }
     public ConfigEntry<bool> RealtimeClock { get; private set; }
     public ConfigEntry<float> ClockSizeMultiplier { get; private set; }
@@ -129,11 +131,15 @@ public class ConfigEntries
     //public ConfigEntry<float> DisplayTime { get; private set; }
     public ConfigEntry<FPSPingLayout> MiscLayoutEnum { get; private set; }
     public ConfigEntry<MTColorMode> MTColorSelection { get; private set; }
+    public ConfigEntry<bool> SplitAdditionalMTFromToolTips { get; private set; }
+    public ConfigEntry<string> SeperateAdditionalMiscToolsColors { get; private set; }
     public ConfigEntry<string> MTColorGradientA { get; private set; }
     public ConfigEntry<string> MTColorGradientB { get; private set; }
-
     public ConfigEntry<float> FPSCounterX { get; private set; }
     public ConfigEntry<float> FPSCounterY { get; private set; }
+    #endregion
+    #region KeyBind ConfigEntries
+    public ConfigEntry<Key> HideHUDButton { get; private set; }
     #endregion
     public void Setup()
     {
@@ -149,7 +155,7 @@ public class ConfigEntries
         #endregion
 
         #region Scan Binds
-        HoldScan = ConfigHelper.Bind("Scan", "Hold Scan Button", false, "Allows you to keep holding scan button.");
+        ScanModeType = ConfigHelper.Bind("Scan", "Scan Mode", ScanMode.Default, "Choose the scan mode.");
         FadeOut = ConfigHelper.Bind("Scan", "Fade Out", true, "Fade out effect for scan color.");
         RecolorScanLines = ConfigHelper.Bind("Scan", "Recolor Scan Lines", true, "Recolor the blue horizontal scan lines texture aswell.");
         SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.", false);
@@ -214,6 +220,7 @@ public class ConfigEntries
         #region Clock Binds
         NormalHumanBeingClock = ConfigHelper.Bind("Clock", "24 Hour Clock", false, "Toggle between 12-hour (AM/PM) and 24-hour clock formats.");
         ClockFormat = ConfigHelper.Bind("Clock", "Clock Format", ClockStyle.Regular, "Choose a clock format.");
+        //SpectatorClockVisibility = ConfigHelper.Bind("Clock", "Spectator Clock", 0f, "Show clock when spectating.", false, new AcceptableValueRange<float>(0f, 1f));
         RealtimeClock = ConfigHelper.Bind("Clock", "Realtime Clock", false, "Toggle fixed clock numbers, no more jumpy numbers.");
         ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, "Change the size of the clock.", false, new AcceptableValueRange<float>(0.69f, 3f));
         ClockNumberColor = ConfigHelper.Bind(true, "Clock", "Clock Number Color", "#FF4C00", "Color of the clock’s numbers.");
@@ -248,8 +255,13 @@ public class ConfigEntries
         FPSCounterX = ConfigHelper.Bind("Misc", "Layout position X", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 840f));
         FPSCounterY = ConfigHelper.Bind("Misc", "Layout position Y", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 480f));
         MTColorSelection = ConfigHelper.Bind("Misc", "Control Tip Color Mode", MTColorMode.Solid, "Change the color mode of control tips (On solid you only use 'Misc Tools Gradient Color A').");
+        SplitAdditionalMTFromToolTips = ConfigHelper.Bind("Misc", "Separate Additional Misc Tool Colors", false, "Allows you to choose a different color for additional tooltips (FPS, Ping, Seed Counters).");
+        SeperateAdditionalMiscToolsColors = ConfigHelper.Bind(true, "Misc", "Additional Misc Tools Color", "#FFFFFF", "Color for additional tooltips (FPS, Ping, Seed Counters).");
         MTColorGradientA = ConfigHelper.Bind(true, "Misc", "Misc Tools Gradient Color A", "#FFFFFF", "Starting color for misc and tooltips.");
         MTColorGradientB = ConfigHelper.Bind(true, "Misc", "Misc Tools Gradient Color B", "#FFFFFF", "Ending color for misc and tooltips.");
+        #endregion
+        #region Keybind Binds
+        HideHUDButton = ConfigHelper.Bind("Keybinds", "Hide HUD Button", Key.Numpad5, "Keybind to hide the HUD.");
         #endregion
 
         #region Main Changes

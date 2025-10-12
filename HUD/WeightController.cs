@@ -1,10 +1,11 @@
-﻿using EasyTextEffects.Editor.MyBoxCopy.Extensions;
+﻿using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 internal static class WeightController
 {
+    private static bool shadowApplied = false;
     internal static float ConvertWeight(float weightInLbs)
     {
         return Plugins.ConfigEntries.WeightUnitConfig.Value switch
@@ -153,13 +154,24 @@ internal static class WeightController
 
         hud.weightCounter.color = Color.white;
         hud.weightCounter.enableVertexGradient = true;
+        hud.weightCounter.extraPadding = true;
+
+        if (!shadowApplied)
+        {
+            Material mat = hud.weightCounter.fontMaterial;
+            mat.EnableKeyword("UNDERLAY_ON");
+            mat.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+            mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
+            mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
+            shadowApplied = true;
+        }
 
         if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
             Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
             ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
 
-            hud.weightCounter.colorGradient = new TMPro.VertexGradient(startColor);
+            hud.weightCounter.colorGradient = new VertexGradient(startColor);
 
             hud.weightCounter.text = HUDUtils.ApplyRichTextGradient(hud.weightCounter.text, startColor, endColor);
         }

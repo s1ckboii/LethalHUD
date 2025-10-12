@@ -68,13 +68,35 @@ namespace LethalHUD.HUD
             }
         }
 
+        public static void ApplyInMono()
+        {
+            Image signalBG = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalBG")?.GetComponent<Image>();
+            TMP_Text signalText1 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (1)")?.GetComponent<TMP_Text>();
+            TMP_Text signalText2 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (2)")?.GetComponent<TMP_Text>();
+
+            Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalTextColor.Value);
+            Color signalBGColor = new(1 - color.r, 1 - color.g, 1 - color.b, 18f / 255f);
+            Color signalText1Color = new(1 - color.r, 1 - color.g, 1 - color.b, 156f / 255f);
+            Color signalText2Color = new(color.r, color.g, color.b, 156f / 255f);
+
+            if (signalBG != null && signalBG.color != signalBGColor)
+                signalBG.color = signalBGColor;
+
+            if (signalText1 != null && signalText1.color != signalText1Color)
+                signalText1.color = signalText1Color;
+
+            if (signalText2 != null && signalText2.color != signalText2Color)
+                signalText2.color = signalText2Color;
+        }
+
+
         public static void SetSignalText(string message)
         {
             HUDManager hud = HUDManager.Instance;
             TMP_Text signalText = hud.signalTranslatorText;
             if (signalText == null) return;
 
-            string trimmed = message.Length > 10 ? message[..10] : message;
+            string trimmed = message.Length > 12 ? message[..12] : message;
             trimmed = trimmed.Trim();
 
             signalText.text = trimmed;

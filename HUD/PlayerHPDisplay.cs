@@ -1,6 +1,5 @@
 ﻿using GameNetcodeStuff;
 using LethalHUD.Compats;
-using LethalHUD.Configs;
 using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;
@@ -55,6 +54,10 @@ public static class PlayerHPDisplay
         hpText.enableKerning = false;
         hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
         hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0f);
+        hpText.fontSharedMaterial.EnableKeyword("UNDERLAY_ON");
+        hpText.fontSharedMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+        hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 1.2f);
+        hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1.2f);
 
         RectTransform rect = hpText.rectTransform;
         rect.anchoredPosition = new Vector2(Plugins.ConfigEntries.HPIndicatorX.Value, Plugins.ConfigEntries.HPIndicatorY.Value);

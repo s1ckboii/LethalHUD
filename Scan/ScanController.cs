@@ -15,18 +15,28 @@ internal static class ScanController
     private static MeshRenderer ScanRenderer =>
         HUDManager.Instance?.scanEffectAnimator?.GetComponent<MeshRenderer>();
 
-    private static Volume ScanVolume =>
-        Object.FindObjectsByType<Volume>(FindObjectsSortMode.None)
-            ?.FirstOrDefault(v => v?.profile?.name?.StartsWith("ScanVolume") ?? false);
+    private static Volume _cachedScanVolume;
+    private static Volume ScanVolume
+    {
+        get
+        {
+            if (_cachedScanVolume == null)
+            {
+                GameObject scanObject = GameObject.Find("Systems/Rendering/ScanSphere/ScanVolume");
+                _cachedScanVolume = scanObject?.GetComponent<Volume>();
+            }
+            return _cachedScanVolume;
+        }
+    }
 
-    private static Vignette ScanVignette =>
-        ScanVolume?.profile?.components?.OfType<Vignette>().FirstOrDefault();
-
-    internal static Bloom ScanBloom =>
-        ScanVolume?.profile?.components?.OfType<Bloom>().FirstOrDefault();
+    private static Vignette ScanVignette => ScanVolume?.profile?.components?.OfType<Vignette>().FirstOrDefault();
+    internal static Bloom ScanBloom => ScanVolume?.profile?.components?.OfType<Bloom>().FirstOrDefault();
 
     private static float ScanProgress =>
         1f / ScanDuration * (HUDManager.Instance.playerPingingScan + 1f);
+
+    private static bool IsInspecting =>
+        StartOfRound.Instance?.localPlayerController?.IsInspectingItem ?? false;
 
     private static void SetScanColorAlpha(float alpha)
     {
@@ -38,6 +48,8 @@ internal static class ScanController
 
     internal static void SetScanColor(Color? overrideColor = null)
     {
+        if (IsInspecting) return; // Skip overlay during inspection
+
         Color color = overrideColor ?? ConfigHelper.GetScanColor();
 
         if (ModCompats.IsBetterScanVisionPresent)
@@ -58,55 +70,52 @@ internal static class ScanController
             UpdateScanTexture();
         }
     }
+
     internal static void UpdateScanAlpha()
     {
-        if (HUDManager.Instance == null) return;
-        if (ScanRenderer == null) return;
+        if (HUDManager.Instance == null || ScanRenderer == null || IsInspecting) return;
 
         float baseAlpha = Plugins.ConfigEntries.Alpha.Value;
         float finalAlpha = baseAlpha;
 
         if (Plugins.ConfigEntries.FadeOut.Value && HUDManager.Instance.playerPingingScan > -1f)
-        {
             finalAlpha *= ScanProgress;
-        }
 
         SetScanColorAlpha(finalAlpha);
     }
 
     internal static void UpdateVignetteIntensity()
     {
+        if (IsInspecting) return;
         ScanVignette?.intensity.Override(Plugins.ConfigEntries.VignetteIntensity.Value);
     }
 
     internal static void UpdateScanTexture()
     {
-        if (ScanBloom == null) return;
+        if (ScanBloom == null || IsInspecting) return;
+
         Enums.DirtIntensityHandlerByScanLine();
+
         Texture2D tex = GetSelectedTexture();
         if (tex == null) return;
+
         if (Plugins.ConfigEntries.RecolorScanLines.Value)
-        {
             RecolorAndApplyTexture(ConfigHelper.GetScanColor(), tex);
-        }
         else
-        {
             ScanBloom.dirtTexture.Override(tex);
-        }
     }
 
     private static void RecolorAndApplyTexture(Color color, Texture2D baseTex)
     {
-        Texture2D newTex = new(baseTex.width, baseTex.height);
+        Texture2D newTex = new(baseTex.width, baseTex.height, TextureFormat.RGBA32, true);
         newTex.SetPixels(baseTex.GetPixels());
-        newTex.Apply(false);
-
         ScanUtils.RecolorTexture(ref newTex, color);
+        newTex.Apply(true, false);
 
         if (_lastRecoloredTexture != null)
             Object.Destroy(_lastRecoloredTexture);
 
-        _lastRecoloredTexture = Object.Instantiate(newTex);
+        _lastRecoloredTexture = newTex;
         ScanBloom.dirtTexture.Override(_lastRecoloredTexture);
     }
 
