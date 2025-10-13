@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,11 +11,98 @@ internal static class PlanetInfoDisplay
 
     private static Color headerColor;
     private static Color summaryColor;
+
+    private static bool initialized = false;
+    private static string activeLayout = "Unknown";
+
+    private static readonly string[][] possibleLayouts =
+    [
+        [
+            "Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HazardLevel",
+            "Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (2)",
+            "Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (3)",
+            "Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (2)",
+            "Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (3)"
+        ],
+        [
+            "Systems/UI/Canvas/IngamePlayerHUD/CinematicGraphics/Site/HazardLevel",
+            "Systems/UI/Canvas/IngamePlayerHUD/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (2)",
+            "Systems/UI/Canvas/IngamePlayerHUD/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (3)",
+            "Systems/UI/Canvas/IngamePlayerHUD/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (2)",
+            "Systems/UI/Canvas/IngamePlayerHUD/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (3)"
+        ]
+    ];
+
+    internal static void Init()
+    {
+        if (initialized)
+            return;
+
+        targetImages = new Image[4];
+        hazardTMP = null;
+
+        foreach (string[] layout in possibleLayouts)
+        {
+            bool anyFound = false;
+
+            GameObject hazardObj = GameObject.Find(layout[0]);
+            if (hazardObj != null)
+            {
+                hazardTMP = hazardObj.GetComponent<TMP_Text>();
+                anyFound = true;
+            }
+
+            for (int i = 0; i < targetImages.Length; i++)
+            {
+                GameObject obj = GameObject.Find(layout[i + 1]);
+                if (obj != null)
+                {
+                    targetImages[i] = obj.GetComponent<Image>();
+                    anyFound = true;
+                }
+            }
+
+            if (anyFound)
+            {
+                activeLayout = layout[0].Contains("TopLeftCorner") ? "Original" : "Modified";
+                Loggers.Info($"[PlanetInfoDisplay] Using {activeLayout} HUD layout.");
+                initialized = true;
+                break;
+            }
+        }
+
+        if (!initialized)
+            Loggers.Warning("[PlanetInfoDisplay] No known HUD layout found; skipping HUD coloring.");
+    }
+
+    internal static void HeaderAndFooterAndHazardLevel()
+    {
+        if (!initialized)
+        {
+            Init();
+            if (!initialized) return;
+        }
+
+        headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, Color.white);
+        summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, Color.white);
+
+        if (hazardTMP != null)
+            hazardTMP.color = summaryColor;
+
+        if (targetImages != null)
+        {
+            foreach (Image img in targetImages)
+            {
+                if (img != null)
+                    img.color = headerColor;
+            }
+        }
+    }
+
     internal static void ApplyColors()
     {
         HUDManager hud = HUDManager.Instance;
         if (hud == null) return;
-
 
         if (hud.planetInfoHeaderText != null)
             hud.planetInfoHeaderText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, Color.white);
@@ -36,34 +122,6 @@ internal static class PlanetInfoDisplay
                 hud.planetRiskLevelText.color = GetRiskLevelColor(hud.planetRiskLevelText.text);
             else
                 hud.planetRiskLevelText.color = Color.white;
-        }
-    }
-    internal static void Init()
-    {
-        GameObject hazardLevel = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HazardLevel");
-        if (hazardLevel != null)
-            hazardTMP = hazardLevel.GetComponent<TMP_Text>();
-
-        targetImages =
-        [
-                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (2)")?.GetComponent<Image>(),
-                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/PlanetDescription/HeaderAndFooterLines/IntroText (3)")?.GetComponent<Image>(),
-                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (2)")?.GetComponent<Image>(),
-                GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HeaderAndFooterLines (1)/IntroText (3)")?.GetComponent<Image>()
-        ];
-    }
-    internal static void HeaderAndFooterAndHazardLevel()
-    {
-        headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, Color.white);
-        summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, Color.white);
-
-        if (hazardTMP != null)
-            hazardTMP.color = summaryColor;
-
-        if (targetImages != null)
-        {
-            foreach (Image img in targetImages)
-                img.color = headerColor;
         }
     }
 
