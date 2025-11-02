@@ -18,7 +18,7 @@ internal static class ConfigHelper
     {
         configFile ??= Plugins.Config;
 
-        var configEntry = acceptableValues == null
+        ConfigEntry<string> configEntry = acceptableValues == null
             ? configFile.Bind(section, key, defaultValue, description)
             : configFile.Bind(section, key, defaultValue, new ConfigDescription(description, acceptableValues));
 
@@ -38,7 +38,7 @@ internal static class ConfigHelper
     {
         configFile ??= Plugins.Config;
 
-        var configEntry = acceptableValues == null
+        ConfigEntry<T> configEntry = acceptableValues == null
             ? configFile.Bind(section, key, defaultValue, description)
             : configFile.Bind(section, key, defaultValue, new ConfigDescription(description, acceptableValues));
 
@@ -89,7 +89,7 @@ internal static class ConfigHelper
     {
         configFile ??= Plugins.Config;
 
-        var orphanedEntries = GetOrphanedConfigEntries(configFile);
+        Dictionary<ConfigDefinition, string> orphanedEntries = GetOrphanedConfigEntries(configFile);
 
         if (orphanedEntries == null)
         {
@@ -103,12 +103,12 @@ internal static class ConfigHelper
 #if DEBUG
     internal static void ResetMyConfigs()
     {
-        var cfg = Plugins.ConfigEntries;
+        ConfigEntries cfg = Plugins.ConfigEntries;
         if (cfg == null) return;
 
-        var fields = typeof(ConfigEntries).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        FieldInfo[] fields = typeof(ConfigEntries).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-        foreach (var field in fields)
+        foreach (FieldInfo field in fields)
         {
             Type fieldType = field.FieldType;
 
@@ -134,7 +134,7 @@ internal static class ConfigHelper
     #endregion
     internal static Color GetScanColor()
     {
-        var cfg = Plugins.ConfigEntries;
+        ConfigEntries cfg = Plugins.ConfigEntries;
 
         string hex = cfg._lastScanColorChange >= cfg._lastUnifyMostColorsChange
             ? cfg.ScanColor.Value
@@ -145,7 +145,7 @@ internal static class ConfigHelper
 
     internal static Color GetSlotColor()
     {
-        var cfg = Plugins.ConfigEntries;
+        ConfigEntries cfg = Plugins.ConfigEntries;
 
         string hex = cfg._lastSlotColorChange >= cfg._lastUnifyMostColorsChange
             ? cfg.SlotColor.Value

@@ -136,10 +136,9 @@ internal static class ClockController
 
     internal static void UpdateClockVisibility(ref bool visible)
     {
-        SelectableLevel currentLevel = StartOfRound.Instance.currentLevel;
-        if (DisabledClockLevels.Contains(currentLevel))
+        if (visible)
         {
-            visible = false;
+            skipAlphaCheck = true;
             return;
         }
 
@@ -155,12 +154,6 @@ internal static class ClockController
             return;
         }
 
-        if (visible)
-        {
-            skipAlphaCheck = true;
-            return;
-        }
-
         if (!Plugins.ConfigEntries.ShowClockInShip.Value && localPlayer.isInHangarShipRoom)
         {
             visible = false;
@@ -168,6 +161,13 @@ internal static class ClockController
         }
 
         if (!Plugins.ConfigEntries.ShowClockInFacility.Value && localPlayer.isInsideFactory)
+        {
+            visible = false;
+            return;
+        }
+
+        SelectableLevel currentLevel = StartOfRound.Instance.currentLevel;
+        if (DisabledClockLevels.Contains(currentLevel))
         {
             visible = false;
             return;

@@ -1,4 +1,6 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,7 +27,7 @@ internal static class HUDUtils
         if (string.IsNullOrWhiteSpace(hex))
             return fallback;
 
-        if (ColorUtility.TryParseHtmlString(hex, out var color))
+        if (ColorUtility.TryParseHtmlString(hex, out Color color))
             return color;
 
         Loggers.Warning($"Invalid HEX color: {hex}. Defaulting to original blue.");
@@ -40,6 +42,24 @@ internal static class HUDUtils
     }
     #endregion
 
+    #region Scan Helpers
+    internal static void RecolorTexture(ref Texture2D texture, Color color)
+    {
+        Single colorIntensity = color.r + color.g + color.b;
+        List<Color> pixels = [.. texture.GetPixels()];
+
+        Loggers.Debug("ScanTexture pixel count: " + pixels.Count);
+        for (int i = pixels.Count - 1; i >= 0; i--)
+        {
+            Single pixelIntensity = pixels[i].r + pixels[i].g + pixels[i].b;
+            if (pixelIntensity < 0.05f || pixels[i].a < 0.05f) continue;
+
+            Single intensityDiff = colorIntensity == 0f ? 0f : (pixelIntensity / colorIntensity);
+            pixels[i] = new Color(color.r * intensityDiff, color.g * intensityDiff, color.b * intensityDiff);
+        }
+        texture.SetPixels([.. pixels]);
+    }
+    #endregion
     #region ChatController Helpers
     internal static string ApplyStaticGradient(string input, Color startColor, Color endColor, float minBrightness = 0.15f)
     {

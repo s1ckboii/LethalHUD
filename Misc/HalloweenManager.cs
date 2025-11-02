@@ -47,7 +47,7 @@ public class HalloweenManager
     {
         if (_originalValues == null)
         {
-            _originalValues = ConfigUtils.LoadStoredValues<StoredValues>("Halloween")
+            _originalValues = ConfigUtils.LoadStoredValues<StoredValues>("HalloweenHUD")
                               ?? new StoredValues
                               {
                                   ScanColor = Plugins.ConfigEntries.ScanColor.Value,
@@ -153,7 +153,7 @@ public class HalloweenManager
 
     public void RestoreOnLoad()
     {
-        var loadedValues = ConfigUtils.LoadStoredValues<StoredValues>("Halloween");
+        StoredValues loadedValues = ConfigUtils.LoadStoredValues<StoredValues>("HalloweenHUD");
         if (loadedValues != null)
             _originalValues = loadedValues;
 

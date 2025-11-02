@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace LethalHUD.Scan;
-
 internal static class ScanNodeTextureManager
 {
     private static readonly Dictionary<GameObject, Color> nodeColors = [];

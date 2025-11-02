@@ -30,8 +30,8 @@ internal static class WeightController
 
     internal static string GetUnitString(float weightInLbs, bool useInline = false)
     {
-        var unit = Plugins.ConfigEntries.WeightUnitConfig.Value;
-        var display = Plugins.ConfigEntries.WeightUnitDisplayConfig.Value;
+        WeightUnit unit = Plugins.ConfigEntries.WeightUnitConfig.Value;
+        WeightUnitDisplay display = Plugins.ConfigEntries.WeightUnitDisplayConfig.Value;
 
         float kg = weightInLbs * 0.453592f;
         float manuls = weightInLbs / 9.9f;
@@ -62,7 +62,7 @@ internal static class WeightController
 
     internal static void RecolorWeightText()
     {
-        var hud = HUDManager.Instance;
+        HUDManager hud = HUDManager.Instance;
         if (hud == null || hud.weightCounter == null) return;
 
         string text = hud.weightCounter.text;

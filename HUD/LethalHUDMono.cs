@@ -1,6 +1,7 @@
 ﻿using LethalHUD.Compats;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,7 +22,12 @@ internal class LethalHUDMono : MonoBehaviour
     private void Update()
     {
         if (keyboard == null) return;
-        if (keyboard[ToggleKey].wasPressedThisFrame)
+
+        Key key = ToggleKey;
+
+        if (key == Key.None || !Enum.IsDefined(typeof(Key), key)) return;
+
+        if (keyboard[key].wasPressedThisFrame)
         {
             togglePressed = !togglePressed;
             hud?.HideHUD(togglePressed);

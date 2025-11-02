@@ -1,5 +1,6 @@
 ﻿using LethalHUD.Compats;
 using LethalHUD.Configs;
+using LethalHUD.HUD;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -109,7 +110,7 @@ internal static class ScanController
     {
         Texture2D newTex = new(baseTex.width, baseTex.height, TextureFormat.RGBA32, true);
         newTex.SetPixels(baseTex.GetPixels());
-        ScanUtils.RecolorTexture(ref newTex, color);
+        HUDUtils.RecolorTexture(ref newTex, color);
         newTex.Apply(true, false);
 
         if (_lastRecoloredTexture != null)

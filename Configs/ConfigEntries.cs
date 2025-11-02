@@ -151,7 +151,7 @@ public class ConfigEntries
 
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
-        HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", true, "Overrides your config options with Halloween themed ones during October.");
+        HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", false, "Overrides your config options with Halloween themed ones during October.");
         #endregion
 
         #region Scan Binds
@@ -382,7 +382,7 @@ public class ConfigEntries
         TotalValueOffsetY.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         #endregion
         #region Signal Changes
-        CenterSTText.SettingChanged += (obj, args) => { SignalTranslatorController.CenterText(); };
+        //CenterSTText.SettingChanged += (obj, args) => { SignalTranslatorController.CenterText(); };
         #endregion
         #region MoreDisplay Changes
         LoadingTextColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
