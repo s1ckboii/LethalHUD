@@ -83,8 +83,8 @@ internal static class PlanetInfoDisplay
             if (!initialized) return;
         }
 
-        headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, Color.white);
-        summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, Color.white);
+        headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value);
+        summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value);
 
         if (hazardTMP != null)
             hazardTMP.color = summaryColor;
@@ -130,7 +130,7 @@ internal static class PlanetInfoDisplay
         if (string.IsNullOrEmpty(riskLetter)) return Color.white;
 
         riskLetter = StartOfRound.Instance.currentLevel.riskLevel;
-        if (Plugins.ConfigEntries.HalloweenMode.Value)
+        /*if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
             if (riskLetter.StartsWith("S")) return new Color(0.6f, 0f, 0.3f);
             return riskLetter[0] switch
@@ -143,6 +143,7 @@ internal static class PlanetInfoDisplay
                 _ => Color.magenta
             };
         }
+        */
 
         if (riskLetter.Equals("Safe", StringComparison.OrdinalIgnoreCase))
             return Color.green;

@@ -31,7 +31,7 @@ internal static class ConfigUtils
         name ??= "global";
         return CreateConfigFile(plugin, path, name, saveOnInit);
     }
-
+    /*
     private const string JsonFileName = "OriginalColors.json";
 
     private static string GetPluginFolder()
@@ -75,4 +75,5 @@ internal static class ConfigUtils
             return null;
         }
     }
+    */
 }

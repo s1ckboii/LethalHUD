@@ -1,4 +1,5 @@
-﻿using LethalHUD.Configs;
+﻿/*
+using LethalHUD.Configs;
 using LethalHUD.HUD;
 using System;
 using static LethalHUD.Enums;
@@ -173,3 +174,4 @@ public class HalloweenManager
         WeightController.UpdateWeightDisplay();
     }
 }
+*/

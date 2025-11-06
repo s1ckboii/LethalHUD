@@ -153,8 +153,11 @@ public static class PlayerHPDisplay
         }
     }
 
-    public static void ShakeOnHit()
+    public static void ShakeOnHit(PlayerControllerB player)
     {
+        if (player != null && player != GameNetworkManager.Instance.localPlayerController)
+            return;
+
         shakeTimer = shakeDuration;
     }
 }

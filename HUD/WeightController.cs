@@ -166,6 +166,7 @@ internal static class WeightController
             shadowApplied = true;
         }
 
+        /*
         if (Plugins.ConfigEntries.HalloweenMode.Value)
         {
             Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
@@ -179,5 +180,8 @@ internal static class WeightController
         {
             hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
         }
+        */
+
+        hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
     }
 }

@@ -92,9 +92,9 @@ internal static class PlayerControllerBPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("DamagePlayer")]
-    private static void OnPlayerControllerBDamagePlayer()
+    private static void OnPlayerControllerBDamagePlayer(PlayerControllerB __instance)
     {
-        PlayerHPDisplay.ShakeOnHit();
+        PlayerHPDisplay.ShakeOnHit(__instance);
     }
 
     [HarmonyPostfix]

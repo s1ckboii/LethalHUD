@@ -28,7 +28,7 @@ public class ConfigEntries
 
     #region Main ConfigEntries
     public ConfigEntry<string> UnifyMostColors { get; private set; }
-    public ConfigEntry<bool> HalloweenMode { get; private set; }
+    //public ConfigEntry<bool> HalloweenMode { get; private set; }
     #endregion
 
     #region Scan ConfigEntries
@@ -112,6 +112,9 @@ public class ConfigEntries
     #region Signal ConfigEntries
     public ConfigEntry<bool> CenterSTText { get; private set; }
     public ConfigEntry<string> SignalTextColor { get; private set; }
+    public ConfigEntry<string> SignalText2Color { get; private set; }
+    public ConfigEntry<string> SignalBGColor { get; private set; }
+    public ConfigEntry<string> SignalMessageColor { get; private set; }
     public ConfigEntry<float> SignalLetterDisplay { get; private set; }
 
     #endregion
@@ -121,6 +124,14 @@ public class ConfigEntries
     public ConfigEntry<string> PlanetHeaderColor { get; private set; }
     public ConfigEntry<bool> PlanetRisk { get; private set; }
     #endregion
+
+    #region Spectator HUD ConfigEntries
+    public ConfigEntry<string> SpectatorTipColor { get; private set; }
+    public ConfigEntry<string> SpectatingPlayerColor { get; private set; }
+    public ConfigEntry<string> HoldEndGameColor { get; private set; }
+    public ConfigEntry<string> HoldEndGameVotesColor { get; private set; }
+    #endregion
+
     #region Misc ConfigEntries
     public ConfigEntry<float> TerminalFadeDelaysTime { get; private set; }
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
@@ -151,7 +162,7 @@ public class ConfigEntries
 
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
-        HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", false, "Overrides your config options with Halloween themed ones during October.");
+        //HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", false, "Overrides your config options with Halloween themed ones during October.");
         #endregion
 
         #region Scan Binds
@@ -234,14 +245,23 @@ public class ConfigEntries
         #endregion
         #region Signal Binds
         CenterSTText = ConfigHelper.Bind("Signal Translator", "Center Transmitter Text", false, "Center the message.");
-        SignalTextColor = ConfigHelper.Bind(true, "Signal Translator", "Signal Message Color", "#FFFFFF", "Color of the signal message.");
+        SignalTextColor = ConfigHelper.Bind(true, "Signal Translator", "Signal Message Color", "#1BFF00", "Color of the signal message.");
+        SignalText2Color = ConfigHelper.Bind(true, "Signal Translator", "Signal BackgroundMessage Color", "#FF00E7", "Color of the signal message.");
+        SignalBGColor = ConfigHelper.Bind(true, "Signal Translator", "Signal Background Color", "#1BFF00", "Color of the signal message.");
+        SignalMessageColor = ConfigHelper.Bind(true, "Signal Translator", "Signal Message Background Color", "#0AFF00", "Background color of the signal message.");
         SignalLetterDisplay = ConfigHelper.Bind("Signal Translator", "Signal Letter Display", 0.7f, "Change the speed of the message (the smaller the number, the faster it is.)", false, new AcceptableValueRange<float>(0.01f, 1f));
         #endregion
         #region MoreDisplay Binds
-        LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#00FFFF", "Color of the loading text.");
-        PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#FFFFFF", "Color of the planet summary text.");
-        PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#FFFFFF", "Color of the planet header text.");
+        LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#A5F4FF", "Color of the loading text.");
+        PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#86ECFF", "Color of the planet summary text.");
+        PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#86ECFF", "Color of the planet header text.");
         PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", true, "Custom coloring based on risk level.");
+        #endregion
+        #region Spectator HUD Binds
+        SpectatorTipColor = ConfigHelper.Bind(true, "Spectator", "Tip Text Color", "#FF4834", "Color of the spectator tip text. (I have absolutely no idea which one is this, good luck)");
+        SpectatingPlayerColor = ConfigHelper.Bind(true, "Spectator", "Spectating Player Text Color", "#D4D4D4", "Color of the 'Spectating Player' text.");
+        HoldEndGameColor = ConfigHelper.Bind(true, "Spectator", "Hold To End Game Text Color", "#FFFFFF", "Color of the 'Hold to End Game Early' text.");
+        HoldEndGameVotesColor = ConfigHelper.Bind(true, "Spectator", "Hold To End Game Votes Text Color", "#BCBCBC", "Color of the 'Votes' text.");
         #endregion
         #region Misc Binds
         TerminalFadeDelaysTime = ConfigHelper.Bind("Misc", "Terminal Fade Delay", 0.5f, "Change the delay time for fading out HUD stuff.", false, new AcceptableValueRange<float>(0f, 5f));
@@ -267,7 +287,7 @@ public class ConfigEntries
         #region Main Changes
         UnifyMostColors.SettingChanged += (obj, args) =>
         {
-            if (HalloweenManager.Instance.IgnoreUnifyMostColors) return;
+            //if (HalloweenManager.Instance.IgnoreUnifyMostColors) return;
 
             _lastUnifyMostColorsChange = DateTime.Now;
 
@@ -296,13 +316,13 @@ public class ConfigEntries
                 SlotColor.Value = UnifyMostColors.Value;
             }
         };
-        HalloweenMode.SettingChanged += (obj, args) =>
+        /*HalloweenMode.SettingChanged += (obj, args) =>
         {
             if (Plugins.ConfigEntries.HalloweenMode.Value)
                 HalloweenManager.Instance.ApplyHalloweenMode();
             else
                 HalloweenManager.Instance.RestoreOriginalValues();
-        };
+        };*/
         #endregion
 
         #region Scan Changes
@@ -389,6 +409,12 @@ public class ConfigEntries
         PlanetSummaryColor.SettingChanged += (ob, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetHeaderColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetRisk.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
+        #endregion
+        #region Spectator HUD Changes
+        SpectatorTipColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
+        SpectatingPlayerColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
+        HoldEndGameColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
+        HoldEndGameVotesColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         #endregion
     }
 }

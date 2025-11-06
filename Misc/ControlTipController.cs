@@ -20,7 +20,6 @@ internal static class ControlTipController
         HUDManager hud = HUDManager.Instance;
         if (hud?.controlTipLines == null || hud.controlTipLines.Length == 0) return;
 
-        // Skip update if nothing changed
         if (hud.controlTipLines == lastTips && !HasConfigChanged() && !HasTextChanged(hud))
             return;
 
@@ -60,7 +59,7 @@ internal static class ControlTipController
 
         for (int i = 0; i < hud.controlTipLines.Length; i++)
         {
-            var tmp = hud.controlTipLines[i];
+            TextMeshProUGUI tmp = hud.controlTipLines[i];
             if (tmp == null) continue;
             string text = tmp.text;
             if (lastTipTexts[i] != text)
@@ -86,7 +85,7 @@ internal static class ControlTipController
     {
         Color color = HUDUtils.ParseHexColor(hex, fallback);
 
-        foreach (var tip in hud.controlTipLines)
+        foreach (TextMeshProUGUI tip in hud.controlTipLines)
         {
             if (tip != null)
                 tip.color = color;
@@ -98,7 +97,7 @@ internal static class ControlTipController
         Color colorA = HUDUtils.ParseHexColor(hexA, fallbackA);
         Color colorB = HUDUtils.ParseHexColor(hexB, fallbackB);
 
-        foreach (var tmp in hud.controlTipLines)
+        foreach (TextMeshProUGUI tmp in hud.controlTipLines)
         {
             if (tmp == null) continue;
 
@@ -117,7 +116,7 @@ internal static class ControlTipController
                 Color charColor = Color.Lerp(colorA, colorB, t);
 
                 int vertexIndex = charInfo.vertexIndex;
-                var meshInfo = textInfo.meshInfo[charInfo.materialReferenceIndex];
+                TMP_MeshInfo meshInfo = textInfo.meshInfo[charInfo.materialReferenceIndex];
 
                 meshInfo.colors32[vertexIndex + 0] = charColor;
                 meshInfo.colors32[vertexIndex + 1] = charColor;

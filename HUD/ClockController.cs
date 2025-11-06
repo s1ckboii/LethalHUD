@@ -114,9 +114,6 @@ internal static class ClockController
 
         RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
         iconRect.sizeDelta = defaultIconSize * 0.6f;
-
-        clockNumber.transform.localPosition = defaultClockPos + new Vector3(10f, -1f, 0f);
-        clockIcon.transform.localPosition = defaultIconPos + new Vector3(-25f, -2f, 0f);
     }
 
     internal static void ApplyRegularLayout()

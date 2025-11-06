@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.3.3</Version>
+    <Version>1.3.4</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -62,9 +62,9 @@
     </Reference>
   </ItemGroup>
 
-<ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Evaisa.NetcodePatcher.MSBuild" Version="4.4.2" PrivateAssets="all"/>
-</ItemGroup>
+  </ItemGroup>
   <!-- Netcode Patcher -->
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
     <!-- Create dependencies directory -->
@@ -76,7 +76,7 @@
       <PluginFiles Include="$(TargetDir)$(TargetName).pdb" />
     </ItemGroup>
   </Target>
-  
+
   <!-- Import settings from .csproj.user file -->
   <Import Project="$(MSBuildProjectFile).user" Condition="Exists('$(MSBuildProjectFile).user')" />
 

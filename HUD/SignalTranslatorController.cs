@@ -47,7 +47,7 @@ internal static class SignalTranslatorController
         TMP_Text signalText = hud.signalTranslatorText;
         if (signalText == null) return;
 
-        Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalTextColor.Value);
+        Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalMessageColor.Value);
 
         if (signalText.color != color)
             signalText.color = color;
@@ -74,9 +74,12 @@ internal static class SignalTranslatorController
         TMP_Text signalText2 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (2)")?.GetComponent<TMP_Text>();
 
         Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalTextColor.Value);
-        Color signalBGColor = new(1 - color.r, 1 - color.g, 1 - color.b, 18f / 255f);
-        Color signalText1Color = new(1 - color.r, 1 - color.g, 1 - color.b, 156f / 255f);
-        Color signalText2Color = new(color.r, color.g, color.b, 156f / 255f);
+        Color color2 = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalText2Color.Value);
+        Color color3 = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalBGColor.Value);
+
+        Color signalText1Color = new(color.r, color.g, color.b, 156f / 255f);
+        Color signalText2Color = new(color2.r, color2.g, color2.b, 156f / 255f);
+        Color signalBGColor = new(color3.r, color3.g, color3.b, 18f / 255f);
 
         if (signalBG != null && signalBG.color != signalBGColor)
             signalBG.color = signalBGColor;

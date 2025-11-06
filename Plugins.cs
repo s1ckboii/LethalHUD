@@ -100,6 +100,6 @@ public class Plugins : BaseUnityPlugin
         Harmony.PatchAll();
         bootstrapConfig.Save();
 
-        HalloweenManager.Instance.RestoreOnLoad();
+        //HalloweenManager.Instance.RestoreOnLoad();
     }
 }

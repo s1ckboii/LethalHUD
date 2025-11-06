@@ -130,6 +130,7 @@ internal static class ScrapValueDisplay
 
         if (value > 0)
         {
+            /*
             if (Plugins.ConfigEntries.HalloweenMode.Value)
             {
                 string text = $"${value}";
@@ -141,6 +142,9 @@ internal static class ScrapValueDisplay
             {
                 tmp.text = $"${value}";
             }
+            */
+
+            tmp.text = $"${value}";
         }
         else
         {
@@ -241,6 +245,7 @@ internal static class ScrapValueDisplay
 
                 deltaTextBuilder.Clear();
 
+                /*
                 if (Plugins.ConfigEntries.HalloweenMode.Value)
                 {
                     deltaTextBuilder.Append(deltaPlainBuilder);
@@ -250,19 +255,25 @@ internal static class ScrapValueDisplay
                     deltaColor = diff > 0 ? "green" : "red";
                     deltaTextBuilder.Append("<color=").Append(deltaColor).Append(">(").Append(numeric).Append(")</color>");
                 }
+                */
+
+                deltaColor = diff > 0 ? "green" : "red";
+                deltaTextBuilder.Append("<color=").Append(deltaColor).Append(">(").Append(numeric).Append(")</color>");
 
                 deltaTimer = 1.5f;
                 erasingDelta = false;
             }
             lastTotal = total;
         }
-
+        
+        /*
         if (Plugins.ConfigEntries.HalloweenMode.Value && total == 0)
         {
             deltaPlainBuilder.Clear();
             deltaTextBuilder.Clear();
             erasingDelta = false;
         }
+        */
 
         displayBuilder.Clear();
 
@@ -286,6 +297,7 @@ internal static class ScrapValueDisplay
             totalText.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
                 ? defaultFont : dollarFont;
 
+            /*
             if (Plugins.ConfigEntries.HalloweenMode.Value && total > 0)
             {
                 Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
@@ -296,6 +308,9 @@ internal static class ScrapValueDisplay
             {
                 totalText.text = displayBuilder.ToString();
             }
+            */
+            
+            totalText.text = displayBuilder.ToString();
         }
     }
 
@@ -321,6 +336,8 @@ internal static class ScrapValueDisplay
                 deltaPlainBuilder.Length--;
 
                 deltaTextBuilder.Clear();
+
+                /*
                 if (Plugins.ConfigEntries.HalloweenMode.Value)
                 {
                     deltaTextBuilder.Append(deltaPlainBuilder);
@@ -331,6 +348,11 @@ internal static class ScrapValueDisplay
                         .Append(deltaPlainBuilder)
                         .Append("</color>");
                 }
+                */
+
+                deltaTextBuilder.Append("<color=").Append(deltaColor).Append('>')
+                    .Append(deltaPlainBuilder)
+                    .Append("</color>");
 
                 eraseTimer = eraseSpeed;
                 UpdateInventoryTotal();

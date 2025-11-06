@@ -311,6 +311,8 @@ internal static class HUDUtils
 
             float t = ((float)i / characterCount + _loadingOffset) % 1f;
             Color color;
+
+            /*
             if (Plugins.ConfigEntries.HalloweenMode.Value)
             {
                 color = Color.Lerp(new Color(0.8f, 0.2f, 0.8f), baseColor, Mathf.PingPong(t * 2f, 1f));
@@ -319,6 +321,9 @@ internal static class HUDUtils
             {
                 color = Color.Lerp(Color.gray, baseColor, Mathf.PingPong(t * 2f, 1f));
             }
+            */
+
+            color = Color.Lerp(Color.gray, baseColor, Mathf.PingPong(t * 2f, 1f));
 
             vertexColors[vertexIndex + 0] = color;
             vertexColors[vertexIndex + 1] = color;

@@ -6,6 +6,7 @@ using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System.Collections;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static LethalHUD.Enums;
@@ -65,6 +66,7 @@ internal static class HUDManagerPatch
         ScrapValueDisplay.Init();
         ClockController.ApplyClockAppearance();
         PlanetInfoDisplay.ApplyColors();
+        SpectatorHUDController.ApplyColors();
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
 
@@ -172,16 +174,37 @@ internal static class HUDManagerPatch
 
         string last;
 
+        Match tagMatch = Regex.Match(chatMessage, @"^(<[^>]+>)+");
+        string preTags = "";
+        string innerText = chatMessage;
+
+        if (tagMatch.Success)
+        {
+            preTags = tagMatch.Value;
+            innerText = chatMessage[tagMatch.Length..];
+        }
+
+        bool alreadyColored = chatMessage.Contains("<color=") || chatMessage.Contains("<gradient=");
+
+        string coloredMessage;
+        if (alreadyColored)
+        {
+            coloredMessage = chatMessage;
+        }
+        else
+        {
+            string recoloredText = ChatController.GetColoredChatMessage(innerText);
+            coloredMessage = preTags + recoloredText;
+        }
+
         if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
         {
             string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped);
-            //string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped);
-            string coloredMessage = ChatController.GetColoredChatMessage(chatMessage);
             last = $"{coloredName}: {coloredMessage}";
         }
         else
         {
-            last = ChatController.GetColoredChatMessage(chatMessage);
+            last = coloredMessage;
         }
 
         if (__instance.ChatMessageHistory.Count > 0)
@@ -189,6 +212,7 @@ internal static class HUDManagerPatch
             __instance.ChatMessageHistory[^1] = last;
             __instance.chatText.text = string.Join("\n", __instance.ChatMessageHistory);
         }
+
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
 
@@ -199,12 +223,14 @@ internal static class HUDManagerPatch
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
     
+    /*
     [HarmonyPostfix]
     [HarmonyPatch("SubmitChat_performed")]
     private static void OnHUDManagerSubmitChat_performed(HUDManager __instance)
     {
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
+    */
 
     [HarmonyPostfix]
     [HarmonyPatch("ChangeControlTipMultiple")]
