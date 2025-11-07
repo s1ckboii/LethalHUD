@@ -101,6 +101,11 @@ internal static class ClockController
         }
 
         hud.clockNumber.text = formatted;
+
+        if (Plugins.ConfigEntries.ClockFormat.Value == ClockStyle.Compact)
+            ApplyCompactLayout();
+        else
+            ApplyRegularLayout();
     }
     internal static void ApplyCompactLayout()
     {
@@ -114,6 +119,18 @@ internal static class ClockController
 
         RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
         iconRect.sizeDelta = defaultIconSize * 0.6f;
+
+
+        if (Plugins.ConfigEntries.NormalHumanBeingClock.Value)
+        {
+            clockNumber.transform.localPosition = defaultClockPos + new Vector3(-10f, 0f, 0f);
+            clockIcon.transform.localPosition = defaultIconPos + new Vector3(-10f, 0f, 0f);
+        }
+        else
+        {
+            clockNumber.transform.localPosition = defaultClockPos + new Vector3(10f, 0f, 0f);
+            clockIcon.transform.localPosition = defaultIconPos + new Vector3(-25f, 0f, 0f);
+        }
     }
 
     internal static void ApplyRegularLayout()
