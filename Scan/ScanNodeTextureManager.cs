@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.Scan;
 internal static class ScanNodeTextureManager
 {
-    private static readonly Dictionary<GameObject, Color> nodeColors = [];
+    private static readonly Dictionary<GameObject, Color> _nodeColors = [];
 
     internal static void Tick()
     {
         GameObject scanner = GameObject.Find("UI/Canvas/ObjectScanner");
         if (scanner == null) return;
 
-        var chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
-        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out var spritePair))
+        ScanNodeShape chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
+        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out Plugins.ScanNodeCircleTextures spritePair))
             return;
 
         Sprite innerSprite = spritePair.Inner;
@@ -35,16 +36,16 @@ internal static class ScanNodeTextureManager
 
         if (inner == null || outer == null) return;
 
-        if (!nodeColors.ContainsKey(inner.gameObject))
-            nodeColors[inner.gameObject] = inner.color;
-        if (!nodeColors.ContainsKey(outer.gameObject))
-            nodeColors[outer.gameObject] = outer.color;
+        if (!_nodeColors.ContainsKey(inner.gameObject))
+            _nodeColors[inner.gameObject] = inner.color;
+        if (!_nodeColors.ContainsKey(outer.gameObject))
+            _nodeColors[outer.gameObject] = outer.color;
 
         inner.sprite = innerSprite;
         outer.sprite = outerSprite;
 
-        inner.color = nodeColors[inner.gameObject];
-        outer.color = nodeColors[outer.gameObject];
+        inner.color = _nodeColors[inner.gameObject];
+        outer.color = _nodeColors[outer.gameObject];
     }
 
     internal static void ForceRefresh()
@@ -55,11 +56,11 @@ internal static class ScanNodeTextureManager
     internal static void ClearDestroyedObjects()
     {
         List<GameObject> keysToRemove = [];
-        foreach (var kvp in nodeColors)
+        foreach (KeyValuePair<GameObject, Color> kvp in _nodeColors)
             if (kvp.Key == null)
                 keysToRemove.Add(kvp.Key);
 
-        foreach (var key in keysToRemove)
-            nodeColors.Remove(key);
+        foreach (GameObject key in keysToRemove)
+            _nodeColors.Remove(key);
     }
 }

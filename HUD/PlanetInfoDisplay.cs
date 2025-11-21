@@ -6,16 +6,18 @@ using UnityEngine.UI;
 namespace LethalHUD.HUD;
 internal static class PlanetInfoDisplay
 {
-    private static TMP_Text hazardTMP;
-    private static Image[] targetImages;
+    private static TMP_Text _hazardTMP;
+    private static Image[] _targetImages;
 
-    private static Color headerColor;
-    private static Color summaryColor;
+    private static Color _headerColor;
+    private static Color _summaryColor;
 
-    private static bool initialized = false;
-    private static string activeLayout = "Unknown";
+    private static bool _initialized = false;
+    private static string _activeLayout = "Unknown";
 
-    private static readonly string[][] possibleLayouts =
+    // Change this later
+
+    private static readonly string[][] _possibleLayouts =
     [
         [
             "Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/CinematicGraphics/Site/HazardLevel",
@@ -35,66 +37,66 @@ internal static class PlanetInfoDisplay
 
     internal static void Init()
     {
-        if (initialized)
+        if (_initialized)
             return;
 
-        targetImages = new Image[4];
-        hazardTMP = null;
+        _targetImages = new Image[4];
+        _hazardTMP = null;
 
-        foreach (string[] layout in possibleLayouts)
+        foreach (string[] layout in _possibleLayouts)
         {
             bool anyFound = false;
 
             GameObject hazardObj = GameObject.Find(layout[0]);
             if (hazardObj != null)
             {
-                hazardTMP = hazardObj.GetComponent<TMP_Text>();
+                _hazardTMP = hazardObj.GetComponent<TMP_Text>();
                 anyFound = true;
             }
 
-            for (int i = 0; i < targetImages.Length; i++)
+            for (int i = 0; i < _targetImages.Length; i++)
             {
                 GameObject obj = GameObject.Find(layout[i + 1]);
                 if (obj != null)
                 {
-                    targetImages[i] = obj.GetComponent<Image>();
+                    _targetImages[i] = obj.GetComponent<Image>();
                     anyFound = true;
                 }
             }
 
             if (anyFound)
             {
-                activeLayout = layout[0].Contains("TopLeftCorner") ? "Original" : "Modified";
-                Loggers.Info($"[PlanetInfoDisplay] Using {activeLayout} HUD layout.");
-                initialized = true;
+                _activeLayout = layout[0].Contains("TopLeftCorner") ? "Original" : "Modified";
+                Loggers.Info($"[PlanetInfoDisplay] Using {_activeLayout} HUD layout.");
+                _initialized = true;
                 break;
             }
         }
 
-        if (!initialized)
+        if (!_initialized)
             Loggers.Warning("[PlanetInfoDisplay] No known HUD layout found; skipping HUD coloring.");
     }
 
     internal static void HeaderAndFooterAndHazardLevel()
     {
-        if (!initialized)
+        if (!_initialized)
         {
             Init();
-            if (!initialized) return;
+            if (!_initialized) return;
         }
 
-        headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value);
-        summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value);
+        _headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value);
+        _summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value);
 
-        if (hazardTMP != null)
-            hazardTMP.color = summaryColor;
+        if (_hazardTMP != null)
+            _hazardTMP.color = _summaryColor;
 
-        if (targetImages != null)
+        if (_targetImages != null)
         {
-            foreach (Image img in targetImages)
+            foreach (Image img in _targetImages)
             {
                 if (img != null)
-                    img.color = headerColor;
+                    img.color = _headerColor;
             }
         }
     }
@@ -130,20 +132,6 @@ internal static class PlanetInfoDisplay
         if (string.IsNullOrEmpty(riskLetter)) return Color.white;
 
         riskLetter = StartOfRound.Instance.currentLevel.riskLevel;
-        /*if (Plugins.ConfigEntries.HalloweenMode.Value)
-        {
-            if (riskLetter.StartsWith("S")) return new Color(0.6f, 0f, 0.3f);
-            return riskLetter[0] switch
-            {
-                'A' => new Color(1f, 0.5f, 0f),
-                'B' => new Color(1f, 0.65f, 0f),
-                'C' => new Color(0.8f, 0.2f, 0.8f),
-                'D' => new Color(0.7f, 0.5f, 0f),
-                'F' => Color.gray,
-                _ => Color.magenta
-            };
-        }
-        */
 
         if (riskLetter.Equals("Safe", StringComparison.OrdinalIgnoreCase))
             return Color.green;

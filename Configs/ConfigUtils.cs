@@ -1,7 +1,9 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 
 namespace LethalHUD.Configs;
@@ -31,49 +33,143 @@ internal static class ConfigUtils
         name ??= "global";
         return CreateConfigFile(plugin, path, name, saveOnInit);
     }
-    /*
-    private const string JsonFileName = "OriginalColors.json";
-
-    private static string GetPluginFolder()
+    public static string GetConfigEntryValue(string name)
     {
-        string folder = Path.Combine(Application.persistentDataPath, MyPluginInfo.PLUGIN_NAME);
-        if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-        return folder;
-    }
+        ConfigEntries configEntries = Plugins.ConfigEntries;
+        if (configEntries == null) return null;
 
-    private static string GetJsonPath(string fileName = JsonFileName)
-    {
-        return Path.Combine(GetPluginFolder(), fileName);
-    }
+        Type type = configEntries.GetType();
 
-    public static void SaveStoredValues(object values, string name = "Default")
-    {
-        try
-        {
-            string path = GetJsonPath(name + ".json");
-            string json = JsonUtility.ToJson(values, true);
-            File.WriteAllText(path, json);
-        }
-        catch (Exception e)
-        {
-            Plugins.Logger.LogError($"Failed to save stored values '{name}': {e}");
-        }
-    }
+        MemberInfo member = (MemberInfo)type.GetField(name,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            ?? type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-    public static T LoadStoredValues<T>(string name = "Default") where T : class
-    {
-        try
+        if (member == null) return null;
+
+        object entry = member switch
         {
-            string path = GetJsonPath(name + ".json");
-            if (!File.Exists(path)) return null;
-            string json = File.ReadAllText(path);
-            return JsonUtility.FromJson<T>(json);
-        }
-        catch (Exception e)
-        {
-            Plugins.Logger.LogError($"Failed to load stored values '{name}': {e}");
+            FieldInfo f => f.GetValue(configEntries),
+            PropertyInfo p => p.GetValue(configEntries),
+            _ => null
+        };
+        if (entry == null) return null;
+
+        Type fieldType = entry.GetType();
+        if (!fieldType.IsGenericType || fieldType.GetGenericTypeDefinition() != typeof(ConfigEntry<>))
             return null;
-        }
+
+        PropertyInfo valueProp = fieldType.GetProperty("Value");
+        return valueProp?.GetValue(entry)?.ToString();
     }
-    */
+    public static bool HasConfigEntry(string readableName)
+    {
+        string actualName = GetActualFieldName(readableName);
+        return actualName != null;
+    }
+
+    public static void SetConfigEntryValueByName(string name, string value)
+    {
+        ConfigEntries configEntries = Plugins.ConfigEntries;
+        if (configEntries == null) return;
+
+        FieldInfo field = configEntries.GetType().GetField(name,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        if (field == null) return;
+
+        Type fieldType = field.FieldType;
+        if (!fieldType.IsGenericType || fieldType.GetGenericTypeDefinition() != typeof(ConfigEntry<>))
+            return;
+
+        var configEntry = field.GetValue(configEntries);
+        if (configEntry == null) return;
+
+        var valueProp = fieldType.GetProperty("Value");
+        Type targetType = fieldType.GetGenericArguments()[0];
+
+        object parsedValue = value;
+
+        try
+        {
+            if (targetType == typeof(int)) parsedValue = int.Parse(value);
+            else if (targetType == typeof(float)) parsedValue = float.Parse(value);
+            else if (targetType == typeof(double)) parsedValue = double.Parse(value);
+            else if (targetType == typeof(bool)) parsedValue = bool.Parse(value);
+        }
+        catch { return; }
+
+        valueProp.SetValue(configEntry, parsedValue);
+    }
+
+    public static List<string> GetAllColorConfigKeys()
+    {
+        List<string> keys = [];
+        ConfigEntries configEntries = Plugins.ConfigEntries;
+        if (configEntries == null) return keys;
+
+        Type cfgType = typeof(ConfigEntries);
+
+        List<MemberInfo> members =
+        [
+            .. cfgType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
+            .. cfgType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
+        ];
+
+        foreach (MemberInfo member in members)
+        {
+            Type memberType = null;
+
+            switch (member)
+            {
+                case FieldInfo field:
+                    memberType = field.FieldType;
+                    break;
+
+                case PropertyInfo prop:
+                    memberType = prop.PropertyType;
+                    break;
+            }
+
+            if (memberType == null) continue;
+            if (!memberType.IsGenericType || memberType.GetGenericTypeDefinition() != typeof(ConfigEntry<>))
+                continue;
+
+            Type genericArg = memberType.GetGenericArguments()[0];
+            if (genericArg != typeof(string)) continue;
+
+            if (!member.Name.ToLower().Contains("color")) continue;
+
+            keys.Add(member.Name);
+        }
+
+        return keys;
+    }
+
+    public static string GetActualFieldName(string readableName)
+    {
+        ConfigEntries configEntries = Plugins.ConfigEntries;
+        if (configEntries == null) return null;
+
+        Type type = configEntries.GetType();
+        List<MemberInfo> members =
+        [
+            .. type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
+            .. type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
+        ];
+
+        foreach (MemberInfo member in members)
+        {
+            string cleanName = member.Name.Replace("<", "").Replace(">k__BackingField", "");
+            if (cleanName == readableName)
+                return member.Name;
+        }
+        return null;
+    }
+
+    public static void SetConfigEntryValueByReadableName(string readableName, string value)
+    {
+        string actualName = GetActualFieldName(readableName);
+        if (actualName != null)
+            SetConfigEntryValueByName(actualName, value);
+    }
 }

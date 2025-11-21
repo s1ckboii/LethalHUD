@@ -5,7 +5,7 @@ using static LethalHUD.Enums;
 namespace LethalHUD.HUD;
 internal static class WeightController
 {
-    private static bool shadowApplied = false;
+    private static bool _shadowApplied = false;
     internal static float ConvertWeight(float weightInLbs)
     {
         return Plugins.ConfigEntries.WeightUnitConfig.Value switch
@@ -107,7 +107,7 @@ internal static class WeightController
         if (GameNetworkManager.Instance?.localPlayerController == null) return;
 
         float carryWeight = GameNetworkManager.Instance.localPlayerController.carryWeight;
-        int num2 = Mathf.RoundToInt(Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f);
+        float num2 = Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f;
 
         float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
@@ -156,31 +156,15 @@ internal static class WeightController
         hud.weightCounter.enableVertexGradient = true;
         hud.weightCounter.extraPadding = true;
 
-        if (!shadowApplied)
+        if (!_shadowApplied)
         {
             Material mat = hud.weightCounter.fontMaterial;
             mat.EnableKeyword("UNDERLAY_ON");
             mat.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
             mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
             mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
-            shadowApplied = true;
+            _shadowApplied = true;
         }
-
-        /*
-        if (Plugins.ConfigEntries.HalloweenMode.Value)
-        {
-            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
-            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
-
-            hud.weightCounter.colorGradient = new VertexGradient(startColor);
-
-            hud.weightCounter.text = HUDUtils.ApplyRichTextGradient(hud.weightCounter.text, startColor, endColor);
-        }
-        else
-        {
-            hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
-        }
-        */
 
         hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
     }

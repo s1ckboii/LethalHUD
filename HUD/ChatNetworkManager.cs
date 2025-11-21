@@ -1,11 +1,12 @@
-﻿/*
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using System.Collections.Generic;
 
 namespace LethalHUD.HUD;
+
+// Potentially using the new rpc params later for targeting specific clients
 internal class ChatNetworkManager : NetworkBehaviour
 {
-    private readonly Dictionary<ulong, PlayerColorInfo> hostPlayerColors = [];
+    private readonly Dictionary<ulong, PlayerColorInfo> _hostPlayerColors = [];
     public static ChatNetworkManager Instance { get; private set; }
 
     private void Awake()
@@ -22,12 +23,11 @@ internal class ChatNetworkManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void SetPlayerColorServerRpc(ulong clientId, PlayerColorInfo info)
     {
-        // Update host dictionary
-        hostPlayerColors[clientId] = info;
+        _hostPlayerColors[clientId] = info;
 
+        // Using fatal cuz it's much more visible
         Loggers.Fatal($"[ChatNetworkManager] Server received color for client {clientId}: {info.colorA}, {info.colorB}");
 
-        // Send to all clients
         SetPlayerColorClientRpc(clientId, info);
     }
 
@@ -36,14 +36,29 @@ internal class ChatNetworkManager : NetworkBehaviour
     {
         if (!ChatController.ColoringEnabled) return;
 
-        Loggers.Fatal($"[ChatNetworkManager] Client received color for client {clientId}: {info.colorA}, {info.colorB}");
+        if (StartOfRound.Instance == null || StartOfRound.Instance.allPlayerScripts == null || HUDManager.Instance == null)
+        {
+            StartCoroutine(DelayedApply(clientId, info));
+            return;
+        }
 
+        ApplyColor(clientId, info);
+    }
+
+    private System.Collections.IEnumerator DelayedApply(ulong clientId, PlayerColorInfo info)
+    {
+        while (StartOfRound.Instance == null || StartOfRound.Instance.allPlayerScripts == null || HUDManager.Instance == null)
+            yield return null;
+
+        ApplyColor(clientId, info);
+    }
+
+    private void ApplyColor(ulong clientId, PlayerColorInfo info)
+    {
         int baseGameId = NetworkIdToPlayerIndex(clientId);
-        Loggers.Fatal($"[ChatNetworkManager] Mapped clientId {clientId} to player index {baseGameId}");
         if (baseGameId == -1) return;
 
         ChatController.SetPlayerColor(baseGameId, info.colorA, info.colorB);
-        Loggers.Fatal($"[ChatNetworkManager] Applied color to player index {baseGameId}");
     }
 
     private int NetworkIdToPlayerIndex(ulong clientId)
@@ -68,4 +83,4 @@ public struct PlayerColorInfo(string a, string b = null) : INetworkSerializable
         serializer.SerializeValue(ref colorA);
         serializer.SerializeValue(ref colorB);
     }
-}*/
+}

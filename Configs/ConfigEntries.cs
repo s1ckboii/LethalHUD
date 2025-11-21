@@ -1,9 +1,11 @@
 ﻿using BepInEx.Configuration;
 using LethalHUD.Compats;
+using LethalHUD.Events;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using static LethalHUD.Enums;
 
@@ -28,7 +30,8 @@ public class ConfigEntries
 
     #region Main ConfigEntries
     public ConfigEntry<string> UnifyMostColors { get; private set; }
-    //public ConfigEntry<bool> HalloweenMode { get; private set; }
+    public ConfigEntry<bool> EventSystemEnabled { get; private set; }
+    public ConfigEntry<string> ForcedEvent { get; private set; }
     #endregion
 
     #region Scan ConfigEntries
@@ -160,9 +163,23 @@ public class ConfigEntries
         LethalConfigProxy.AddButton("Dev", "Reset Configs", "Resets all configs to default for testing.", "Reset", () => ConfigHelper.ResetMyConfigs());
 #endif
 
+        // Init with None
+        List<string> eventNames = ["None"];
+
+        if (!EventColorManager.HasLoaded)
+            EventColorManager.Load();
+
+        EventColorConfig eventConfig = EventColorManager.Config;
+        if (eventConfig?.Events != null)
+        {
+            foreach (var ev in eventConfig.Events)
+                eventNames.Add(ev.Name);
+        }
+
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
-        //HalloweenMode = ConfigHelper.Bind("Main", "Halloween Mode", false, "Overrides your config options with Halloween themed ones during October.");
+        EventSystemEnabled = ConfigHelper.Bind("Main", "Event System Enabled", true, "Enable event color overrides based on the JSON (e.g., Halloween, Winterfest).");
+        ForcedEvent = ConfigHelper.Bind("Main", "Forced Event", "None", "Force a specific event color scheme. Set to 'None' to disable.", false, new AcceptableValueList<string>([.. eventNames]));
         #endregion
 
         #region Scan Binds
@@ -287,8 +304,6 @@ public class ConfigEntries
         #region Main Changes
         UnifyMostColors.SettingChanged += (obj, args) =>
         {
-            //if (HalloweenManager.Instance.IgnoreUnifyMostColors) return;
-
             _lastUnifyMostColorsChange = DateTime.Now;
 
             if (UnifyMostColors.Value.Equals(DefaultMainColor, StringComparison.OrdinalIgnoreCase))
@@ -316,13 +331,6 @@ public class ConfigEntries
                 SlotColor.Value = UnifyMostColors.Value;
             }
         };
-        /*HalloweenMode.SettingChanged += (obj, args) =>
-        {
-            if (Plugins.ConfigEntries.HalloweenMode.Value)
-                HalloweenManager.Instance.ApplyHalloweenMode();
-            else
-                HalloweenManager.Instance.RestoreOriginalValues();
-        };*/
         #endregion
 
         #region Scan Changes
@@ -416,5 +424,7 @@ public class ConfigEntries
         HoldEndGameColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         HoldEndGameVotesColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         #endregion
+
+        ForcedEvent.SettingChanged += (obj, args) => { EventColorManager.Update(); };
     }
 }

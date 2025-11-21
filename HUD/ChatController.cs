@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 internal static class ChatController
 {
-    //private static readonly Dictionary<int, PlayerColorInfo> playerColors = [];
-    private static readonly Dictionary<string, string> localPlayerColors = [];
+    private static readonly Dictionary<int, PlayerColorInfo> _playerColors = [];
     internal static bool ColoringEnabled => Plugins.ConfigEntries.ColoredNames.Value;
 
     internal static string NoPunctuation(string input)
@@ -17,38 +17,36 @@ internal static class ChatController
         return new string([.. input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.')]);
     }
 
-    /*internal static void SetPlayerColor(int playerId, string colorA, string colorB = null)
+    internal static void SetPlayerColor(int playerId, string colorA, string colorB = null)
     {
-        playerColors[playerId] = new PlayerColorInfo(colorA, colorB);
-    }*/
+        _playerColors[playerId] = new PlayerColorInfo(colorA, colorB);
+    }
 
     internal static void ApplyLocalPlayerColor(string colorA, string colorB = null)
     {
-        const string localKey = "LocalPlayer";
-
         if (string.IsNullOrEmpty(colorA) || string.IsNullOrEmpty(colorB))
             return;
-        
-        localPlayerColors[localKey] = colorA;
-        localPlayerColors[localKey + "_B"] = colorB;
-        
-        /*
-        if (NetworkManager.Singleton == null)
-            return;
 
-        var info = new PlayerColorInfo(colorA, colorB);
+        PlayerColorInfo info = new(colorA, colorB);
+        SetPlayerColor(-1, colorA, colorB); // Use -1 if not networked yet (main menu)
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient || ChatNetworkManager.Instance == null)
+        {
+            Loggers.Info("[ChatController] Network not ready; stored color locally only.");
+            return;
+        }
+
         int localId = (int)NetworkManager.Singleton.LocalClientId;
         SetPlayerColor(localId, colorA, colorB);
 
-        ChatNetworkManager.SendColorToServer(info);*/
+        ChatNetworkManager.SendColorToServer(info);
     }
-    /*
     internal static string GetColoredPlayerName(string playerName, int playerId = -1)
     {
         if (!ColoringEnabled || string.IsNullOrEmpty(playerName))
             return playerName;
 
-        if (playerId != -1 && playerColors.TryGetValue(playerId, out PlayerColorInfo info))
+        if (playerId != -1 && _playerColors.TryGetValue(playerId, out PlayerColorInfo info))
         {
             ColorUtility.TryParseHtmlString(info.colorA, out Color colorA);
             ColorUtility.TryParseHtmlString(info.colorB, out Color colorB);
@@ -56,28 +54,6 @@ internal static class ChatController
         }
         return $"<color=#FF0000>{playerName}</color>";
     }
-    */
-    internal static string GetColoredPlayerName(string playerName)
-    {
-        if (!ColoringEnabled || string.IsNullOrEmpty(playerName))
-            return $"<color=#FF0000>{playerName}</color>";
-
-        const string localKey = "LocalPlayer";
-
-        if (localPlayerColors.TryGetValue(localKey, out string colorA) &&
-            localPlayerColors.TryGetValue(localKey + "_B", out string colorB))
-        {
-            ColorUtility.TryParseHtmlString(colorA, out Color startColor);
-            ColorUtility.TryParseHtmlString(colorB, out Color endColor);
-            return HUDUtils.ApplyStaticGradient(playerName, startColor, endColor);
-        }
-
-        ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorA.Value, out Color globalStart);
-        ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorB.Value, out Color globalEnd);
-
-        return HUDUtils.ApplyStaticGradient(playerName, globalStart, globalEnd);
-    }
-
     internal static string GetColoredChatMessage(string message)
     {
         if (string.IsNullOrWhiteSpace(message))
@@ -96,7 +72,6 @@ internal static class ChatController
 
         return $"<color={Plugins.ConfigEntries.ChatMessageColor.Value}>{message}</color>";
     }
-
     internal static void PlayerTypingIndicator()
     {
         TextMeshProUGUI indicator = HUDManager.Instance.typingIndicator;

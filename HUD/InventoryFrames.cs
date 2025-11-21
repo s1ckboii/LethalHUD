@@ -11,7 +11,7 @@ internal static class InventoryFrames
     internal static Color CurrentGradientStartColor { get; private set; } = Color.white;
     internal static Color CurrentGradientEndColor { get; private set; } = Color.white;
 
-    internal static Image[] allFrames;
+    private static Image[] _allFrames;
     internal static void SetSlotColors()
     {
         if (HUDManager.Instance == null || HUDManager.Instance.itemSlotIconFrames == null)
@@ -27,7 +27,7 @@ internal static class InventoryFrames
         if (bottomLeftCorner == null)
         {
             Loggers.Warning("InventoryFrames: BottomLeftCorner not found.");
-            allFrames = frames;
+            _allFrames = frames;
             return;
         }
 
@@ -35,7 +35,7 @@ internal static class InventoryFrames
         if (imageTransform == null)
         {
             Loggers.Warning("InventoryFrames: Image transform not found under BottomLeftCorner.");
-            allFrames = frames;
+            _allFrames = frames;
             return;
         }
 
@@ -43,7 +43,7 @@ internal static class InventoryFrames
         if (chatFrame == null)
         {
             Loggers.Warning("InventoryFrames: Image component not found.");
-            allFrames = frames;
+            _allFrames = frames;
             return;
         }
 
@@ -51,7 +51,7 @@ internal static class InventoryFrames
         for (int i = 0; i < frames.Length; i++)
             combined[i] = frames[i];
         combined[frames.Length] = chatFrame;
-        allFrames = combined;
+        _allFrames = combined;
 
 
         if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientColorA.Value, Plugins.ConfigEntries.GradientColorB.Value))
@@ -61,7 +61,7 @@ internal static class InventoryFrames
             {
                 CurrentGradientStartColor =colorA;
                 CurrentGradientEndColor =colorB;
-                HUDUtils.ApplyWavyGradient(allFrames, colorA, colorB);
+                HUDUtils.ApplyWavyGradient(_allFrames, colorA, colorB);
                 HUDUtils.ApplyCompassWavyGradient(colorA, colorB);
                 return;
             }
@@ -71,55 +71,55 @@ internal static class InventoryFrames
         switch (CurrentSlotColorMode)
         {
             case SlotEnums.Rainbow:
-                HUDUtils.ApplyRainbow(allFrames);
+                HUDUtils.ApplyRainbow(_allFrames);
                 HUDUtils.ApplyCompassRainbow();
                 break;
 
             case SlotEnums.Summer:
                 CurrentGradientStartColor = solarFlare;
                 CurrentGradientEndColor = moltenCore;
-                HUDUtils.ApplyWavyGradient(allFrames, CurrentGradientStartColor, CurrentGradientEndColor);
+                HUDUtils.ApplyWavyGradient(_allFrames, CurrentGradientStartColor, CurrentGradientEndColor);
                 CompassController.SetCompassWavyGradient();
                 break;
 
             case SlotEnums.Winter:
                 CurrentGradientStartColor = skyWave;
                 CurrentGradientEndColor = moonlitMist;
-                HUDUtils.ApplyWavyGradient(allFrames, skyWave, moonlitMist);
+                HUDUtils.ApplyWavyGradient(_allFrames, skyWave, moonlitMist);
                 CompassController.SetCompassWavyGradient();
                 break;
 
             case SlotEnums.Vaporwave:
                 CurrentGradientStartColor = pinkPrism;
                 CurrentGradientEndColor = aquaPulse;
-                HUDUtils.ApplyWavyGradient(allFrames, pinkPrism, aquaPulse);
+                HUDUtils.ApplyWavyGradient(_allFrames, pinkPrism, aquaPulse);
                 CompassController.SetCompassWavyGradient();
                 break;
 
             case SlotEnums.Deepmint:
                 CurrentGradientStartColor = mintWave;
                 CurrentGradientEndColor = deepTeal;
-                HUDUtils.ApplyWavyGradient(allFrames, mintWave, deepTeal);
+                HUDUtils.ApplyWavyGradient(_allFrames, mintWave, deepTeal);
                 CompassController.SetCompassWavyGradient();
                 break;
 
             case SlotEnums.Radioactive:
                 CurrentGradientStartColor = neonLime;
                 CurrentGradientEndColor = lemonGlow;
-                HUDUtils.ApplyWavyGradient(allFrames, neonLime, lemonGlow);
+                HUDUtils.ApplyWavyGradient(_allFrames, neonLime, lemonGlow);
                 CompassController.SetCompassWavyGradient();
                 break;
 
             case SlotEnums.TideEmber:
                 CurrentGradientStartColor = crimsonSpark;
                 CurrentGradientEndColor = deepOcean;
-                HUDUtils.ApplyWavyGradient(allFrames, crimsonSpark, deepOcean);
+                HUDUtils.ApplyWavyGradient(_allFrames, crimsonSpark, deepOcean);
                 CompassController.SetCompassWavyGradient();
                 break;
 
             default:
                 Color color = ConfigHelper.GetSlotColor();
-                foreach (var frame in allFrames)
+                foreach (var frame in _allFrames)
                 {
                     if (frame != null)
                         frame.color = color;

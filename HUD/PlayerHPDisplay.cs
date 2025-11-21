@@ -7,95 +7,95 @@ using static LethalHUD.Enums;
 namespace LethalHUD.HUD;
 public static class PlayerHPDisplay
 {
-    private static TextMeshProUGUI hpText;
-    private static PlayerControllerB localPlayer;
-    private static GameObject hpObj;
+    private static TextMeshProUGUI _hpText;
+    private static PlayerControllerB _localPlayer;
+    private static GameObject _hpObj;
 
-    private static float shakeTimer = 0f;
-    private static readonly float shakeDuration = 0.3f;
-    private static readonly float hitShakeIntensity = 5f;
-    private static readonly float criticalMaxShakeIntensity = 1.5f;
+    private static float _shakeTimer = 0f;
+    private static readonly float _shakeDuration = 0.3f;
+    private static readonly float _hitShakeIntensity = 5f;
+    private static readonly float _criticalMaxShakeIntensity = 1.5f;
 
-    private static readonly float sizeBump = 1.2f;
-    private static readonly float sizeLerpSpeed = 3f;
-    private static Vector2 basePosition;
+    private static readonly float _sizeBump = 1.2f;
+    private static readonly float _sizeLerpSpeed = 3f;
+    private static Vector2 _basePosition;
     private static float BaseFontSize => Plugins.ConfigEntries.HealthSize.Value;
     private static float HealthRotation => Plugins.ConfigEntries.HealthRotation.Value;
 
-    private static readonly float plainSizeMult = 1f;
-    private static readonly float percentSizeMult = 0.7f;
-    private static readonly float labelSizeMult = 0.65f;
+    private static readonly float _plainSizeMult = 1f;
+    private static readonly float _percentSizeMult = 0.7f;
+    private static readonly float _labelSizeMult = 0.65f;
 
     internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
-    private static Color midHPColor = new(1f, 0.3f, 0.3f);
-    private static Color lowHPColor = new(0.6f, 0f, 0f);
+    private static Color _midHPColor = new(1f, 0.3f, 0.3f);
+    private static Color _lowHPColor = new(0.6f, 0f, 0f);
 
     public static void Init()
     {
         if (ModCompats.IsEladsHUDPresent) return;
         HUDManager hud = HUDManager.Instance;
-        if (hpText != null) return;
+        if (_hpText != null) return;
 
-        localPlayer = GameNetworkManager.Instance.localPlayerController;
+        _localPlayer = GameNetworkManager.Instance.localPlayerController;
 
-        hpObj = new("PlayerHPDisplay");
+        _hpObj = new("PlayerHPDisplay");
         GameObject tpc = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/");
-        hpObj.transform.SetParent(tpc.transform, false);
-        hpObj.transform.localRotation = Quaternion.Euler(0f, 0f, HealthRotation);
+        _hpObj.transform.SetParent(tpc.transform, false);
+        _hpObj.transform.localRotation = Quaternion.Euler(0f, 0f, HealthRotation);
 
-        hpText = hpObj.AddComponent<TextMeshProUGUI>();
-        hpText.font = hud.HUDQuotaNumerator.font;
-        hpText.fontSize = BaseFontSize;
-        hpText.alignment = TextAlignmentOptions.Left;
-        hpText.color = FullHPColor;
+        _hpText = _hpObj.AddComponent<TextMeshProUGUI>();
+        _hpText.font = hud.HUDQuotaNumerator.font;
+        _hpText.fontSize = BaseFontSize;
+        _hpText.alignment = TextAlignmentOptions.Left;
+        _hpText.color = FullHPColor;
 
-        hpText.enableVertexGradient = false;
-        hpText.enableWordWrapping = false;
-        hpText.enableKerning = false;
-        hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
-        hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0f);
-        hpText.fontSharedMaterial.EnableKeyword("UNDERLAY_ON");
-        hpText.fontSharedMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
-        hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 1.2f);
-        hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1.2f);
+        _hpText.enableVertexGradient = false;
+        _hpText.enableWordWrapping = false;
+        _hpText.enableKerning = false;
+        _hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
+        _hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0f);
+        _hpText.fontSharedMaterial.EnableKeyword("UNDERLAY_ON");
+        _hpText.fontSharedMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+        _hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 1.2f);
+        _hpText.fontSharedMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1.2f);
 
-        RectTransform rect = hpText.rectTransform;
+        RectTransform rect = _hpText.rectTransform;
         rect.anchoredPosition = new Vector2(Plugins.ConfigEntries.HPIndicatorX.Value, Plugins.ConfigEntries.HPIndicatorY.Value);
         rect.sizeDelta = new Vector2(200, 50);
 
-        basePosition = rect.anchoredPosition;
+        _basePosition = rect.anchoredPosition;
     }
 
     public static void UpdateNumber()
     {
-        if (hpObj == null || hpText == null) return;
+        if (_hpObj == null || _hpText == null) return;
 
-        if (hpObj.activeSelf)
+        if (_hpObj.activeSelf)
         {
             if (!Plugins.ConfigEntries.HealthIndicator.Value)
             {
-                hpObj.SetActive(false);
+                _hpObj.SetActive(false);
             }
         }
         else
         {
             if (Plugins.ConfigEntries.HealthIndicator.Value)
             {
-                hpObj.SetActive(true);
+                _hpObj.SetActive(true);
             }
         }
 
         if (ModCompats.IsEladsHUDPresent) return;
-        if (hpText == null) return;
-        if (localPlayer == null) localPlayer = GameNetworkManager.Instance.localPlayerController;
-        if (localPlayer == null) return;
+        if (_hpText == null) return;
+        if (_localPlayer == null) _localPlayer = GameNetworkManager.Instance.localPlayerController;
+        if (_localPlayer == null) return;
 
-        hpObj.transform.localRotation = Quaternion.Euler(0f, 0f, HealthRotation);
-        basePosition = new Vector2(Plugins.ConfigEntries.HPIndicatorX.Value, Plugins.ConfigEntries.HPIndicatorY.Value);
+        _hpObj.transform.localRotation = Quaternion.Euler(0f, 0f, HealthRotation);
+        _basePosition = new Vector2(Plugins.ConfigEntries.HPIndicatorX.Value, Plugins.ConfigEntries.HPIndicatorY.Value);
 
-        int hp = localPlayer.health;
+        int hp = _localPlayer.health;
 
-        hpText.text = Plugins.ConfigEntries.HealthFormat.Value switch
+        _hpText.text = Plugins.ConfigEntries.HealthFormat.Value switch
         {
             HPDisplayMode.Percent => $"{hp} %",
             HPDisplayMode.Label => $"{hp} HP",
@@ -103,53 +103,53 @@ public static class PlayerHPDisplay
         };
 
         float intensity = 0f;
-        if (shakeTimer > 0f)
+        if (_shakeTimer > 0f)
         {
-            intensity = hitShakeIntensity;
-            shakeTimer -= Time.deltaTime;
+            intensity = _hitShakeIntensity;
+            _shakeTimer -= Time.deltaTime;
         }
         else if (hp < 20)
         {
-            intensity = criticalMaxShakeIntensity * (20 - hp) / 20f;
+            intensity = _criticalMaxShakeIntensity * (20 - hp) / 20f;
         }
 
-        RectTransform rect = hpText.rectTransform;
-        rect.anchoredPosition = basePosition + Random.insideUnitCircle * intensity;
+        RectTransform rect = _hpText.rectTransform;
+        rect.anchoredPosition = _basePosition + Random.insideUnitCircle * intensity;
 
         float formatMult = Plugins.ConfigEntries.HealthFormat.Value switch
         {
-            HPDisplayMode.Percent => percentSizeMult,
-            HPDisplayMode.Label => labelSizeMult,
-            _ => plainSizeMult
+            HPDisplayMode.Percent => _percentSizeMult,
+            HPDisplayMode.Label => _labelSizeMult,
+            _ => _plainSizeMult
         };
 
         float targetSize = BaseFontSize * formatMult;
 
-        if (shakeTimer > 0f)
+        if (_shakeTimer > 0f)
         {
-            targetSize *= sizeBump;
+            targetSize *= _sizeBump;
         }
         else if (hp < 20)
         {
             targetSize *= (1f + 0.1f * (20 - hp) / 20f);
         }
 
-        hpText.fontSize = Mathf.Lerp(hpText.fontSize, targetSize, Time.deltaTime * sizeLerpSpeed);
+        _hpText.fontSize = Mathf.Lerp(_hpText.fontSize, targetSize, Time.deltaTime * _sizeLerpSpeed);
         
         if (hp >= 30)
         {
             float t = (hp - 30f) / 70f;
-            hpText.color = Color.Lerp(midHPColor, FullHPColor, t);
+            _hpText.color = Color.Lerp(_midHPColor, FullHPColor, t);
         }
         else if (hp >= 20)
         {
             float t = (hp - 20f) / 10f;
-            hpText.color = Color.Lerp(midHPColor, lowHPColor, t);
+            _hpText.color = Color.Lerp(_midHPColor, _lowHPColor, t);
         }
         else
         {
             float t = hp / 20f;
-            hpText.color = Color.Lerp(lowHPColor, midHPColor, t);
+            _hpText.color = Color.Lerp(_lowHPColor, _midHPColor, t);
         }
     }
 
@@ -158,6 +158,6 @@ public static class PlayerHPDisplay
         if (player != null && player != GameNetworkManager.Instance.localPlayerController)
             return;
 
-        shakeTimer = shakeDuration;
+        _shakeTimer = _shakeDuration;
     }
 }

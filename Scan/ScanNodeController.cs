@@ -5,10 +5,11 @@ using UnityEngine;
 namespace LethalHUD.Scan;
 internal static class ScanNodeController
 {
-    private static readonly Dictionary<ScanNodeProperties, float> nodeAppearTimes = [];
     internal static float lifetime = Plugins.ConfigEntries.ScanNodeLifetime.Value;
     internal static float fadeDuration = Plugins.ConfigEntries.ScanNodeFadeDuration.Value;
-    private static readonly AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
+
+    private static readonly Dictionary<ScanNodeProperties, float> _nodeAppearTimes = [];
+    private static readonly AnimationCurve _fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
 
     internal static void UpdateTimers(RectTransform[] scanElements, Dictionary<RectTransform, ScanNodeProperties> scanNodes)
     {
@@ -21,10 +22,10 @@ internal static class ScanNodeController
                 continue;
             }
 
-            if (!nodeAppearTimes.ContainsKey(node))
-                nodeAppearTimes[node] = Time.time;
+            if (!_nodeAppearTimes.ContainsKey(node))
+                _nodeAppearTimes[node] = Time.time;
 
-            float elapsed = Time.time - nodeAppearTimes[node];
+            float elapsed = Time.time - _nodeAppearTimes[node];
 
             if (elapsed >= lifetime + fadeDuration)
             {
@@ -33,7 +34,7 @@ internal static class ScanNodeController
             }
 
             float alpha = elapsed > lifetime
-                ? fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration)
+                ? _fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration)
                 : 1f;
 
             CanvasGroup canvasGroup = element.GetComponent<CanvasGroup>();
@@ -51,21 +52,21 @@ internal static class ScanNodeController
         {
             if (!GoodItemScanProxy.TryGetRectTransform(node, out RectTransform rect) || rect == null)
             {
-                nodeAppearTimes.Remove(node);
+                _nodeAppearTimes.Remove(node);
                 continue;
             }
 
             if (!rect.gameObject.activeInHierarchy)
             {
-                nodeAppearTimes.Remove(node);
+                _nodeAppearTimes.Remove(node);
                 continue;
             }
 
-            if (!nodeAppearTimes.ContainsKey(node))
-                nodeAppearTimes[node] = Time.time;
+            if (!_nodeAppearTimes.ContainsKey(node))
+                _nodeAppearTimes[node] = Time.time;
 
-            float elapsed = Time.time - nodeAppearTimes[node];
-            float alpha = elapsed > lifetime ? fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration) : 1f;
+            float elapsed = Time.time - _nodeAppearTimes[node];
+            float alpha = elapsed > lifetime ? _fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration) : 1f;
 
             CanvasGroup canvasGroup = rect.GetComponent<CanvasGroup>();
             if (canvasGroup != null)
@@ -87,7 +88,7 @@ internal static class ScanNodeController
             if (!GoodItemScanProxy.TryGetRectTransform(kvp.Key, out RectTransform rect)) continue;
             if (rect == null) continue;
 
-            nodeAppearTimes[kvp.Key] = Time.time;
+            _nodeAppearTimes[kvp.Key] = Time.time;
 
             rect.gameObject.SetActive(true);
 
@@ -102,17 +103,17 @@ internal static class ScanNodeController
     {
         element.gameObject.SetActive(false);
         scanNodes.Remove(element);
-        nodeAppearTimes.Remove(node);
+        _nodeAppearTimes.Remove(node);
     }
 
     private static void CleanInvalidNodes()
     {
         List<ScanNodeProperties> toRemove = [];
-        foreach (var kvp in nodeAppearTimes)
+        foreach (KeyValuePair<ScanNodeProperties, float> kvp in _nodeAppearTimes)
             if (kvp.Key == null)
                 toRemove.Add(kvp.Key);
 
         foreach (ScanNodeProperties key in toRemove)
-            nodeAppearTimes.Remove(key);
+            _nodeAppearTimes.Remove(key);
     }
 }

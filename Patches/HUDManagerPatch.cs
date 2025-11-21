@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 using LethalHUD.Compats;
+using LethalHUD.Events;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -16,7 +17,7 @@ namespace LethalHUD.Patches;
 [HarmonyPatch(typeof(HUDManager))]
 internal static class HUDManagerPatch
 {
-    private static CallbackContext pingScan;
+    private static CallbackContext _pingScan;
     private static bool _isScanToggled = false;
     private static Coroutine _toggleCoroutine;
 
@@ -26,7 +27,7 @@ internal static class HUDManagerPatch
     [HarmonyPatch("PingScan_performed")]
     private static void OnScanTriggered(ref CallbackContext context)
     {
-        pingScan = context;
+        _pingScan = context;
 
         if (ModCompats.IsGoodItemScanPresent)
             ScanNodeController.ResetGoodItemScanNodes();
@@ -85,6 +86,10 @@ internal static class HUDManagerPatch
         {
             __instance.gameObject.AddComponent<StatsDisplay>();
         }
+        if (__instance.gameObject.GetComponent<EventColorUpdater>() == null)
+        {
+            __instance.gameObject.AddComponent<EventColorUpdater>();
+        }
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
     }
 
@@ -135,7 +140,7 @@ internal static class HUDManagerPatch
             case ScanMode.Hold:
                 StopToggleScan(__instance);
                 if (scanAction.IsPressed())
-                    __instance.PingScan_performed(pingScan);
+                    __instance.PingScan_performed(_pingScan);
                 break;
 
             case ScanMode.Toggle:
@@ -199,7 +204,7 @@ internal static class HUDManagerPatch
 
         if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
         {
-            string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped);
+            string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped, playerWhoSent);
             last = $"{coloredName}: {coloredMessage}";
         }
         else

@@ -4,7 +4,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LethalHUD.Compats;
 using LethalHUD.Configs;
-using LethalHUD.Misc;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -99,7 +98,5 @@ public class Plugins : BaseUnityPlugin
         }
         Harmony.PatchAll();
         bootstrapConfig.Save();
-
-        //HalloweenManager.Instance.RestoreOnLoad();
     }
 }

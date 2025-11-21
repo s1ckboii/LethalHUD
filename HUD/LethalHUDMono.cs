@@ -8,31 +8,33 @@ using UnityEngine.InputSystem;
 namespace LethalHUD.HUD;
 internal class LethalHUDMono : MonoBehaviour
 {
-    private bool togglePressed = false;
-    private HUDManager hud;
-    private Keyboard keyboard;
+    private bool _togglePressed = false;
+    private HUDManager _hud;
+    private Keyboard _keyboard;
     private Key ToggleKey => Plugins.ConfigEntries.HideHUDButton.Value;
 
     private void Awake()
     {
-        hud = HUDManager.Instance;
-        keyboard = Keyboard.current;
+        _hud = HUDManager.Instance;
+        _keyboard = Keyboard.current;
         PlanetInfoDisplay.Init();
     }
     private void Update()
     {
-        if (keyboard == null) return;
+        if (_keyboard == null) return;
 
         Key key = ToggleKey;
 
         if (key == Key.None || !Enum.IsDefined(typeof(Key), key)) return;
 
-        if (keyboard[key].wasPressedThisFrame)
+        if (_keyboard[key].wasPressedThisFrame)
         {
-            togglePressed = !togglePressed;
-            hud?.HideHUD(togglePressed);
+            _togglePressed = !_togglePressed;
+            _hud?.HideHUD(_togglePressed);
         }
     }
+
+    // Figure out what's causing fps drops
 
     private void LateUpdate()
     {
@@ -47,9 +49,9 @@ internal class LethalHUDMono : MonoBehaviour
             BetterScanVisionProxy.OverrideNightVisionColor();
         if (ModCompats.IsEladsHUDPresent)
             EladsHUDProxy.OverrideHUD();
-        if (hud.loadingText != null)
+        if (_hud.loadingText != null)
         {
-            HUDUtils.AnimateLoadingText(hud.loadingText, Plugins.ConfigEntries.LoadingTextColor.Value);
+            HUDUtils.AnimateLoadingText(_hud.loadingText, Plugins.ConfigEntries.LoadingTextColor.Value);
         }
         PlanetInfoDisplay.UpdateColors();
         ControlTipController.ApplyColor();

@@ -1,5 +1,6 @@
 ﻿using LethalHUD.Scan;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace LethalHUD;
 public static class Enums
@@ -112,18 +113,18 @@ public static class Enums
     internal static Color crimsonSpark = new(1f, 0.27f, 0f);
     internal static Color deepOcean = new(0f, 0.48f, 0.54f);
 
-    private static readonly float baseIntensity = 352.08f;
-    private static readonly float customBaseIntensity = 100f;
+    private static readonly float _baseIntensity = 352.08f;
+    private static readonly float _customBaseIntensity = 100f;
     internal static void DirtIntensityHandlerByScanLine()
     {
-        var scanBloom = ScanController.ScanBloom;
+        Bloom scanBloom = ScanController.ScanBloom;
         if (scanBloom == null) return;
 
-        var selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
+        ScanLines selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
 
         if (selected == ScanLines.Default)
-            scanBloom.dirtIntensity.Override(Mathf.Max(0f, baseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
+            scanBloom.dirtIntensity.Override(Mathf.Max(0f, _baseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
         else
-            scanBloom.dirtIntensity.Override(Mathf.Max(0f, customBaseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
+            scanBloom.dirtIntensity.Override(Mathf.Max(0f, _customBaseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
     }
 }

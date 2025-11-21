@@ -6,10 +6,10 @@ using UnityEngine.UI;
 namespace LethalHUD.HUD;
 internal static class SignalTranslatorController
 {
-    private static RectTransform cachedRect;
-    private static Image[] animatorImages;
-    private static TMP_Text[] animatorTMPs;
-    private static bool isCentered = false;
+    private static RectTransform _cachedRect;
+    private static Image[] _animatorImages;
+    private static TMP_Text[] _animatorTMPs;
+    private static bool _isCentered = false;
 
     public static void CenterText()
     {
@@ -18,26 +18,26 @@ internal static class SignalTranslatorController
         
         HUDManager hud = HUDManager.Instance;
         TMP_Text signalText = hud.signalTranslatorText;
-        cachedRect = hud.signalTranslatorText.rectTransform;
+        _cachedRect = hud.signalTranslatorText.rectTransform;
         Animator signalAnimator = hud.signalTranslatorAnimator;
         
         if (signalAnimator != null)
         {
-            animatorImages = signalAnimator.GetComponentsInChildren<Image>(true);
-            animatorTMPs = signalAnimator.GetComponentsInChildren<TMP_Text>(true);
+            _animatorImages = signalAnimator.GetComponentsInChildren<Image>(true);
+            _animatorTMPs = signalAnimator.GetComponentsInChildren<TMP_Text>(true);
         }
 
-        if (!isCentered)
+        if (!_isCentered)
         {
             signalText.horizontalAlignment = HorizontalAlignmentOptions.Center;
             signalText.enableAutoSizing = false;
 
-            cachedRect.anchorMin = Vector2.zero;
-            cachedRect.anchorMax = Vector2.one;
-            cachedRect.offsetMin = new Vector2(-5, -230);
-            cachedRect.offsetMax = new Vector2(-5, -230);
+            _cachedRect.anchorMin = Vector2.zero;
+            _cachedRect.anchorMax = Vector2.one;
+            _cachedRect.offsetMin = new Vector2(-5, -230);
+            _cachedRect.offsetMax = new Vector2(-5, -230);
 
-            isCentered = true;
+            _isCentered = true;
         }
     }
 
@@ -52,16 +52,16 @@ internal static class SignalTranslatorController
         if (signalText.color != color)
             signalText.color = color;
 
-        if (animatorTMPs != null)
+        if (_animatorTMPs != null)
         {
-            foreach (TMP_Text tmp in animatorTMPs)
+            foreach (TMP_Text tmp in _animatorTMPs)
                 if (tmp.color != color)
                     tmp.color = color;
         }
 
-        if (animatorImages != null)
+        if (_animatorImages != null)
         {
-            foreach (Image img in animatorImages)
+            foreach (Image img in _animatorImages)
                 if (img.color != color)
                     img.color = color;
         }

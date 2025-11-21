@@ -8,58 +8,58 @@ using static LethalHUD.Enums;
 namespace LethalHUD.HUD;
 internal static class ClockController
 {
-    private static bool skipAlphaCheck;
     private static readonly HashSet<SelectableLevel> DisabledClockLevels = [];
 
-    private static TextMeshProUGUI clockNumber;
-    private static Image clockIcon;
-    private static Transform clockParent;
-    private static Image boxImage;
+    private static TextMeshProUGUI _clockNumber;
+    private static Image _clockIcon;
+    private static Transform _clockParent;
+    private static Image _boxImage;
 
+    private static bool _skipAlphaCheck;
     private static bool _defaultsCached;
 
-    private static Vector3 defaultClockPos;
-    private static Vector3 defaultIconPos;
-    private static Vector2 defaultParentSize;
-    private static Vector2 defaultIconSize;
-    private static bool defaultWordWrap;
+    private static Vector3 _defaultClockPos;
+    private static Vector3 _defaultIconPos;
+    private static Vector2 _defaultParentSize;
+    private static Vector2 _defaultIconSize;
+    private static bool _defaultWordWrap;
 
     internal static void CacheDefaultLayout()
     {
-        if (clockParent == null || clockNumber == null || clockIcon == null)
+        if (_clockParent == null || _clockNumber == null || _clockIcon == null)
             return;
 
-        RectTransform parentRect = clockParent.GetComponent<RectTransform>();
-        RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
+        RectTransform parentRect = _clockParent.GetComponent<RectTransform>();
+        RectTransform iconRect = _clockIcon.GetComponent<RectTransform>();
 
-        defaultParentSize = parentRect.sizeDelta;
-        defaultIconSize = iconRect.sizeDelta;
-        defaultClockPos = clockNumber.transform.localPosition;
-        defaultIconPos = clockIcon.transform.localPosition;
-        defaultWordWrap = clockNumber.enableWordWrapping;
+        _defaultParentSize = parentRect.sizeDelta;
+        _defaultIconSize = iconRect.sizeDelta;
+        _defaultClockPos = _clockNumber.transform.localPosition;
+        _defaultIconPos = _clockIcon.transform.localPosition;
+        _defaultWordWrap = _clockNumber.enableWordWrapping;
     }
 
     internal static void ApplyClockAppearance()
     {
         if (HUDManager.Instance == null) return;
 
-        clockNumber = HUDManager.Instance.clockNumber;
-        clockIcon = HUDManager.Instance.clockIcon;
-        clockParent = clockNumber.transform.parent;
-        boxImage = clockParent.GetComponent<Image>();
+        _clockNumber = HUDManager.Instance.clockNumber;
+        _clockIcon = HUDManager.Instance.clockIcon;
+        _clockParent = _clockNumber.transform.parent;
+        _boxImage = _clockParent.GetComponent<Image>();
 
-        if (clockNumber != null )
-            clockNumber.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockNumberColor.Value, Color.white);
-        if (boxImage != null)
-            boxImage.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockBoxColor.Value, Color.white);
-        if (clockIcon != null)
-            clockIcon.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockIconColor.Value, new Color(1f, 0.31f, 0f));
+        if (_clockNumber != null )
+            _clockNumber.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockNumberColor.Value, Color.white);
+        if (_boxImage != null)
+            _boxImage.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockBoxColor.Value, Color.white);
+        if (_clockIcon != null)
+            _clockIcon.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockIconColor.Value, new Color(1f, 0.31f, 0f));
         if (HUDManager.Instance.shipLeavingEarlyIcon != null)
             HUDManager.Instance.shipLeavingEarlyIcon.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockShipLeaveColor.Value, Color.white);
 
         Vector3 baseScale = new(-0.5893304f, 0.5893304f, 0.5893303f);
 
-        clockParent.localScale = baseScale * Plugins.ConfigEntries.ClockSizeMultiplier.Value;
+        _clockParent.localScale = baseScale * Plugins.ConfigEntries.ClockSizeMultiplier.Value;
 
         if (!_defaultsCached)
         {
@@ -109,50 +109,50 @@ internal static class ClockController
     }
     internal static void ApplyCompactLayout()
     {
-        if (clockParent == null || clockNumber == null || clockIcon == null)
+        if (_clockParent == null || _clockNumber == null || _clockIcon == null)
             return;
 
-        RectTransform parentRect = clockParent.GetComponent<RectTransform>();
+        RectTransform parentRect = _clockParent.GetComponent<RectTransform>();
         parentRect.sizeDelta = new Vector2(parentRect.sizeDelta.x, 50f);
 
-        clockNumber.enableWordWrapping = false;
+        _clockNumber.enableWordWrapping = false;
 
-        RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
-        iconRect.sizeDelta = defaultIconSize * 0.6f;
+        RectTransform iconRect = _clockIcon.GetComponent<RectTransform>();
+        iconRect.sizeDelta = _defaultIconSize * 0.6f;
 
 
         if (Plugins.ConfigEntries.NormalHumanBeingClock.Value)
         {
-            clockNumber.transform.localPosition = defaultClockPos + new Vector3(-10f, 0f, 0f);
-            clockIcon.transform.localPosition = defaultIconPos + new Vector3(-10f, 0f, 0f);
+            _clockNumber.transform.localPosition = _defaultClockPos + new Vector3(-10f, 0f, 0f);
+            _clockIcon.transform.localPosition = _defaultIconPos + new Vector3(-10f, 0f, 0f);
         }
         else
         {
-            clockNumber.transform.localPosition = defaultClockPos + new Vector3(10f, 0f, 0f);
-            clockIcon.transform.localPosition = defaultIconPos + new Vector3(-25f, 0f, 0f);
+            _clockNumber.transform.localPosition = _defaultClockPos + new Vector3(10f, 0f, 0f);
+            _clockIcon.transform.localPosition = _defaultIconPos + new Vector3(-25f, 0f, 0f);
         }
     }
 
     internal static void ApplyRegularLayout()
     {
-        if (clockParent == null || clockNumber == null || clockIcon == null)
+        if (_clockParent == null || _clockNumber == null || _clockIcon == null)
             return;
 
-        RectTransform parentRect = clockParent.GetComponent<RectTransform>();
-        RectTransform iconRect = clockIcon.GetComponent<RectTransform>();
+        RectTransform parentRect = _clockParent.GetComponent<RectTransform>();
+        RectTransform iconRect = _clockIcon.GetComponent<RectTransform>();
 
-        parentRect.sizeDelta = defaultParentSize;
-        iconRect.sizeDelta = defaultIconSize;
-        clockNumber.transform.localPosition = defaultClockPos;
-        clockIcon.transform.localPosition = defaultIconPos;
-        clockNumber.enableWordWrapping = defaultWordWrap;
+        parentRect.sizeDelta = _defaultParentSize;
+        iconRect.sizeDelta = _defaultIconSize;
+        _clockNumber.transform.localPosition = _defaultClockPos;
+        _clockIcon.transform.localPosition = _defaultIconPos;
+        _clockNumber.enableWordWrapping = _defaultWordWrap;
     }
 
     internal static void UpdateClockVisibility(ref bool visible)
     {
         if (visible)
         {
-            skipAlphaCheck = true;
+            _skipAlphaCheck = true;
             return;
         }
 
@@ -193,16 +193,16 @@ internal static class ClockController
     {
         if (HUDManager.Instance == null) return;
 
-        CanvasGroup canvasGroup = clockParent.GetComponent<CanvasGroup>() ?? clockParent.gameObject.AddComponent<CanvasGroup>();
+        CanvasGroup canvasGroup = _clockParent.GetComponent<CanvasGroup>() ?? _clockParent.gameObject.AddComponent<CanvasGroup>();
         float targetAlpha = GetTargetAlpha();
         canvasGroup.alpha = targetAlpha;
     }
 
     private static float GetTargetAlpha()
     {
-        if (skipAlphaCheck)
+        if (_skipAlphaCheck)
         {
-            skipAlphaCheck = false;
+            _skipAlphaCheck = false;
             return 1f;
         }
 

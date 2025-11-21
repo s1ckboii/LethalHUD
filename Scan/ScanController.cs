@@ -49,7 +49,7 @@ internal static class ScanController
 
     internal static void SetScanColor(Color? overrideColor = null)
     {
-        if (IsInspecting) return; // Skip overlay during inspection
+        if (IsInspecting) return;
 
         Color color = overrideColor ?? ConfigHelper.GetScanColor();
 

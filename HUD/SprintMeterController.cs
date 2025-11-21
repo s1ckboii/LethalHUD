@@ -5,7 +5,7 @@ using static LethalHUD.Enums;
 namespace LethalHUD.HUD;
 internal static class SprintMeterController
 {
-
+    private static Color BaseColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColor.Value);
     internal static void UpdateSprintMeterColor()
     {
         if (!Plugins.ConfigEntries.SprintBool.Value)
@@ -34,27 +34,21 @@ internal static class SprintMeterController
 
     private static void ApplySolidMode(PlayerControllerB player)
     {
-        Color solidColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColor.Value);
-
-        player.sprintMeterUI.color = solidColor;
+        player.sprintMeterUI.color = BaseColor;
     }
 
     private static void ApplyGradientMode(PlayerControllerB player)
     {
-        Color baseColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColor.Value);
-
         float fillAmount = player.sprintMeterUI.fillAmount;
-        Color finalColor = HUDUtils.GetGradientColor(baseColor, fillAmount);
+        Color finalColor = HUDUtils.GetGradientColor(BaseColor, fillAmount);
 
         player.sprintMeterUI.color = finalColor;
     }
 
     private static void ApplyShadesMode(PlayerControllerB player)
     {
-        Color baseColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SprintMeterColor.Value);
-
         float fillAmount = player.sprintMeterUI.fillAmount;
-        Color finalColor = HUDUtils.GetShadeColor(baseColor, fillAmount);
+        Color finalColor = HUDUtils.GetShadeColor(BaseColor, fillAmount);
 
         player.sprintMeterUI.color = finalColor;
     }

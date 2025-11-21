@@ -1,7 +1,5 @@
-﻿/*
-using HarmonyLib;
+﻿using HarmonyLib;
 using LethalHUD.HUD;
-using Unity.Netcode;
 
 namespace LethalHUD.Patches;
 [HarmonyPatch(typeof(StartOfRound))]
@@ -21,12 +19,11 @@ internal static class StartOfRoundPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("OnPlayerConnectedClientRpc")]
-    private static void OnStarOfRoundOnPlayerConnectedClientRpc(ulong clientId)
+    private static void OnStartOfRoundPlayerConnected()
     {
-        if (clientId == NetworkManager.Singleton.LocalClientId)
+        if (HUDManager.Instance != null)
         {
             ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value);
         }
     }
 }
-*/

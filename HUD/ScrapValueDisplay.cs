@@ -8,36 +8,35 @@ namespace LethalHUD.HUD;
 internal static class ScrapValueDisplay
 {
     internal static TMP_Text[] slotTexts;
-    private static TMP_Text totalText;
 
-    private static TMP_FontAsset defaultFont;
-    private static TMP_FontAsset dollarFont;
-
+    private static TMP_Text _totalText;
+    private static TMP_FontAsset _defaultFont;
+    private static TMP_FontAsset _dollarFont;
     private static RectTransform totalRT;
 
-    private static int[] slotValues;
+    private static int[] _slotValues;
 
-    private static int lastTotal = 0;
-    private static float deltaTimer = 0f;
-    private static string deltaColor = "green";
-    private static bool erasingDelta = false;
-    private static readonly float eraseSpeed = 0.05f;
-    private static float eraseTimer = 0f;
+    private static int _lastTotal = 0;
+    private static float _deltaTimer = 0f;
+    private static string _deltaColor = "green";
+    private static bool _erasingDelta = false;
+    private static readonly float _eraseSpeed = 0.05f;
+    private static float _eraseTimer = 0f;
 
-    private static readonly Color lowColor = new(0.85f, 0.85f, 0.85f);
-    private static readonly Color highColor = Color.green;
+    private static readonly Color _lowColor = new(0.85f, 0.85f, 0.85f);
+    private static readonly Color _highColor = Color.green;
 
-    private static readonly StringBuilder deltaPlainBuilder = new();
-    private static readonly StringBuilder deltaTextBuilder = new();
-    private static readonly StringBuilder displayBuilder = new();
+    private static readonly StringBuilder _deltaPlainBuilder = new();
+    private static readonly StringBuilder _deltaTextBuilder = new();
+    private static readonly StringBuilder _displayBuilder = new();
 
     internal static void Init()
     {
         HUDManager hud = HUDManager.Instance;
         if (hud == null) return;
 
-        defaultFont = hud.totalValueText.font;
-        dollarFont = hud.chatText.font;
+        _defaultFont = hud.totalValueText.font;
+        _dollarFont = hud.chatText.font;
 
         SetupSlots();
     }
@@ -51,8 +50,8 @@ internal static class ScrapValueDisplay
 
         if (slotTexts == null || slotTexts.Length != slotCount)
             slotTexts = new TMP_Text[slotCount];
-        if (slotValues == null || slotValues.Length != slotCount)
-            slotValues = new int[slotCount];
+        if (_slotValues == null || _slotValues.Length != slotCount)
+            _slotValues = new int[slotCount];
 
         for (int i = 0; i < slotCount; i++)
         {
@@ -92,8 +91,8 @@ internal static class ScrapValueDisplay
 
     private static void SetupTotalText(HUDManager hud)
     {
-        if (totalText != null)
-            Object.Destroy(totalText.gameObject);
+        if (_totalText != null)
+            Object.Destroy(_totalText.gameObject);
 
         if (hud.itemSlotIconFrames.Length == 0) return;
 
@@ -107,12 +106,12 @@ internal static class ScrapValueDisplay
         totalRT.pivot = new Vector2(1f, 0.5f);
         totalRT.localPosition = new Vector2(Plugins.ConfigEntries.TotalValueOffsetX.Value, Plugins.ConfigEntries.TotalValueOffsetY.Value);
 
-        totalText = totalGO.AddComponent<TextMeshProUGUI>();
-        totalText.fontSize = 14;
-        totalText.alignment = TextAlignmentOptions.Right;
-        totalText.color = Color.green;
-        totalText.raycastTarget = false;
-        totalText.text = "";
+        _totalText = totalGO.AddComponent<TextMeshProUGUI>();
+        _totalText.fontSize = 14;
+        _totalText.alignment = TextAlignmentOptions.Right;
+        _totalText.color = Color.green;
+        _totalText.raycastTarget = false;
+        _totalText.text = "";
     }
 
     internal static void RefreshSlots() => SetupSlots();
@@ -126,40 +125,22 @@ internal static class ScrapValueDisplay
         if (tmp == null) return;
 
         tmp.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
-            ? defaultFont : dollarFont;
+            ? _defaultFont : _dollarFont;
 
         if (value > 0)
-        {
-            /*
-            if (Plugins.ConfigEntries.HalloweenMode.Value)
-            {
-                string text = $"${value}";
-                ColorUtility.TryParseHtmlString("#FF8800", out Color startColor);
-                ColorUtility.TryParseHtmlString("#AA55EE", out Color endColor);
-                tmp.text = HUDUtils.ApplyRichTextGradient(text, startColor, endColor);
-            }
-            else
-            {
-                tmp.text = $"${value}";
-            }
-            */
-
             tmp.text = $"${value}";
-        }
         else
-        {
             tmp.text = "";
-        }
 
-        slotValues[slotIndex] = value;
+        _slotValues[slotIndex] = value;
         UpdateInventoryTotal();
         UpdateSlotValueTextColors();
     }
 
     internal static void UpdateTotalTextPosition()
     {
-        if (totalText == null) return;
-        RectTransform totalRT = totalText.rectTransform;
+        if (_totalText == null) return;
+        RectTransform totalRT = _totalText.rectTransform;
         totalRT.localPosition = new Vector2(Plugins.ConfigEntries.TotalValueOffsetX.Value, Plugins.ConfigEntries.TotalValueOffsetY.Value);
     }
 
@@ -170,20 +151,20 @@ internal static class ScrapValueDisplay
         TMP_Text tmp = slotTexts[slotIndex];
         if (tmp != null) tmp.text = "";
 
-        slotValues[slotIndex] = 0;
+        _slotValues[slotIndex] = 0;
         UpdateInventoryTotal();
         UpdateSlotValueTextColors();
     }
 
     internal static void ClearItemSlots()
     {
-        if (slotTexts == null || slotValues == null) return;
+        if (slotTexts == null || _slotValues == null) return;
 
         for (int i = 0; i < slotTexts.Length; i++)
         {
             if (slotTexts[i] != null)
                 slotTexts[i].text = "";
-            slotValues[i] = 0;
+            _slotValues[i] = 0;
         }
 
         UpdateInventoryTotal();
@@ -196,9 +177,9 @@ internal static class ScrapValueDisplay
         int max = int.MinValue;
         bool hasValues = false;
 
-        for (int i = 0; i < slotValues.Length; i++)
+        for (int i = 0; i < _slotValues.Length; i++)
         {
-            int v = slotValues[i];
+            int v = _slotValues[i];
             if (v > 0)
             {
                 hasValues = true;
@@ -209,13 +190,13 @@ internal static class ScrapValueDisplay
 
         if (!hasValues) return;
 
-        for (int i = 0; i < slotValues.Length; i++)
+        for (int i = 0; i < _slotValues.Length; i++)
         {
             TMP_Text tmp = slotTexts[i];
             if (tmp == null) continue;
 
-            int v = slotValues[i];
-            tmp.color = v <= 0 ? lowColor : Color.Lerp(lowColor, highColor, (max == min) ? 1f : Mathf.InverseLerp(min, max, v));
+            int v = _slotValues[i];
+            tmp.color = v <= 0 ? _lowColor : Color.Lerp(_lowColor, _highColor, (max == min) ? 1f : Mathf.InverseLerp(min, max, v));
         }
     }
 
@@ -223,59 +204,38 @@ internal static class ScrapValueDisplay
     {
         if (!Plugins.ConfigEntries.ShowTotalInventoryValue.Value)
         {
-            if (totalText != null && totalText.text != string.Empty)
-                totalText.text = string.Empty;
+            if (_totalText != null && _totalText.text != string.Empty)
+                _totalText.text = string.Empty;
             return;
         }
 
         int total = 0;
-        for (int i = 0; i < slotValues.Length; i++)
-            total += slotValues[i];
+        for (int i = 0; i < _slotValues.Length; i++)
+            total += _slotValues[i];
 
-        if (total != lastTotal)
+        if (total != _lastTotal)
         {
-            int diff = total - lastTotal;
+            int diff = total - _lastTotal;
             if (diff != 0 && Plugins.ConfigEntries.ShowTotalDelta.Value)
             {
                 string sign = diff > 0 ? "+" : "-";
                 string numeric = $"{sign}${Mathf.Abs(diff)}";
 
-                deltaPlainBuilder.Clear();
-                deltaPlainBuilder.Append('(').Append(numeric).Append(')');
+                _deltaPlainBuilder.Clear();
+                _deltaPlainBuilder.Append('(').Append(numeric).Append(')');
 
-                deltaTextBuilder.Clear();
+                _deltaTextBuilder.Clear();
 
-                /*
-                if (Plugins.ConfigEntries.HalloweenMode.Value)
-                {
-                    deltaTextBuilder.Append(deltaPlainBuilder);
-                }
-                else
-                {
-                    deltaColor = diff > 0 ? "green" : "red";
-                    deltaTextBuilder.Append("<color=").Append(deltaColor).Append(">(").Append(numeric).Append(")</color>");
-                }
-                */
+                _deltaColor = diff > 0 ? "green" : "red";
+                _deltaTextBuilder.Append("<color=").Append(_deltaColor).Append(">(").Append(numeric).Append(")</color>");
 
-                deltaColor = diff > 0 ? "green" : "red";
-                deltaTextBuilder.Append("<color=").Append(deltaColor).Append(">(").Append(numeric).Append(")</color>");
-
-                deltaTimer = 1.5f;
-                erasingDelta = false;
+                _deltaTimer = 1.5f;
+                _erasingDelta = false;
             }
-            lastTotal = total;
+            _lastTotal = total;
         }
-        
-        /*
-        if (Plugins.ConfigEntries.HalloweenMode.Value && total == 0)
-        {
-            deltaPlainBuilder.Clear();
-            deltaTextBuilder.Clear();
-            erasingDelta = false;
-        }
-        */
 
-        displayBuilder.Clear();
+        _displayBuilder.Clear();
 
         string prefix = Plugins.ConfigEntries.TotalPrefix.Value switch
         {
@@ -287,80 +247,54 @@ internal static class ScrapValueDisplay
 
         if (total > 0)
         {
-            displayBuilder.Append(prefix).Append('$').Append(total);
-            if (deltaTextBuilder.Length > 0)
-                displayBuilder.Append(deltaTextBuilder);
+            _displayBuilder.Append(prefix).Append('$').Append(total);
+            if (_deltaTextBuilder.Length > 0)
+                _displayBuilder.Append(_deltaTextBuilder);
         }
 
-        if (totalText != null)
+        if (_totalText != null)
         {
-            totalText.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
-                ? defaultFont : dollarFont;
-
-            /*
-            if (Plugins.ConfigEntries.HalloweenMode.Value && total > 0)
-            {
-                Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
-                ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
-                totalText.text = HUDUtils.ApplyRichTextGradient(displayBuilder.ToString(), startColor, endColor);
-            }
-            else
-            {
-                totalText.text = displayBuilder.ToString();
-            }
-            */
+            _totalText.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
+                ? _defaultFont : _dollarFont;
             
-            totalText.text = displayBuilder.ToString();
+            _totalText.text = _displayBuilder.ToString();
         }
     }
 
     internal static void Tick(float deltaTime)
     {
-        if (!erasingDelta)
+        if (!_erasingDelta)
         {
-            if (deltaTimer > 0f)
+            if (_deltaTimer > 0f)
             {
-                deltaTimer -= deltaTime;
-                if (deltaTimer <= 0f && deltaTextBuilder.Length > 0)
+                _deltaTimer -= deltaTime;
+                if (_deltaTimer <= 0f && _deltaTextBuilder.Length > 0)
                 {
-                    erasingDelta = true;
-                    eraseTimer = eraseSpeed;
+                    _erasingDelta = true;
+                    _eraseTimer = _eraseSpeed;
                 }
             }
         }
         else
         {
-            eraseTimer -= deltaTime;
-            if (eraseTimer <= 0f && deltaPlainBuilder.Length > 0)
+            _eraseTimer -= deltaTime;
+            if (_eraseTimer <= 0f && _deltaPlainBuilder.Length > 0)
             {
-                deltaPlainBuilder.Length--;
+                _deltaPlainBuilder.Length--;
 
-                deltaTextBuilder.Clear();
+                _deltaTextBuilder.Clear();
 
-                /*
-                if (Plugins.ConfigEntries.HalloweenMode.Value)
-                {
-                    deltaTextBuilder.Append(deltaPlainBuilder);
-                }
-                else if (deltaPlainBuilder.Length > 0)
-                {
-                    deltaTextBuilder.Append("<color=").Append(deltaColor).Append('>')
-                        .Append(deltaPlainBuilder)
-                        .Append("</color>");
-                }
-                */
-
-                deltaTextBuilder.Append("<color=").Append(deltaColor).Append('>')
-                    .Append(deltaPlainBuilder)
+                _deltaTextBuilder.Append("<color=").Append(_deltaColor).Append('>')
+                    .Append(_deltaPlainBuilder)
                     .Append("</color>");
 
-                eraseTimer = eraseSpeed;
+                _eraseTimer = _eraseSpeed;
                 UpdateInventoryTotal();
             }
 
-            if (deltaPlainBuilder.Length == 0)
+            if (_deltaPlainBuilder.Length == 0)
             {
-                erasingDelta = false;
+                _erasingDelta = false;
                 UpdateInventoryTotal();
             }
         }
@@ -372,7 +306,7 @@ internal static class ScrapValueDisplay
                     slotTexts[i].transform.rotation = Quaternion.identity;
         }
 
-        if (totalText != null)
-            totalText.transform.rotation = Quaternion.identity;
+        if (_totalText != null)
+            _totalText.transform.rotation = Quaternion.identity;
     }
 }

@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.3.5</Version>
+    <Version>1.3.6</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -62,19 +62,9 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Evaisa.NetcodePatcher.MSBuild" Version="4.4.2" PrivateAssets="all"/>
-  </ItemGroup>
   <!-- Netcode Patcher -->
   <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
-    <!-- Create dependencies directory -->
-    <MakeDir Directories="$(TargetDir)dependencies" />
-    <MakeDir Directories="$(TargetDir)patchedPlugin" />
-
-    <ItemGroup>
-      <PluginFiles Include="$(TargetPath)" />
-      <PluginFiles Include="$(TargetDir)$(TargetName).pdb" />
-    </ItemGroup>
+    <Exec Command="netcode-patch -uv 2022.3.62 -nv 1.12.0 -tv 1.0.0 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
   <!-- Import settings from .csproj.user file -->

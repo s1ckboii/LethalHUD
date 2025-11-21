@@ -3,9 +3,9 @@ using LethalHUD.HUD;
 using UnityEngine;
 
 namespace LethalHUD.Misc;
-public static class SpectatorHUDController
+internal static class SpectatorHUDController
 {
-    public static void ApplyColors()
+    internal static void ApplyColors()
     {
         HUDManager hud = HUDManager.Instance;
         if (hud == null) return;

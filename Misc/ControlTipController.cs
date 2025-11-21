@@ -9,18 +9,18 @@ internal static class ControlTipController
     private static readonly Color DefaultColorA = Color.white;
     private static readonly Color DefaultColorB = Color.white;
 
-    private static TMP_Text[] lastTips;
-    private static string[] lastTipTexts;
-    private static string lastHexA;
-    private static string lastHexB;
-    private static MTColorMode lastMode;
+    private static TMP_Text[] _lastTips;
+    private static string[] _lastTipTexts;
+    private static string _lastHexA;
+    private static string _lastHexB;
+    private static MTColorMode _lastMode;
 
     internal static void ApplyColor()
     {
         HUDManager hud = HUDManager.Instance;
         if (hud?.controlTipLines == null || hud.controlTipLines.Length == 0) return;
 
-        if (hud.controlTipLines == lastTips && !HasConfigChanged() && !HasTextChanged(hud))
+        if (hud.controlTipLines == _lastTips && !HasConfigChanged() && !HasTextChanged(hud))
             return;
 
         string hexA = Plugins.ConfigEntries.MTColorGradientA.Value;
@@ -49,12 +49,12 @@ internal static class ControlTipController
         string hexA = Plugins.ConfigEntries.MTColorGradientA.Value;
         string hexB = Plugins.ConfigEntries.MTColorGradientB.Value;
 
-        return mode != lastMode || hexA != lastHexA || hexB != lastHexB;
+        return mode != _lastMode || hexA != _lastHexA || hexB != _lastHexB;
     }
 
     private static bool HasTextChanged(HUDManager hud)
     {
-        if (lastTipTexts == null || lastTipTexts.Length != hud.controlTipLines.Length)
+        if (_lastTipTexts == null || _lastTipTexts.Length != hud.controlTipLines.Length)
             return true;
 
         for (int i = 0; i < hud.controlTipLines.Length; i++)
@@ -62,7 +62,7 @@ internal static class ControlTipController
             TextMeshProUGUI tmp = hud.controlTipLines[i];
             if (tmp == null) continue;
             string text = tmp.text;
-            if (lastTipTexts[i] != text)
+            if (_lastTipTexts[i] != text)
                 return true;
         }
 
@@ -71,14 +71,14 @@ internal static class ControlTipController
 
     private static void CacheState(HUDManager hud)
     {
-        lastTips = hud.controlTipLines;
-        lastMode = Plugins.ConfigEntries.MTColorSelection.Value;
-        lastHexA = Plugins.ConfigEntries.MTColorGradientA.Value;
-        lastHexB = Plugins.ConfigEntries.MTColorGradientB.Value;
+        _lastTips = hud.controlTipLines;
+        _lastMode = Plugins.ConfigEntries.MTColorSelection.Value;
+        _lastHexA = Plugins.ConfigEntries.MTColorGradientA.Value;
+        _lastHexB = Plugins.ConfigEntries.MTColorGradientB.Value;
 
-        lastTipTexts = new string[hud.controlTipLines.Length];
+        _lastTipTexts = new string[hud.controlTipLines.Length];
         for (int i = 0; i < hud.controlTipLines.Length; i++)
-            lastTipTexts[i] = hud.controlTipLines[i]?.text;
+            _lastTipTexts[i] = hud.controlTipLines[i]?.text;
     }
 
     private static void ApplySingleColor(HUDManager hud, string hex, Color fallback)
