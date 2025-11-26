@@ -53,14 +53,9 @@
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="LethalCompany.GameLibs.Steam" Version="73.0.0-ngd.0" PrivateAssets="all" />
     <PackageReference Include="TestAccount666-GoodItemScan" Version="1.14.0" PrivateAssets="all" Publicize="true" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="BetterScanVision">
-      <HintPath>..\..\Gale\lethal-company\profiles\dev\BepInEx\plugins\DBJ-BetterScanVision\BetterScanVision.dll</HintPath>
-    </Reference>
-    <Reference Include="LethalConfig">
-      <HintPath>..\..\Gale\lethal-company\profiles\dev\BepInEx\plugins\AinaVT-LethalConfig\LethalConfig\LethalConfig.dll</HintPath>
-    </Reference>
+    <PackageReference Include="DBJ-BetterScanVision" Version="*" PrivateAssets="all" Publicize="true" />
+    <PackageReference Include="AinaVT-LethalConfig" Version="*" PrivateAssets="all" />
+    <PackageReference Include="EladNLG-EladsHUD" Version="*" PrivateAssets="all" Publicize="true" />
   </ItemGroup>
 
   <!-- Netcode Patcher -->
