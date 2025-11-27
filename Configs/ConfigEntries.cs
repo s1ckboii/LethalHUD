@@ -17,9 +17,9 @@ public class ConfigEntries
     internal DateTime _lastSlotColorChange = DateTime.MinValue;
     internal DateTime _lastLocalNameColorChange = DateTime.MinValue;
 
-    internal const string DefaultMainColor = "#000CFF";
-    private const string DefaultSlotColor = "#3226B4";
-    private const string DefaultCompassColor = "#2C265B";
+    internal const string DEFAULTMAINCOLOR = "#000CFF";
+    private const string DEFAULTSLOTCOLOR = "#3226B4";
+    private const string DEFAULTCOMPASSCOLOR = "#2C265B";
 
     public ConfigEntries()
     {
@@ -305,14 +305,14 @@ public class ConfigEntries
         {
             _lastUnifyMostColorsChange = DateTime.Now;
 
-            if (UnifyMostColors.Value.Equals(DefaultMainColor, StringComparison.OrdinalIgnoreCase))
+            if (UnifyMostColors.Value.Equals(DEFAULTMAINCOLOR, StringComparison.OrdinalIgnoreCase))
             {
-                if (!ScanColor.Value.Equals(DefaultMainColor, StringComparison.OrdinalIgnoreCase))
-                    ScanColor.Value = DefaultMainColor;
+                if (!ScanColor.Value.Equals(DEFAULTMAINCOLOR, StringComparison.OrdinalIgnoreCase))
+                    ScanColor.Value = DEFAULTMAINCOLOR;
 
-                if (!SlotColor.Value.Equals(DefaultSlotColor, StringComparison.OrdinalIgnoreCase))
-                    SlotColor.Value = DefaultSlotColor;
-                CompassController.SetCompassColor(HUDUtils.ParseHexColor(DefaultCompassColor));
+                if (!SlotColor.Value.Equals(DEFAULTSLOTCOLOR, StringComparison.OrdinalIgnoreCase))
+                    SlotColor.Value = DEFAULTSLOTCOLOR;
+                CompassController.SetCompassColor(HUDUtils.ParseHexColor(DEFAULTCOMPASSCOLOR));
 
                 return;
             }
