@@ -1,5 +1,6 @@
-﻿using Unity.Netcode;
+﻿using GameNetcodeStuff;
 using System.Collections.Generic;
+using Unity.Netcode;
 
 namespace LethalHUD.HUD;
 
@@ -63,7 +64,7 @@ internal class ChatNetworkManager : NetworkBehaviour
 
     private int NetworkIdToPlayerIndex(ulong clientId)
     {
-        var allPlayers = StartOfRound.Instance.allPlayerScripts;
+        PlayerControllerB[] allPlayers = StartOfRound.Instance.allPlayerScripts;
         for (int i = 0; i < allPlayers.Length; i++)
         {
             if ((ulong)allPlayers[i].playerClientId == clientId)
@@ -73,10 +74,16 @@ internal class ChatNetworkManager : NetworkBehaviour
     }
 }
 
-public struct PlayerColorInfo(string a, string b = null) : INetworkSerializable
+public struct PlayerColorInfo : INetworkSerializable
 {
-    public string colorA = a;
-    public string colorB = b;
+    public string colorA;
+    public string colorB;
+
+    public PlayerColorInfo(string a, string b = null)
+    {
+        colorA = a ?? "#FF0000";
+        colorB = b ?? colorA;
+    }
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {

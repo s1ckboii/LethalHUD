@@ -7,6 +7,7 @@ using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System.Collections;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,6 +18,7 @@ namespace LethalHUD.Patches;
 [HarmonyPatch(typeof(HUDManager))]
 internal static class HUDManagerPatch
 {
+    private static InputAction _pingScanAction;
     private static CallbackContext _pingScan;
     private static bool _isScanToggled = false;
     private static Coroutine _toggleCoroutine;
@@ -61,6 +63,8 @@ internal static class HUDManagerPatch
     [HarmonyPatch("Start")]
     private static void OnHUDManagerStart(HUDManager __instance)
     {
+        _pingScanAction = IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan");
+
         ScanController.SetScanColor();
         ScanController.UpdateScanTexture();
         PlayerHPDisplay.Init();
@@ -128,7 +132,6 @@ internal static class HUDManagerPatch
         PlayerHPDisplay.UpdateNumber();
         WeightController.UpdateWeightDisplay();
 
-        InputAction scanAction = IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan");
         ScanMode scanMode = Plugins.ConfigEntries.ScanModeType.Value;
 
         switch (scanMode)
@@ -139,12 +142,12 @@ internal static class HUDManagerPatch
 
             case ScanMode.Hold:
                 StopToggleScan(__instance);
-                if (scanAction.IsPressed())
+                if (_pingScanAction.IsPressed())
                     __instance.PingScan_performed(_pingScan);
                 break;
 
             case ScanMode.Toggle:
-                if (scanAction.WasPressedThisFrame())
+                if (_pingScanAction.WasPressedThisFrame())
                 {
                     if (_isScanToggled)
                         StopToggleScan(__instance);
@@ -177,7 +180,10 @@ internal static class HUDManagerPatch
         if (string.IsNullOrEmpty(chatMessage))
             return;
 
-        string last;
+        int index = __instance.ChatMessageHistory.Count - 1;
+        if (index < 0) return;
+
+        string original = __instance.ChatMessageHistory[index];
 
         Match tagMatch = Regex.Match(chatMessage, @"^(<[^>]+>)+");
         string preTags = "";
@@ -191,32 +197,31 @@ internal static class HUDManagerPatch
 
         bool alreadyColored = chatMessage.Contains("<color=") || chatMessage.Contains("<gradient=");
 
-        string coloredMessage;
-        if (alreadyColored)
-        {
-            coloredMessage = chatMessage;
-        }
-        else
-        {
-            string recoloredText = ChatController.GetColoredChatMessage(innerText);
-            coloredMessage = preTags + recoloredText;
-        }
+        string coloredMessage = alreadyColored
+            ? chatMessage
+            : preTags + ChatController.GetColoredChatMessage(innerText);
 
+        string final;
         if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
         {
             string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped, playerWhoSent);
-            last = $"{coloredName}: {coloredMessage}";
+            final = $"{coloredName}: {coloredMessage}";
         }
         else
         {
-            last = coloredMessage;
+            final = coloredMessage;
         }
 
-        if (__instance.ChatMessageHistory.Count > 0)
+        __instance.ChatMessageHistory[index] = final;
+
+        StringBuilder sb = new();
+        for (int i = 0; i < __instance.ChatMessageHistory.Count; i++)
         {
-            __instance.ChatMessageHistory[^1] = last;
-            __instance.chatText.text = string.Join("\n", __instance.ChatMessageHistory);
+            sb.Append('\n');
+            sb.Append(__instance.ChatMessageHistory[i]);
         }
+
+        __instance.chatText.text = sb.ToString();
 
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }

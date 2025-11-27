@@ -28,7 +28,7 @@ internal static class ChatController
             return;
 
         PlayerColorInfo info = new(colorA, colorB);
-        SetPlayerColor(-1, colorA, colorB); // Use -1 if not networked yet (main menu)
+        SetPlayerColor(-1, colorA, colorB);
 
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient || ChatNetworkManager.Instance == null)
         {
@@ -43,15 +43,20 @@ internal static class ChatController
     }
     internal static string GetColoredPlayerName(string playerName, int playerId = -1)
     {
-        if (!ColoringEnabled || string.IsNullOrEmpty(playerName))
+        if (string.IsNullOrEmpty(playerName))
             return playerName;
 
-        if (playerId != -1 && _playerColors.TryGetValue(playerId, out PlayerColorInfo info))
+        if (ColoringEnabled)
         {
-            ColorUtility.TryParseHtmlString(info.colorA, out Color colorA);
-            ColorUtility.TryParseHtmlString(info.colorB, out Color colorB);
-            return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
+            if (playerId != -1 && _playerColors.TryGetValue(playerId, out PlayerColorInfo info))
+            {
+                ColorUtility.TryParseHtmlString(info.colorA, out Color colorA);
+                ColorUtility.TryParseHtmlString(info.colorB, out Color colorB);
+                return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
+            }
+            return $"<color=#FF0000>{playerName}</color>";
         }
+
         return $"<color=#FF0000>{playerName}</color>";
     }
     internal static string GetColoredChatMessage(string message)

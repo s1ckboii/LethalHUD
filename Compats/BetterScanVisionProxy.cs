@@ -20,7 +20,7 @@ internal class BetterScanVisionProxy
 
         if (_nightVisionField == null)
         {
-            var t = AppDomain.CurrentDomain.GetAssemblies()
+            Type t = AppDomain.CurrentDomain.GetAssemblies()
                 .Select(a => a.GetType("BetterScanVision.PlayerControllerBPatches"))
                 .FirstOrDefault(x => x != null);
 

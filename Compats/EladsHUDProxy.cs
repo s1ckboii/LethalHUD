@@ -135,32 +135,6 @@ internal static class EladsHUDProxy
         carryText.enableVertexGradient = true;
         carryText.color = Color.white;
 
-        /*
-        if (Plugins.ConfigEntries.HalloweenMode.Value)
-        {
-            Color startColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.WeightStarterColor.Value);
-            ColorUtility.TryParseHtmlString("#6611BB", out Color endColor);
-
-            carryText.colorGradient = new VertexGradient(startColor, startColor, startColor, startColor);
-
-            carryText.text = HUDUtils.ApplyRichTextGradient(displayText, startColor, endColor);
-        }
-        else
-        {
-            float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
-            {
-                WeightUnit.Pounds => 130f,
-                WeightUnit.Kilograms => 130f * 0.453592f,
-                WeightUnit.Manuls => 130f / 9.9f,
-                _ => 130f
-            };
-            float normalizedWeight = Mathf.Clamp01(convertedWeight / maxWeight);
-
-            carryText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
-            carryText.text = displayText;
-        }
-        */
-
         float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
             WeightUnit.Pounds => 130f,

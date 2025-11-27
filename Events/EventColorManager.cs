@@ -12,20 +12,59 @@ namespace LethalHUD.Events;
 
 public static class EventColorManager
 {
-    public static EventColorConfig Config => _config;
-    public static bool HasLoaded => _hasLoaded;
-
     private static EventColorConfig _config;
     private static bool _hasLoaded = false;
     private static string _lastEventName = null;
 
-    private static readonly Dictionary<string, string> _originalColors = [];
-    private static readonly Dictionary<string, string> _friendlyToInternalMap = [];
-    private static readonly Dictionary<string, ConfigEntry<string>> _internalEntryMap = [];
+    private static readonly Dictionary<string, string> _originalColors = new();
+    private static readonly Dictionary<string, ConfigEntry<string>> _internalEntryMap = new();
+
+    // Maps friendly JSON names to ConfigEntries field names
+    private static readonly Dictionary<string, string> _friendlyToInternalMap = new()
+    {
+        { "UnifyMostColors", "UnifyMostColors" },
+        { "ForcedEvent", "ForcedEvent" },
+        { "ScanColor", "HUDScanColor" },
+        { "SlotColor", "HUDSlotColor" },
+        { "GradientColorA", "GradientColorA" },
+        { "GradientColorB", "GradientColorB" },
+        { "HandsFullColor", "HandsFullColor" },
+        { "HealthColor", "HealthColor" },
+        { "SprintMeterColor", "SprintMeterColor" },
+        { "WeightStarterColor", "WeightStarterColor" },
+        { "GradientNameColorA", "GradientNameColorA" },
+        { "GradientNameColorB", "GradientNameColorB" },
+        { "ChatInputText", "ChatInputText" },
+        { "ChatMessageColor", "ChatMessageColor" },
+        { "GradientMessageColorA", "GradientMessageColorA" },
+        { "GradientMessageColorB", "GradientMessageColorB" },
+        { "ClockNumberColor", "ClockNumberColor" },
+        { "ClockBoxColor", "ClockBoxColor" },
+        { "ClockIconColor", "ClockIconColor" },
+        { "ClockShipLeaveColor", "ClockShipLeaveColor" },
+        { "SignalTextColor", "SignalTextColor" },
+        { "SignalText2Color", "SignalText2Color" },
+        { "SignalBGColor", "SignalBGColor" },
+        { "SignalMessageColor", "SignalMessageColor" },
+        { "LoadingTextColor", "LoadingTextColor" },
+        { "PlanetSummaryColor", "PlanetSummaryColor" },
+        { "PlanetHeaderColor", "PlanetHeaderColor" },
+        { "SpectatorTipColor", "SpectatorTipColor" },
+        { "SpectatingPlayerColor", "SpectatingPlayerColor" },
+        { "HoldEndGameColor", "HoldEndGameColor" },
+        { "HoldEndGameVotesColor", "HoldEndGameVotesColor" },
+        { "SeperateAdditionalMiscToolsColors", "SeperateAdditionalMiscToolsColors" },
+        { "MTColorGradientA", "MTColorGradientA" },
+        { "MTColorGradientB", "MTColorGradientB" }
+        // Add any missing mappings here
+    };
+
+    public static EventColorConfig Config => _config;
+    public static bool HasLoaded => _hasLoaded;
 
     public static void Load()
     {
-        string path = Path.Combine(Paths.ConfigPath, "LethalHUD.Events.json");
+        string path = Path.Combine(BepInEx.Paths.ConfigPath, "LethalHUD.Events.json");
 
         if (!File.Exists(path))
         {
@@ -39,7 +78,7 @@ public static class EventColorManager
             _config = JsonConvert.DeserializeObject<EventColorConfig>(json);
             _hasLoaded = true;
 
-            BuildFriendlyToInternalMap();
+            BuildInternalEntryMap();
 
             Loggers.Info("EventColorManager loaded event configuration.");
         }
@@ -49,21 +88,23 @@ public static class EventColorManager
         }
     }
 
-    private static void BuildFriendlyToInternalMap()
+    private static void BuildInternalEntryMap()
     {
-        _friendlyToInternalMap.Clear();
+        _internalEntryMap.Clear();
 
-        PropertyInfo[] props = typeof(ConfigJsonProperties).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var configFields = typeof(ConfigEntries)
+            .GetFields(BindingFlags.Public | BindingFlags.Instance)
+            .Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(ConfigEntry<>));
 
-        foreach (PropertyInfo prop in props)
+        foreach (var field in configFields)
         {
-            string internalName = prop.Name;
-            string friendlyName = prop.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName ?? internalName;
+            if (field.FieldType.GetGenericArguments()[0] != typeof(string))
+                continue;
 
-            if (ConfigUtils.HasConfigEntry(internalName))
-                _friendlyToInternalMap[friendlyName] = internalName;
-            else
-                Loggers.Warning($"No matching ConfigEntry for JSON property '{friendlyName}' ({internalName})");
+            if (field.GetValue(Plugins.ConfigEntries) is ConfigEntry<string> entry)
+            {
+                _internalEntryMap[field.Name] = entry;
+            }
         }
     }
 
@@ -74,11 +115,12 @@ public static class EventColorManager
 
         if (!string.IsNullOrEmpty(Plugins.ConfigEntries.ForcedEvent?.Value) && Plugins.ConfigEntries.ForcedEvent.Value != "None")
         {
-            return _config.Events.FirstOrDefault(ev => ev.Name == Plugins.ConfigEntries.ForcedEvent.Value);
+            return _config.Events.FirstOrDefault(ev =>
+                ev.Name.Equals(Plugins.ConfigEntries.ForcedEvent.Value, StringComparison.OrdinalIgnoreCase));
         }
 
         DateTime now = DateTime.Now;
-        foreach (EventColorEntry ev in _config.Events)
+        foreach (var ev in _config.Events)
         {
             if (!DateTime.TryParse(ev.Start, out DateTime start)) continue;
             if (!DateTime.TryParse(ev.End, out DateTime end)) continue;
@@ -92,7 +134,7 @@ public static class EventColorManager
 
     public static void Update()
     {
-        EventColorEntry activeEvent = GetActiveEvent();
+        var activeEvent = GetActiveEvent();
 
         if (activeEvent == null)
         {
@@ -117,22 +159,25 @@ public static class EventColorManager
 
         foreach (var kvp in activeEvent.Overrides)
         {
-            string friendlyName = kvp.Key;
-            string newValue = kvp.Value;
+            // Map friendly JSON key to internal field name
+            if (!_friendlyToInternalMap.TryGetValue(kvp.Key, out string internalName))
+            {
+                Loggers.Warning($"No ConfigEntry mapping found for key '{kvp.Key}' in event '{activeEvent.Name}'");
+                continue;
+            }
 
-            if (!_friendlyToInternalMap.ContainsKey(friendlyName)) continue;
-
-            string internalName = _friendlyToInternalMap[friendlyName];
-            var entry = _internalEntryMap[internalName];
+            if (!_internalEntryMap.TryGetValue(internalName, out var entry))
+                continue;
 
             if (!_originalColors.ContainsKey(internalName))
                 _originalColors[internalName] = entry.Value;
 
-            entry.Value = newValue;
+            entry.Value = kvp.Value;
         }
 
         Loggers.Info($"Applied event colors for event: {activeEvent.Name}");
     }
+
     private static void RestoreOriginalColors()
     {
         foreach (var kvp in _originalColors)

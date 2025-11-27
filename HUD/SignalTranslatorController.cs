@@ -11,6 +11,10 @@ internal static class SignalTranslatorController
     private static TMP_Text[] _animatorTMPs;
     private static bool _isCentered = false;
 
+    private static Image _signalBG;
+    private static TMP_Text _signalText1;
+    private static TMP_Text _signalText2;
+
     public static void CenterText()
     {
         if (!Plugins.ConfigEntries.CenterSTText.Value)
@@ -69,9 +73,12 @@ internal static class SignalTranslatorController
 
     public static void ApplyInMono()
     {
-        Image signalBG = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalBG")?.GetComponent<Image>();
-        TMP_Text signalText1 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (1)")?.GetComponent<TMP_Text>();
-        TMP_Text signalText2 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (2)")?.GetComponent<TMP_Text>();
+        if (_signalBG == null || _signalText1 == null || _signalText2 == null)
+        {
+            _signalBG = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalBG")?.GetComponent<Image>();
+            _signalText1 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (1)")?.GetComponent<TMP_Text>();
+            _signalText2 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (2)")?.GetComponent<TMP_Text>();
+        }
 
         Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalTextColor.Value);
         Color color2 = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalText2Color.Value);
@@ -81,14 +88,14 @@ internal static class SignalTranslatorController
         Color signalText2Color = new(color2.r, color2.g, color2.b, 156f / 255f);
         Color signalBGColor = new(color3.r, color3.g, color3.b, 18f / 255f);
 
-        if (signalBG != null && signalBG.color != signalBGColor)
-            signalBG.color = signalBGColor;
+        if (_signalBG != null && _signalBG.color != signalBGColor)
+            _signalBG.color = signalBGColor;
 
-        if (signalText1 != null && signalText1.color != signalText1Color)
-            signalText1.color = signalText1Color;
+        if (_signalText1 != null && _signalText1.color != signalText1Color)
+            _signalText1.color = signalText1Color;
 
-        if (signalText2 != null && signalText2.color != signalText2Color)
-            signalText2.color = signalText2Color;
+        if (_signalText2 != null && _signalText2.color != signalText2Color)
+            _signalText2.color = signalText2Color;
     }
 
 

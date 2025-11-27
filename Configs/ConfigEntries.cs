@@ -12,7 +12,6 @@ using static LethalHUD.Enums;
 namespace LethalHUD.Configs;
 public class ConfigEntries
 {
-    public static ConfigFile ConfigFile { get; private set; }
     internal DateTime _lastScanColorChange = DateTime.MinValue;
     internal DateTime _lastUnifyMostColorsChange = DateTime.MinValue;
     internal DateTime _lastSlotColorChange = DateTime.MinValue;
@@ -424,7 +423,11 @@ public class ConfigEntries
         HoldEndGameColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         HoldEndGameVotesColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         #endregion
-
+        HideHUDButton.SettingChanged += (obj, args) =>
+        {
+            if (LethalHUDMono.Instance != null)
+                LethalHUDMono.Instance.UpdateToggleKey();
+        };
         ForcedEvent.SettingChanged += (obj, args) => { EventColorManager.Update(); };
     }
 }

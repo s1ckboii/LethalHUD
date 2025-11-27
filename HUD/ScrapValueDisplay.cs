@@ -44,22 +44,52 @@ internal static class ScrapValueDisplay
     internal static void SetupSlots()
     {
         HUDManager hud = HUDManager.Instance;
-        if (hud == null || hud.itemSlotIconFrames == null || hud.itemSlotIconFrames.Length == 0) return;
+        if (hud == null || hud.itemSlotIconFrames == null) return;
 
         int slotCount = hud.itemSlotIconFrames.Length;
 
         if (slotTexts == null || slotTexts.Length != slotCount)
+        {
+            if (slotTexts != null)
+            {
+                for (int i = 0; i < slotTexts.Length; i++)
+                {
+                    if (slotTexts[i] != null)
+                        Object.Destroy(slotTexts[i].gameObject);
+                }
+            }
+
             slotTexts = new TMP_Text[slotCount];
-        if (_slotValues == null || _slotValues.Length != slotCount)
             _slotValues = new int[slotCount];
+        }
 
         for (int i = 0; i < slotCount; i++)
         {
             Image slot = hud.itemSlotIconFrames[i];
-            if (slot == null) continue;
-            if (slotTexts[i] != null) continue;
+            if (slot == null)
+                continue;
 
-            CreateSlotTextForIndex(i, slot);
+            bool mustCreate = false;
+
+            if (slotTexts[i] == null)
+                mustCreate = true;
+
+            else if (slotTexts[i].gameObject == null)
+                mustCreate = true;
+
+            else if (slotTexts[i].transform.parent != slot.transform)
+                mustCreate = true;
+
+            if (mustCreate)
+            {
+                foreach (Transform child in slot.transform)
+                {
+                    if (child.name == "InventoryScrapValueText")
+                        Object.Destroy(child.gameObject);
+                }
+
+                CreateSlotTextForIndex(i, slot);
+            }
         }
 
         SetupTotalText(hud);

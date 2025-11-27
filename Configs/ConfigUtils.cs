@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,143 +34,16 @@ internal static class ConfigUtils
         name ??= "global";
         return CreateConfigFile(plugin, path, name, saveOnInit);
     }
-    public static string GetConfigEntryValue(string name)
+    public static bool HasConfigEntry(string internalName)
     {
-        ConfigEntries configEntries = Plugins.ConfigEntries;
-        if (configEntries == null) return null;
-
-        Type type = configEntries.GetType();
-
-        MemberInfo member = (MemberInfo)type.GetField(name,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            ?? type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        if (member == null) return null;
-
-        object entry = member switch
-        {
-            FieldInfo f => f.GetValue(configEntries),
-            PropertyInfo p => p.GetValue(configEntries),
-            _ => null
-        };
-        if (entry == null) return null;
-
-        Type fieldType = entry.GetType();
-        if (!fieldType.IsGenericType || fieldType.GetGenericTypeDefinition() != typeof(ConfigEntry<>))
-            return null;
-
-        PropertyInfo valueProp = fieldType.GetProperty("Value");
-        return valueProp?.GetValue(entry)?.ToString();
-    }
-    public static bool HasConfigEntry(string readableName)
-    {
-        string actualName = GetActualFieldName(readableName);
-        return actualName != null;
+        var field = typeof(ConfigEntries).GetField(internalName, BindingFlags.Public | BindingFlags.Instance);
+        return field != null && field.FieldType == typeof(ConfigEntry<string>);
     }
 
-    public static void SetConfigEntryValueByName(string name, string value)
+    public static ConfigEntry<string> GetConfigEntry(string internalName)
     {
-        ConfigEntries configEntries = Plugins.ConfigEntries;
-        if (configEntries == null) return;
-
-        FieldInfo field = configEntries.GetType().GetField(name,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-        if (field == null) return;
-
-        Type fieldType = field.FieldType;
-        if (!fieldType.IsGenericType || fieldType.GetGenericTypeDefinition() != typeof(ConfigEntry<>))
-            return;
-
-        var configEntry = field.GetValue(configEntries);
-        if (configEntry == null) return;
-
-        var valueProp = fieldType.GetProperty("Value");
-        Type targetType = fieldType.GetGenericArguments()[0];
-
-        object parsedValue = value;
-
-        try
-        {
-            if (targetType == typeof(int)) parsedValue = int.Parse(value);
-            else if (targetType == typeof(float)) parsedValue = float.Parse(value);
-            else if (targetType == typeof(double)) parsedValue = double.Parse(value);
-            else if (targetType == typeof(bool)) parsedValue = bool.Parse(value);
-        }
-        catch { return; }
-
-        valueProp.SetValue(configEntry, parsedValue);
-    }
-
-    public static List<string> GetAllColorConfigKeys()
-    {
-        List<string> keys = [];
-        ConfigEntries configEntries = Plugins.ConfigEntries;
-        if (configEntries == null) return keys;
-
-        Type cfgType = typeof(ConfigEntries);
-
-        List<MemberInfo> members =
-        [
-            .. cfgType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
-            .. cfgType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
-        ];
-
-        foreach (MemberInfo member in members)
-        {
-            Type memberType = null;
-
-            switch (member)
-            {
-                case FieldInfo field:
-                    memberType = field.FieldType;
-                    break;
-
-                case PropertyInfo prop:
-                    memberType = prop.PropertyType;
-                    break;
-            }
-
-            if (memberType == null) continue;
-            if (!memberType.IsGenericType || memberType.GetGenericTypeDefinition() != typeof(ConfigEntry<>))
-                continue;
-
-            Type genericArg = memberType.GetGenericArguments()[0];
-            if (genericArg != typeof(string)) continue;
-
-            if (!member.Name.ToLower().Contains("color")) continue;
-
-            keys.Add(member.Name);
-        }
-
-        return keys;
-    }
-
-    public static string GetActualFieldName(string readableName)
-    {
-        ConfigEntries configEntries = Plugins.ConfigEntries;
-        if (configEntries == null) return null;
-
-        Type type = configEntries.GetType();
-        List<MemberInfo> members =
-        [
-            .. type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
-            .. type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance),
-        ];
-
-        foreach (MemberInfo member in members)
-        {
-            string cleanName = member.Name.Replace("<", "").Replace(">k__BackingField", "");
-            if (cleanName == readableName)
-                return member.Name;
-        }
-        return null;
-    }
-
-    public static void SetConfigEntryValueByReadableName(string readableName, string value)
-    {
-        string actualName = GetActualFieldName(readableName);
-        if (actualName != null)
-            SetConfigEntryValueByName(actualName, value);
+        var field = typeof(ConfigEntries).GetField(internalName, BindingFlags.Public | BindingFlags.Instance);
+        if (field == null) return null;
+        return field.GetValue(Plugins.ConfigEntries) as ConfigEntry<string>;
     }
 }
