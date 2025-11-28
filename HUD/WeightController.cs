@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Globalization;
+using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;
 
@@ -21,10 +22,10 @@ internal static class WeightController
     {
         return Plugins.ConfigEntries.WeightDecimalFormatConfig.Value switch
         {
-            WeightDecimalFormat.Rounded => $"{weight:F0}",
-            WeightDecimalFormat.TwoDecimalsDot => $"{weight:F2}".Replace(',', '.'),
-            WeightDecimalFormat.TwoDecimalsComma => $"{weight:F2}",
-            _ => $"{weight:F0}"
+            WeightDecimalFormat.Rounded => weight.ToString("F0"),
+            WeightDecimalFormat.TwoDecimalsDot => weight.ToString("F2", CultureInfo.InvariantCulture),
+            WeightDecimalFormat.TwoDecimalsComma => weight.ToString("F2"),
+            _ => weight.ToString("F0")
         };
     }
 

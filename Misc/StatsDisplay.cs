@@ -197,7 +197,7 @@ public class StatsDisplay : NetworkBehaviour
     }
     #endregion
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     private void RequestPingServerRpc(ServerRpcParams rpcParams = default)
     {
         if (_transport == null) return;

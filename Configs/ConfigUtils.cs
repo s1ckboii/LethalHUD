@@ -1,8 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
@@ -33,17 +30,5 @@ internal static class ConfigUtils
         string path = GetPluginPersistentDataPath();
         name ??= "global";
         return CreateConfigFile(plugin, path, name, saveOnInit);
-    }
-    public static bool HasConfigEntry(string internalName)
-    {
-        var field = typeof(ConfigEntries).GetField(internalName, BindingFlags.Public | BindingFlags.Instance);
-        return field != null && field.FieldType == typeof(ConfigEntry<string>);
-    }
-
-    public static ConfigEntry<string> GetConfigEntry(string internalName)
-    {
-        var field = typeof(ConfigEntries).GetField(internalName, BindingFlags.Public | BindingFlags.Instance);
-        if (field == null) return null;
-        return field.GetValue(Plugins.ConfigEntries) as ConfigEntry<string>;
     }
 }

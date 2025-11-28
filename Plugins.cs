@@ -4,7 +4,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LethalHUD.Compats;
 using LethalHUD.Configs;
-using LethalHUD.Events;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -55,8 +54,6 @@ public class Plugins : BaseUnityPlugin
             : ConfigUtils.CreateGlobalConfigFile(this);
 
         ConfigEntries = new ConfigEntries();
-
-        EventColorManager.Load();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
         string assetBundleFilePath = Path.Combine(pluginFolderPath, "unfathomablyridiculousoriginalassetbundlenameforlethalhud");

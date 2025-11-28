@@ -1,7 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 using LethalHUD.Compats;
-using LethalHUD.Events;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -89,10 +88,6 @@ internal static class HUDManagerPatch
         if (__instance.gameObject.GetComponent<StatsDisplay>() == null)
         {
             __instance.gameObject.AddComponent<StatsDisplay>();
-        }
-        if (__instance.gameObject.GetComponent<EventColorUpdater>() == null)
-        {
-            __instance.gameObject.AddComponent<EventColorUpdater>();
         }
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
     }

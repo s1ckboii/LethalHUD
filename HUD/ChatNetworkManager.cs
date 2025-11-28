@@ -26,9 +26,6 @@ internal class ChatNetworkManager : NetworkBehaviour
     {
         _hostPlayerColors[clientId] = info;
 
-        // Using fatal cuz it's much more visible
-        Loggers.Fatal($"[ChatNetworkManager] Server received color for client {clientId}: {info.colorA}, {info.colorB}");
-
         SetPlayerColorClientRpc(clientId, info);
     }
 
