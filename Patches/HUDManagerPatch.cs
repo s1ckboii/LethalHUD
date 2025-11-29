@@ -291,12 +291,10 @@ internal static class HUDManagerPatch
         PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
         if (player == null) return;
 
-        FieldInfo field = AccessTools.Field(typeof(HUDManager), "playerPingingScan");
-        float cooldown = (float)field.GetValue(__instance);
-
+        float cooldown = __instance.playerPingingScan;
         if (cooldown <= -1f && __instance.CanPlayerScan())
         {
-            field.SetValue(__instance, 0.3f);
+            __instance.playerPingingScan = 0.3f;
             __instance.scanEffectAnimator.transform.position = player.gameplayCamera.transform.position;
             __instance.scanEffectAnimator.SetTrigger("scan");
             __instance.PingHUDElement(__instance.Compass, 1f, 0.8f, 0.12f);
