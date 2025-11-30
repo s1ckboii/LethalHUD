@@ -2,8 +2,6 @@
 using LethalHUD.Compats;
 using LethalHUD.HUD;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace LethalHUD.Configs;
@@ -54,13 +52,6 @@ internal static class ConfigHelper
 
         return configEntry;
     }
-    internal static Dictionary<ConfigDefinition, string> GetOrphanedConfigEntries(ConfigFile configFile = null)
-    {
-        configFile ??= Plugins.Config;
-
-        PropertyInfo orphanedEntriesProp = configFile.GetType().GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
-        return (Dictionary<ConfigDefinition, string>)orphanedEntriesProp.GetValue(configFile, null);
-    }
 
     internal static void SetConfigEntryValue<T>(ConfigEntry<T> configEntry, string value)
     {
@@ -82,22 +73,6 @@ internal static class ConfigHelper
         else
             // Optionally handle unsupported types
             throw new InvalidOperationException($"Unsupported type: {typeof(T)}");
-    }
-
-    // Credit to Kittenji. <- Thanks from Zehs and me too.
-    internal static void ClearUnusedEntries(ConfigFile configFile = null)
-    {
-        configFile ??= Plugins.Config;
-
-        Dictionary<ConfigDefinition, string> orphanedEntries = GetOrphanedConfigEntries(configFile);
-
-        if (orphanedEntries == null)
-        {
-            return;
-        }
-
-        orphanedEntries.Clear();
-        configFile.Save();
     }
     #region DevTool
 #if DEBUG
@@ -127,7 +102,7 @@ internal static class ConfigHelper
             }
         }
 
-        ClearUnusedEntries();
+        Plugins.Config.OrphanedEntries.Clear();
         Plugins.Logger.LogInfo("LethalHUD configs have been reset to default values.");
     }
 #endif
