@@ -4,8 +4,10 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LethalHUD.Compats;
 using LethalHUD.Configs;
+using LethalHUD.HUD;
 using System.Collections.Generic;
 using System.IO;
+using Unity.Netcode;
 using UnityEngine;
 using static LethalHUD.Enums;
 
@@ -40,9 +42,9 @@ public class Plugins : BaseUnityPlugin
         if (Instance == null) Instance = this;
 
         Harmony = new(MyPluginInfo.PLUGIN_GUID);
-
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
-        Loggers.Info("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
+        
+        SerializeNetworkVariables(); // Serialize structs to allow them to be NetworkVariables.
 
         ConfigFile bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
         ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart."
@@ -98,5 +100,13 @@ public class Plugins : BaseUnityPlugin
         }
         Harmony.PatchAll();
         bootstrapConfig.Save();
+
+        Loggers.Info("Plugin " + MyPluginInfo.PLUGIN_NAME + " loaded!");
+    }
+
+    private static void SerializeNetworkVariables()
+    {
+        NetworkVariableSerializationTypes.InitializeSerializer_UnmanagedByMemcpy<PlayerColorInfo>();
+        NetworkVariableSerializationTypes.InitializeEqualityChecker_UnmanagedIEquatable<PlayerColorInfo>();
     }
 }

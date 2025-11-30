@@ -8,6 +8,14 @@ namespace LethalHUD.Patches;
 internal static class PlayerControllerBPatch
 {
     [HarmonyPrefix]
+    [HarmonyPatch("Awake")]
+    private static void OnPlayerControllerBAwake(PlayerControllerB __instance)
+    {
+        if (!__instance.TryGetComponent(out ChatNetworkManager _))
+            __instance.gameObject.AddComponent<ChatNetworkManager>();
+    }
+
+    [HarmonyPrefix]
     [HarmonyPatch("BeginGrabObject")]
     private static void OnPlayerControllerBBeginGrabObject()
     {

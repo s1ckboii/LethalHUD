@@ -363,8 +363,8 @@ public class ConfigEntries
         #endregion
 
         #region Chat Changes
-        GradientNameColorA.SettingChanged += (obj, args) => { ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value); };
-        GradientNameColorB.SettingChanged += (obj, args) => { ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value); };
+        GradientNameColorA.SettingChanged += ChatNetworkManager.RefreshColors;
+        GradientNameColorB.SettingChanged += ChatNetworkManager.RefreshColors;
         #endregion
 
         #region Clock Changes

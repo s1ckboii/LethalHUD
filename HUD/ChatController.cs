@@ -1,15 +1,13 @@
-﻿using LethalHUD.Configs;
-using System.Collections.Generic;
+﻿using GameNetcodeStuff;
+using LethalHUD.Configs;
 using System.Linq;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 internal static class ChatController
 {
-    private static readonly Dictionary<int, PlayerColorInfo> _playerColors = [];
     internal static bool ColoringEnabled => Plugins.ConfigEntries.ColoredNames.Value;
 
     internal static string NoPunctuation(string input)
@@ -17,44 +15,19 @@ internal static class ChatController
         return new string([.. input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.')]);
     }
 
-    internal static void SetPlayerColor(int playerId, string colorA, string colorB = null)
-    {
-        _playerColors[playerId] = new PlayerColorInfo(colorA, colorB);
-    }
-
-    internal static void ApplyLocalPlayerColor(string colorA, string colorB = null)
-    {
-        if (string.IsNullOrEmpty(colorA) || string.IsNullOrEmpty(colorB))
-            return;
-
-        PlayerColorInfo info = new(colorA, colorB);
-        SetPlayerColor(-1, colorA, colorB);
-
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient || ChatNetworkManager.Instance == null)
-        {
-            Loggers.Info("[ChatController] Network not ready; stored color locally only.");
-            return;
-        }
-
-        int localId = (int)NetworkManager.Singleton.LocalClientId;
-        SetPlayerColor(localId, colorA, colorB);
-
-        ChatNetworkManager.SendColorToServer(info);
-    }
     internal static string GetColoredPlayerName(string playerName, int playerId = -1)
     {
         if (string.IsNullOrEmpty(playerName))
             return playerName;
 
-        if (ColoringEnabled)
+        if (ColoringEnabled && playerId < StartOfRound.Instance.allPlayerScripts.Length)
         {
-            if (playerId != -1 && _playerColors.TryGetValue(playerId, out PlayerColorInfo info))
+            PlayerControllerB player = playerId >= 0 ? StartOfRound.Instance.allPlayerScripts[playerId] : GameNetworkManager.Instance.localPlayerController;
+            if (player.TryGetComponent(out ChatNetworkManager playerChatNetworkManager))
             {
-                ColorUtility.TryParseHtmlString(info.colorA, out Color colorA);
-                ColorUtility.TryParseHtmlString(info.colorB, out Color colorB);
-                return HUDUtils.ApplyStaticGradient(playerName, colorA, colorB);
+                PlayerColorInfo info = playerChatNetworkManager.PlayerColors;
+                return HUDUtils.ApplyStaticGradient(playerName, info.colorA, info.colorB);
             }
-            return $"<color=#FF0000>{playerName}</color>";
         }
 
         return $"<color=#FF0000>{playerName}</color>";

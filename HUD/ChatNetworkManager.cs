@@ -1,90 +1,98 @@
 ﻿using GameNetcodeStuff;
-using System.Collections.Generic;
+using System;
 using Unity.Netcode;
+using UnityEngine;
 
 namespace LethalHUD.HUD;
 
-// Potentially using the new rpc params later for targeting specific clients
+[DisallowMultipleComponent]
+[RequireComponent(typeof(PlayerControllerB))]
 internal class ChatNetworkManager : NetworkBehaviour
 {
-    private readonly Dictionary<ulong, PlayerColorInfo> _hostPlayerColors = [];
-    public static ChatNetworkManager Instance { get; private set; }
+    /// <summary>
+    ///     Each player possesses a <c>PlayerColorInfo</c> <c>NetworkVariable</c> that they can write to, which is then synced with all other clients.
+    /// </summary>
+    private readonly NetworkVariable<PlayerColorInfo> _syncedPlayerColors = new(writePerm: NetworkVariableWritePermission.Owner);
+    public PlayerColorInfo PlayerColors { get; private set; } // Local color information for the player.
 
-    private void Awake()
+    public override void OnNetworkSpawn()
     {
-        if (Instance == null) Instance = this;
+        base.OnNetworkSpawn();
+
+        // Update local color information when the synced value changes.
+        _syncedPlayerColors.OnValueChanged += (previousValue, newValue) => PlayerColors = newValue;
+
+        // Refresh player colors upon spawning.
+        RefreshColors();
     }
 
-    public static void SendColorToServer(PlayerColorInfo info)
+    protected override void OnOwnershipChanged(ulong previous, ulong current)
     {
-        if (NetworkManager.Singleton.LocalClientId < 0) return;
-        Instance.SetPlayerColorServerRpc(NetworkManager.Singleton.LocalClientId, info);
+        base.OnOwnershipChanged(previous, current);
+
+        // Refresh player colors upon changing ownership (player joining lobby).
+        RefreshColors();
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void SetPlayerColorServerRpc(ulong clientId, PlayerColorInfo info)
+    private void RefreshColors()
     {
-        _hostPlayerColors[clientId] = info;
-
-        SetPlayerColorClientRpc(clientId, info);
-    }
-
-    [ClientRpc]
-    private void SetPlayerColorClientRpc(ulong clientId, PlayerColorInfo info)
-    {
-        if (!ChatController.ColoringEnabled) return;
-
-        if (StartOfRound.Instance == null || StartOfRound.Instance.allPlayerScripts == null || HUDManager.Instance == null)
+        if (IsOwner)
         {
-            StartCoroutine(DelayedApply(clientId, info));
-            return;
+            string colorAHex = Plugins.ConfigEntries.GradientNameColorA.Value,
+                colorBHex = Plugins.ConfigEntries.GradientNameColorB.Value;
+
+            PlayerColors = new(ColorUtility.TryParseHtmlString(colorAHex, out Color colorA) ? colorA : Color.red,
+                ColorUtility.TryParseHtmlString(colorBHex, out Color colorB) ? colorB : null);
+
+            _syncedPlayerColors.Value = PlayerColors;
         }
 
-        ApplyColor(clientId, info);
+        PlayerColors = _syncedPlayerColors.Value;
     }
 
-    private System.Collections.IEnumerator DelayedApply(ulong clientId, PlayerColorInfo info)
+    internal static void RefreshColors(object obj, EventArgs args)
     {
-        while (StartOfRound.Instance == null || StartOfRound.Instance.allPlayerScripts == null || HUDManager.Instance == null)
-            yield return null;
-
-        ApplyColor(clientId, info);
-    }
-
-    private void ApplyColor(ulong clientId, PlayerColorInfo info)
-    {
-        int baseGameId = NetworkIdToPlayerIndex(clientId);
-        if (baseGameId == -1) return;
-
-        ChatController.SetPlayerColor(baseGameId, info.colorA, info.colorB);
-    }
-
-    private int NetworkIdToPlayerIndex(ulong clientId)
-    {
-        PlayerControllerB[] allPlayers = StartOfRound.Instance.allPlayerScripts;
-        for (int i = 0; i < allPlayers.Length; i++)
+        if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null
+            && GameNetworkManager.Instance.localPlayerController.TryGetComponent(out ChatNetworkManager playerChatNetworkManager))
         {
-            if ((ulong)allPlayers[i].playerClientId == clientId)
-                return i;
+            playerChatNetworkManager.RefreshColors();
         }
-        return -1;
     }
 }
 
-public struct PlayerColorInfo : INetworkSerializable
+public struct PlayerColorInfo(Color32 a, Color32? b = null) : INetworkSerializable, IEquatable<PlayerColorInfo>
 {
-    public string colorA;
-    public string colorB;
-
-    public PlayerColorInfo(string a, string b = null)
-    {
-        colorA = a ?? "#FF0000";
-        colorB = b ?? colorA;
-    }
+    public Color32 colorA = a;
+    public Color32 colorB = b ?? a;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref colorA);
         serializer.SerializeValue(ref colorB);
+    }
+
+    public readonly bool Equals(PlayerColorInfo other)
+    {
+        return colorA.Equals(other.colorA) && colorB.Equals(other.colorB);
+    }
+
+    public override readonly bool Equals(object obj)
+    {
+        return obj is PlayerColorInfo info && Equals(info);
+    }
+
+    public static bool operator ==(PlayerColorInfo left, PlayerColorInfo right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(PlayerColorInfo left, PlayerColorInfo right)
+    {
+        return !(left == right);
+    }
+
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(colorA, colorB);
     }
 }
