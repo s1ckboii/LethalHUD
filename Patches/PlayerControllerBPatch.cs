@@ -11,8 +11,8 @@ internal static class PlayerControllerBPatch
     [HarmonyPatch("Awake")]
     private static void OnPlayerControllerBAwake(PlayerControllerB __instance)
     {
-        if (!__instance.TryGetComponent(out ChatNetworkManager _))
-            __instance.gameObject.AddComponent<ChatNetworkManager>();
+        if (!__instance.TryGetComponent(out PlayerColorNetworker _))
+            __instance.gameObject.AddComponent<PlayerColorNetworker>();
     }
 
     [HarmonyPrefix]

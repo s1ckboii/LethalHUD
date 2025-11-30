@@ -23,7 +23,7 @@ internal static class ChatController
         if (ColoringEnabled && playerId < StartOfRound.Instance.allPlayerScripts.Length)
         {
             PlayerControllerB player = playerId >= 0 ? StartOfRound.Instance.allPlayerScripts[playerId] : GameNetworkManager.Instance.localPlayerController;
-            if (player.TryGetComponent(out ChatNetworkManager playerChatNetworkManager))
+            if (player.TryGetComponent(out PlayerColorNetworker playerChatNetworkManager))
             {
                 PlayerColorInfo info = playerChatNetworkManager.PlayerColors;
                 return HUDUtils.ApplyStaticGradient(playerName, info.colorA, info.colorB);

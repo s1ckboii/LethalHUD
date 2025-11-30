@@ -7,7 +7,7 @@ namespace LethalHUD.HUD;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(PlayerControllerB))]
-internal class ChatNetworkManager : NetworkBehaviour
+internal class PlayerColorNetworker : NetworkBehaviour
 {
     /// <summary>
     ///     Each player possesses a <c>PlayerColorInfo</c> <c>NetworkVariable</c> that they can write to, which is then synced with all other clients.
@@ -53,9 +53,9 @@ internal class ChatNetworkManager : NetworkBehaviour
     internal static void RefreshColors(object obj, EventArgs args)
     {
         if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null
-            && GameNetworkManager.Instance.localPlayerController.TryGetComponent(out ChatNetworkManager playerChatNetworkManager))
+            && GameNetworkManager.Instance.localPlayerController.TryGetComponent(out PlayerColorNetworker playerNetworkManager))
         {
-            playerChatNetworkManager.RefreshColors();
+            playerNetworkManager.RefreshColors();
         }
     }
 }

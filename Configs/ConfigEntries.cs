@@ -363,8 +363,8 @@ public class ConfigEntries
         #endregion
 
         #region Chat Changes
-        GradientNameColorA.SettingChanged += ChatNetworkManager.RefreshColors;
-        GradientNameColorB.SettingChanged += ChatNetworkManager.RefreshColors;
+        GradientNameColorA.SettingChanged += PlayerColorNetworker.RefreshColors;
+        GradientNameColorB.SettingChanged += PlayerColorNetworker.RefreshColors;
         #endregion
 
         #region Clock Changes
