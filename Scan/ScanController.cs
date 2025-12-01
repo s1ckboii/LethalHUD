@@ -94,7 +94,7 @@ internal static class ScanController
         get
         {
             if (_scanMat == null && ScanRenderer != null)
-                _scanMat = ScanRenderer.material;
+                _scanMat = ScanRenderer.sharedMaterial;
             return _scanMat;
         }
     }
