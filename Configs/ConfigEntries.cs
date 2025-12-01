@@ -21,8 +21,20 @@ public class ConfigEntries
 
     public ConfigEntries()
     {
+        ConfigFile configFile = Plugins.Config;
+
+        // Disable saving config after a call to 'Bind()' is made.
+        configFile.SaveOnConfigSet = false;
+
+        // Bind config entries.
         Setup();
-        ConfigHelper.ClearUnusedEntries();
+
+        // Remove old config settings.
+        configFile.OrphanedEntries.Clear();
+
+        // Re-enable saving and save config.
+        configFile.SaveOnConfigSet = true;
+        configFile.Save();
     }
 
     #region Main ConfigEntries
@@ -351,8 +363,8 @@ public class ConfigEntries
         #endregion
 
         #region Chat Changes
-        GradientNameColorA.SettingChanged += (obj, args) => { ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value); };
-        GradientNameColorB.SettingChanged += (obj, args) => { ChatController.ApplyLocalPlayerColor(Plugins.ConfigEntries.GradientNameColorA.Value, Plugins.ConfigEntries.GradientNameColorB.Value); };
+        GradientNameColorA.SettingChanged += PlayerColorNetworker.RefreshColors;
+        GradientNameColorB.SettingChanged += PlayerColorNetworker.RefreshColors;
         #endregion
 
         #region Clock Changes
