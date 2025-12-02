@@ -165,7 +165,7 @@ internal static class ScanController
         if (bloom == null) return;
         if (IsInspecting) return;
 
-        Enums.DirtIntensityHandlerByScanLine();
+        DirtIntensityHandlerByScanLine();
 
         Texture2D tex = GetSelectedTexture();
         if (tex == null) return;
@@ -178,7 +178,7 @@ internal static class ScanController
 
     private static void RecolorAndApplyTexture(Color color, Texture2D baseTex)
     {
-        Texture2D newTex = new Texture2D(baseTex.width, baseTex.height, TextureFormat.RGBA32, true);
+        Texture2D newTex = new(baseTex.width, baseTex.height, TextureFormat.RGBA32, true);
         newTex.SetPixels(baseTex.GetPixels());
         HUDUtils.RecolorTexture(ref newTex, color);
         newTex.Apply(true, false);

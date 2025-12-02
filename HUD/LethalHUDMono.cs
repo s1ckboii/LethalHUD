@@ -1,4 +1,5 @@
-﻿using LethalHUD.Compats;
+﻿using GameNetcodeStuff;
+using LethalHUD.Compats;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System;
@@ -17,6 +18,7 @@ namespace LethalHUD.HUD
 
         private HUDManager _hud;
         private Keyboard _keyboard;
+        private float _lastBillboardUpdate;
 
         private void Awake()
         {

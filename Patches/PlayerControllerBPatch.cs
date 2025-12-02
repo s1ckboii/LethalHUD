@@ -1,6 +1,6 @@
 ﻿using GameNetcodeStuff;
-using LethalHUD.HUD;
 using HarmonyLib;
+using LethalHUD.HUD;
 using System;
 
 namespace LethalHUD.Patches;
@@ -13,6 +13,8 @@ internal static class PlayerControllerBPatch
     {
         if (!__instance.TryGetComponent(out PlayerColorNetworker _))
             __instance.gameObject.AddComponent<PlayerColorNetworker>();
+        if (!__instance.TryGetComponent(out PlayerBillboardGradient _))
+            __instance.gameObject.AddComponent<PlayerBillboardGradient>();
     }
 
     [HarmonyPrefix]
@@ -21,7 +23,6 @@ internal static class PlayerControllerBPatch
     {
         InventoryFrames.HandsFull();
     }
-
 
     [HarmonyPrefix]
     [HarmonyPatch("NoPunctuation")]

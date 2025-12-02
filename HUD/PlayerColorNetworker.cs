@@ -1,28 +1,24 @@
-﻿using GameNetcodeStuff;
-using System;
+﻿using System;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace LethalHUD.HUD;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(PlayerControllerB))]
 internal class PlayerColorNetworker : NetworkBehaviour
 {
     /// <summary>
     ///     Each player possesses a <c>PlayerColorInfo</c> <c>NetworkVariable</c> that they can write to, which is then synced with all other clients.
     /// </summary>
-    private readonly NetworkVariable<PlayerColorInfo> _syncedPlayerColors = new(writePerm: NetworkVariableWritePermission.Owner);
-    public PlayerColorInfo PlayerColors { get; private set; } // Local color information for the player.
+    internal readonly NetworkVariable<PlayerColorInfo> _syncedPlayerColors = new(writePerm: NetworkVariableWritePermission.Owner);
+    public PlayerColorInfo PlayerColors { get; private set; }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
-        // Update local color information when the synced value changes.
         _syncedPlayerColors.OnValueChanged += (previousValue, newValue) => PlayerColors = newValue;
 
-        // Refresh player colors upon spawning.
         RefreshColors();
     }
 
@@ -30,7 +26,6 @@ internal class PlayerColorNetworker : NetworkBehaviour
     {
         base.OnOwnershipChanged(previous, current);
 
-        // Refresh player colors upon changing ownership (player joining lobby).
         RefreshColors();
     }
 
