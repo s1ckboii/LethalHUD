@@ -143,6 +143,7 @@ public class ConfigEntries
     #endregion
 
     #region Misc ConfigEntries
+    public ConfigEntry<BillboardGradientMode> BillboardMode { get; private set; }
     public ConfigEntry<float> TerminalFadeDelaysTime { get; private set; }
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
@@ -273,6 +274,7 @@ public class ConfigEntries
         HoldEndGameVotesColor = ConfigHelper.Bind(true, "Spectator", "Hold To End Game Votes Text Color", "#BCBCBC", "Color of the 'Votes' text.");
         #endregion
         #region Misc Binds
+        BillboardMode = ConfigHelper.Bind("Misc", "Billboard Gradient Mode", BillboardGradientMode.Animated, "Change the billboard gradient mode.");
         TerminalFadeDelaysTime = ConfigHelper.Bind("Misc", "Terminal Fade Delay", 0.5f, "Change the delay time for fading out HUD stuff.", false, new AcceptableValueRange<float>(0f, 5f));
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
         ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");

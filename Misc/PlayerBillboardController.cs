@@ -1,7 +1,10 @@
-﻿using TMPro;
-using UnityEngine;
-using GameNetcodeStuff;
+﻿using GameNetcodeStuff;
 using LethalHUD.HUD;
+using TMPro;
+using UnityEngine;
+using static LethalHUD.Enums;
+
+namespace LethalHUD.Misc;
 
 [DisallowMultipleComponent]
 internal class PlayerBillboardGradient : MonoBehaviour
@@ -13,7 +16,7 @@ internal class PlayerBillboardGradient : MonoBehaviour
 
     [Header("Performance Options")]
     public float maxUpdateDistance = 30f;
-    public float updateInterval = 0.033f;   // ~30 FPS
+    public float updateInterval = 0.033f;
 
     private float _timeSinceLastUpdate;
     private PlayerColorInfo _currentColors;
@@ -34,7 +37,8 @@ internal class PlayerBillboardGradient : MonoBehaviour
 
     private void Start()
     {
-        if (_networker == null) return;
+        if (_networker == null)
+            return;
 
         _currentColors = _networker._syncedPlayerColors.Value;
         _hasColors = true;
@@ -48,23 +52,55 @@ internal class PlayerBillboardGradient : MonoBehaviour
     {
         _currentColors = current;
         _hasColors = true;
-        HUDUtils.ApplyVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time);
+        HUDUtils.ApplyVertexGradient(_text, current.colorA, current.colorB, Time.time);
     }
 
     private void LateUpdate()
     {
-        if (_player == null || _text == null || _canvasAlpha == null) return;
-        if (!_player.usernameCanvas.gameObject.activeSelf || _canvasAlpha.alpha < 1f) return;
+        if (!ChatController.ColoringEnabled)
+        {
+            ResetBillboardToDefault();
+            return;
+        }
 
-        float distSqr = (_player.transform.position - GameNetworkManager.Instance.localPlayerController.transform.position).sqrMagnitude;
-        if (distSqr > maxUpdateDistance * maxUpdateDistance) return;
+        if (!_text.enableVertexGradient)
+            _text.enableVertexGradient = true;
+
+        if (!_hasColors) return;
+        if (_player == null || _text == null || _canvasAlpha == null) return;
+        if (!_player.usernameCanvas.gameObject.activeSelf) return;
+        if (_canvasAlpha.alpha < 0.95f) return;
+        if (GameNetworkManager.Instance?.localPlayerController == null) return;
+
+        float distSqr = (_player.transform.position -
+                         GameNetworkManager.Instance.localPlayerController.transform.position).sqrMagnitude;
+
+        if (distSqr > maxUpdateDistance * maxUpdateDistance)
+            return;
 
         _timeSinceLastUpdate += Time.deltaTime;
-        if (_timeSinceLastUpdate < updateInterval) return;
+        if (_timeSinceLastUpdate < updateInterval)
+            return;
+
         _timeSinceLastUpdate = 0f;
 
         _currentColors = _networker._syncedPlayerColors.Value;
 
-        HUDUtils.ApplyVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time);
+        if (Plugins.ConfigEntries.BillboardMode.Value == BillboardGradientMode.Animated)
+        {
+            HUDUtils.ApplyVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f);
+        }
+        else
+        {
+            HUDUtils.ApplyStaticVertexGradient(_text, _currentColors.colorA, _currentColors.colorB);
+        }
+    }
+    private void ResetBillboardToDefault()
+    {
+        if (_text == null) return;
+
+        _text.enableVertexGradient = false;
+
+        _text.color = Color.white;
     }
 }

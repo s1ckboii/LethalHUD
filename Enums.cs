@@ -5,6 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace LethalHUD;
 public static class Enums
 {
+    public enum BillboardGradientMode
+    {
+        Static,
+        Animated
+    }
+
     public enum SlotEnums
     {
         None,

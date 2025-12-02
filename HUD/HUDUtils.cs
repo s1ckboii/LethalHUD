@@ -84,6 +84,18 @@ internal static class HUDUtils
 
         return result;
     }
+
+    internal static void ApplyStaticVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor)
+    {
+        if (tmpText == null)
+            return;
+
+        VertexGradient gradient = new(startColor, startColor, endColor, endColor);
+
+        tmpText.colorGradient = gradient;
+        tmpText.ForceMeshUpdate();
+    }
+
     internal static void ApplyVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, float waveFrequency = 1.5f)
     {
         if (tmpText == null)
@@ -311,17 +323,6 @@ internal static class HUDUtils
 
             float t = ((float)i / characterCount + _loadingOffset) % 1f;
             Color color;
-
-            /*
-            if (Plugins.ConfigEntries.HalloweenMode.Value)
-            {
-                color = Color.Lerp(new Color(0.8f, 0.2f, 0.8f), baseColor, Mathf.PingPong(t * 2f, 1f));
-            }
-            else
-            {
-                color = Color.Lerp(Color.gray, baseColor, Mathf.PingPong(t * 2f, 1f));
-            }
-            */
 
             color = Color.Lerp(Color.gray, baseColor, Mathf.PingPong(t * 2f, 1f));
 

@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 using LethalHUD.HUD;
+using LethalHUD.Misc;
 using System;
 
 namespace LethalHUD.Patches;
