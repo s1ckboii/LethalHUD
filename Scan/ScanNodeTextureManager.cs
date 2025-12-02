@@ -14,7 +14,7 @@ internal static class ScanNodeTextureManager
         if (scanner == null) return;
 
         ScanNodeShape chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
-        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out Plugins.ScanNodeCircleTextures spritePair))
+        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out Plugins.ScanNodeTextures spritePair))
             return;
 
         Sprite innerSprite = spritePair.Inner;

@@ -40,13 +40,17 @@ public static class Enums
         Hexagons,
         Circuit,
         Noisy,
-        Scifi
+        Scifi,
+        Bol,
+        Chu
     }
     public enum ScanNodeShape
     {
         Default,
         Triangle,
-        Target
+        Target,
+        Web,
+        Idk
     }
     public enum WeightUnit
     {

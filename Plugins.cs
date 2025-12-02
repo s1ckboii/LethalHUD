@@ -29,13 +29,13 @@ public class Plugins : BaseUnityPlugin
     internal static ConfigEntries ConfigEntries { get; private set; }
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
-    internal struct ScanNodeCircleTextures
+    internal struct ScanNodeTextures
     {
         public Sprite Outer;
         public Sprite Inner;
     }
 
-    internal static Dictionary<ScanNodeShape, ScanNodeCircleTextures> ScanNodeSprites = [];
+    internal static Dictionary<ScanNodeShape, ScanNodeTextures> ScanNodeSprites = [];
 
     public void Awake()
     {
@@ -44,7 +44,7 @@ public class Plugins : BaseUnityPlugin
         Harmony = new(MyPluginInfo.PLUGIN_GUID);
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
         
-        SerializeNetworkVariables(); // Serialize structs to allow them to be NetworkVariables.
+        SerializeNetworkVariables();
 
         ConfigFile bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
         ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart."
@@ -58,7 +58,7 @@ public class Plugins : BaseUnityPlugin
         ConfigEntries = new ConfigEntries();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "unfathomablyridiculousoriginalassetbundlenameforlethalhud");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "incomprehensibleandalsoridiculousoriginalassetbundlenameforlethalhud");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
 
         if (assetBundle == null)
@@ -92,7 +92,7 @@ public class Plugins : BaseUnityPlugin
             if (outerTex == null) Logger.LogWarning($"ScanNode texture '{outerName}' not found.");
             if (innerTex == null) Logger.LogWarning($"ScanNode texture '{innerName}' not found.");
 
-            ScanNodeSprites[shape] = new ScanNodeCircleTextures
+            ScanNodeSprites[shape] = new ScanNodeTextures
             {
                 Outer = outerTex,
                 Inner = innerTex
