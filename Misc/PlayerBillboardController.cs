@@ -9,6 +9,11 @@ namespace LethalHUD.Misc;
 [DisallowMultipleComponent]
 internal class PlayerBillboardGradient : MonoBehaviour
 {
+    private static bool ColoringEnabled => Plugins.ConfigEntries.BillboardColor.Value;
+
+    private static BillboardGradientMode BillboardMode => Plugins.ConfigEntries.BillboardMode.Value;
+    private static VertexGradientLayout BillboardLayout => Plugins.ConfigEntries.BillboardLayout.Value;
+
     private PlayerControllerB _player;
     private TextMeshProUGUI _text;
     private CanvasGroup _canvasAlpha;
@@ -44,20 +49,17 @@ internal class PlayerBillboardGradient : MonoBehaviour
         _hasColors = true;
 
         _networker._syncedPlayerColors.OnValueChanged += OnPlayerColorsChanged;
-
-        HUDUtils.ApplyVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time);
     }
 
     private void OnPlayerColorsChanged(PlayerColorInfo previous, PlayerColorInfo current)
     {
         _currentColors = current;
         _hasColors = true;
-        HUDUtils.ApplyVertexGradient(_text, current.colorA, current.colorB, Time.time);
     }
 
     private void LateUpdate()
     {
-        if (!ChatController.ColoringEnabled)
+        if (!ColoringEnabled)
         {
             ResetBillboardToDefault();
             return;
@@ -72,8 +74,7 @@ internal class PlayerBillboardGradient : MonoBehaviour
         if (_canvasAlpha.alpha < 0.95f) return;
         if (GameNetworkManager.Instance?.localPlayerController == null) return;
 
-        float distSqr = (_player.transform.position -
-                         GameNetworkManager.Instance.localPlayerController.transform.position).sqrMagnitude;
+        float distSqr = (_player.transform.position - GameNetworkManager.Instance.localPlayerController.transform.position).sqrMagnitude;
 
         if (distSqr > maxUpdateDistance * maxUpdateDistance)
             return;
@@ -86,13 +87,19 @@ internal class PlayerBillboardGradient : MonoBehaviour
 
         _currentColors = _networker._syncedPlayerColors.Value;
 
-        if (Plugins.ConfigEntries.BillboardMode.Value == BillboardGradientMode.Animated)
+        switch (BillboardMode)
         {
-            HUDUtils.ApplyVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f);
-        }
-        else
-        {
-            HUDUtils.ApplyStaticVertexGradient(_text, _currentColors.colorA, _currentColors.colorB);
+            case BillboardGradientMode.Static:
+                HUDUtils.ApplyStaticVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, BillboardLayout);
+                break;
+
+            case BillboardGradientMode.Wave:
+                HUDUtils.ApplyWaveVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f, BillboardLayout);
+                break;
+
+            case BillboardGradientMode.Pulse:
+                HUDUtils.ApplyPulsingVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f);
+                break;
         }
     }
     private void ResetBillboardToDefault()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 internal static class HUDUtils
@@ -85,31 +86,104 @@ internal static class HUDUtils
         return result;
     }
 
-    internal static void ApplyStaticVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor)
+    internal static void ApplyStaticVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, VertexGradientLayout layout)
     {
-        if (tmpText == null)
-            return;
+        if (tmpText == null) return;
 
-        VertexGradient gradient = new(startColor, startColor, endColor, endColor);
-
-        tmpText.colorGradient = gradient;
         tmpText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = tmpText.textInfo;
+        if (textInfo.characterCount == 0) return;
+
+        Bounds bounds = tmpText.mesh.bounds;
+        float minX = bounds.min.x, maxX = bounds.max.x;
+        float minY = bounds.min.y, maxY = bounds.max.y;
+
+        for (int i = 0; i < textInfo.characterCount; i++)
+        {
+            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+            if (!charInfo.isVisible) continue;
+
+            int matIndex = charInfo.materialReferenceIndex;
+            int vertIndex = charInfo.vertexIndex;
+
+            Vector3[] vertices = textInfo.meshInfo[matIndex].vertices;
+            Color32[] colors = textInfo.meshInfo[matIndex].colors32;
+
+            for (int v = 0; v < 4; v++)
+            {
+                float t = layout switch
+                {
+                    VertexGradientLayout.Horizontal => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x),
+                    VertexGradientLayout.Vertical => Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y),
+                    VertexGradientLayout.Diagonal => (Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x) +
+                                                       Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y)) / 2f,
+                    _ => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x)
+                };
+
+                colors[vertIndex + v] = Color.Lerp(startColor, endColor, t);
+            }
+        }
+
+        tmpText.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
     }
 
-    internal static void ApplyVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, float waveFrequency = 1.5f)
+    internal static void ApplyWaveVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, VertexGradientLayout layout, float waveFrequency = 1.5f)
+    {
+        if (tmpText == null) return;
+
+        tmpText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = tmpText.textInfo;
+        if (textInfo.characterCount == 0) return;
+
+        Bounds bounds = tmpText.mesh.bounds;
+        float minX = bounds.min.x, maxX = bounds.max.x;
+        float minY = bounds.min.y, maxY = bounds.max.y;
+
+        for (int i = 0; i < textInfo.characterCount; i++)
+        {
+            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+            if (!charInfo.isVisible) continue;
+
+            int matIndex = charInfo.materialReferenceIndex;
+            int vertIndex = charInfo.vertexIndex;
+
+            Vector3[] vertices = textInfo.meshInfo[matIndex].vertices;
+            Color32[] colors = textInfo.meshInfo[matIndex].colors32;
+
+            for (int v = 0; v < 4; v++)
+            {
+                float t = layout switch
+                {
+                    VertexGradientLayout.Horizontal => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x),
+                    VertexGradientLayout.Vertical => Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y),
+                    VertexGradientLayout.Diagonal => (Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x) +
+                                                       Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y)) / 2f,
+                    _ => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x)
+                };
+
+                float wave = Mathf.SmoothStep(0f, 1f, Mathf.Sin((t + time) * waveFrequency * Mathf.PI * 2f) * 0.5f + 0.5f);
+                colors[vertIndex + v] = Color.Lerp(startColor, endColor, wave);
+            }
+        }
+
+        tmpText.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+    }
+
+
+    internal static void ApplyPulsingVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, float speed = 1f)
     {
         if (tmpText == null)
             return;
 
-        float leftWave = Mathf.SmoothStep(0f, 1f, Mathf.Sin((time + 0f) * waveFrequency * Mathf.PI * 2f) * 0.5f + 0.5f);
-        float rightWave = Mathf.SmoothStep(0f, 1f, Mathf.Sin((time + 1f) * waveFrequency * Mathf.PI * 2f) * 0.5f + 0.5f);
+        float phaseOffset = 0.2f;
 
-        Color leftColor = Color.Lerp(startColor, endColor, leftWave);
-        Color rightColor = Color.Lerp(startColor, endColor, rightWave);
+        float pulseTop = Mathf.SmoothStep(0f, 1f, Mathf.Sin((time * speed + 0f) * Mathf.PI * 2f) * 0.5f + 0.5f);
+        float pulseBottom = Mathf.SmoothStep(0f, 1f, Mathf.Sin((time * speed + phaseOffset) * Mathf.PI * 2f) * 0.5f + 0.5f);
 
-        VertexGradient vertexGradient = new(leftColor, leftColor, rightColor, rightColor);
+        Color topColor = Color.Lerp(startColor, endColor, pulseTop);
+        Color bottomColor = Color.Lerp(startColor, endColor, pulseBottom);
 
-        tmpText.colorGradient = vertexGradient;
+        tmpText.colorGradient = new VertexGradient(topColor, topColor, bottomColor, bottomColor);
         tmpText.ForceMeshUpdate();
     }
 

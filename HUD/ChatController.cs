@@ -8,7 +8,7 @@ using static LethalHUD.Enums;
 namespace LethalHUD.HUD;
 internal static class ChatController
 {
-    internal static bool ColoringEnabled => Plugins.ConfigEntries.ColoredNames.Value;
+    private static bool ColoringEnabled => Plugins.ConfigEntries.ColoredNames.Value;
 
     internal static string NoPunctuation(string input)
     {
@@ -63,7 +63,7 @@ internal static class ChatController
             if (ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientColorA.Value, out Color startColor) &&
                 ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientColorB.Value, out Color endColor))
             {
-                HUDUtils.ApplyVertexGradient(indicator, startColor, endColor, Time.time * 0.2f);
+                HUDUtils.ApplyWaveVertexGradient(indicator, startColor, endColor, Time.time * 0.2f, VertexGradientLayout.Vertical);
                 return;
             }
         }
@@ -79,7 +79,7 @@ internal static class ChatController
                 break;
 
             default:
-                HUDUtils.ApplyVertexGradient(indicator, InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor, Time.time * 0.25f);
+                HUDUtils.ApplyWaveVertexGradient(indicator, InventoryFrames.CurrentGradientStartColor, InventoryFrames.CurrentGradientEndColor, Time.time * 0.25f, VertexGradientLayout.Vertical);
                 break;
         }
     }

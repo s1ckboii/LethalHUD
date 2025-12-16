@@ -9,6 +9,7 @@ internal static class PlanetInfoDisplay
     private static TMP_Text _hazardTMP;
     private static Image[] _targetImages;
 
+    private static readonly Color fallbackColor = new(134f, 236f, 355f);
     private static Color _headerColor;
     private static Color _summaryColor;
 
@@ -85,8 +86,8 @@ internal static class PlanetInfoDisplay
             if (!_initialized) return;
         }
 
-        _headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value);
-        _summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value);
+        _headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, fallbackColor);
+        _summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, fallbackColor);
 
         if (_hazardTMP != null)
             _hazardTMP.color = _summaryColor;
@@ -107,10 +108,10 @@ internal static class PlanetInfoDisplay
         if (hud == null) return;
 
         if (hud.planetInfoHeaderText != null)
-            hud.planetInfoHeaderText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, Color.white);
+            hud.planetInfoHeaderText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, fallbackColor);
 
         if (hud.planetInfoSummaryText != null)
-            hud.planetInfoSummaryText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, Color.white);
+            hud.planetInfoSummaryText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, fallbackColor);
     }
 
     internal static void UpdateColors()
@@ -123,13 +124,13 @@ internal static class PlanetInfoDisplay
             if (Plugins.ConfigEntries.PlanetRisk.Value)
                 hud.planetRiskLevelText.color = GetRiskLevelColor(hud.planetRiskLevelText.text);
             else
-                hud.planetRiskLevelText.color = Color.white;
+                hud.planetRiskLevelText.color = fallbackColor;
         }
     }
 
     private static Color GetRiskLevelColor(string riskLetter)
     {
-        if (string.IsNullOrEmpty(riskLetter)) return Color.white;
+        if (string.IsNullOrEmpty(riskLetter)) return fallbackColor;
 
         riskLetter = StartOfRound.Instance.currentLevel.riskLevel;
 

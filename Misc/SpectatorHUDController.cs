@@ -10,8 +10,6 @@ internal static class SpectatorHUDController
         HUDManager hud = HUDManager.Instance;
         if (hud == null) return;
 
-
-        //Testing purposes only
         ConfigEntries cfg = Plugins.ConfigEntries;
 
         ApplyColorPreserveAlpha(hud.spectatorTipText, cfg.SpectatorTipColor.Value);

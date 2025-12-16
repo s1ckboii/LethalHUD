@@ -8,8 +8,17 @@ public static class Enums
     public enum BillboardGradientMode
     {
         Static,
-        Animated
+        Wave,
+        Pulse
     }
+
+    public enum VertexGradientLayout
+    {
+        Horizontal,
+        Vertical,
+        Diagonal
+    }
+
 
     public enum SlotEnums
     {
