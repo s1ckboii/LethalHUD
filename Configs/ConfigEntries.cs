@@ -1,5 +1,4 @@
 ﻿using BepInEx.Configuration;
-using LethalHUD.Compats;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -50,6 +49,11 @@ public class ConfigEntries
     public ConfigEntry<string> ScanColor { get; private set; }
     public ConfigEntry<float> VignetteIntensity { get; private set; }
     public ConfigEntry<ScanLines> SelectedScanlineMode { get; private set; }
+    public ConfigEntry<bool> ReplaceScrapCounterVisual { get; private set; }
+    public ConfigEntry<bool> ShowShipLoot { get; private set; }
+    public ConfigEntry<float> DisplayTime { get; private set; }
+    public ConfigEntry<string> LootInfoColor { get; private set; }
+
     #endregion
     #region InventorySlot ConfigEntries
     public ConfigEntry<float> SlotFade { get; private set; }
@@ -150,9 +154,6 @@ public class ConfigEntries
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
     public ConfigEntry<bool> ShowSeedDisplay { get; private set; }
-    //public ConfigEntry<bool> ReplaceScrapCounterVisual { get; private set; }
-    //public ConfigEntry<bool> ShowShipLoot { get; private set; }
-    //public ConfigEntry<float> DisplayTime { get; private set; }
     public ConfigEntry<FPSPingLayout> MiscLayoutEnum { get; private set; }
     public ConfigEntry<MTColorMode> MTColorSelection { get; private set; }
     public ConfigEntry<bool> SplitAdditionalMTFromToolTips { get; private set; }
@@ -186,6 +187,10 @@ public class ConfigEntries
         ScanColor = ConfigHelper.Bind(true, "Scan", "Scan Color", "#000CFF", "Allows you to change the scan's color in HEX format.");
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
         VignetteIntensity = ConfigHelper.Bind("Scan", "Vignette Intensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false, new AcceptableValueRange<float>(0f, 1f));
+        ReplaceScrapCounterVisual = ConfigHelper.Bind("Scan", "Scrap Counter Visual", false, "Replace total value scanner with shiploot visual.");
+        ShowShipLoot = ConfigHelper.Bind("Scan", "Ship Loot", true, "Enable ship loot info");
+        DisplayTime = ConfigHelper.Bind("Scan", "Ship Loot Display Time", 5f, "Change how long ship loot should be displayed.", false, new AcceptableValueRange<float>(0f, 20f));
+        LootInfoColor = ConfigHelper.Bind(true, "Scan", "Ship Loot Color", "#00FF00", "Color of the ship loot info text.");
         #endregion
         #region ScanNode Binds
         ScanNodeFade = ConfigHelper.Bind("ScanNodes", "Fade Away", true, "Allows you to apply fadeaway for scannodes.");
@@ -283,9 +288,6 @@ public class ConfigEntries
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
         ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
         ShowSeedDisplay = ConfigHelper.Bind("Misc", "Seed Display", false, "Display current seed.");
-        //ReplaceScrapCounterVisual = ConfigHelper.Bind("Misc", "Scrap Counter Visual", false, "Replace total value scanner with shiploot visual.");
-        //ShowShipLoot = ConfigHelper.Bind("Misc", "Ship Loot", false, "Enable ship loot info");
-        //DisplayTime = ConfigHelper.Bind("Misc", "Ship Loot Display Time", 5f, "Change how long ship loot should be displayed.", false, new AcceptableValueRange<float>(0f, 20f));
         MiscLayoutEnum = ConfigHelper.Bind("Misc", "Layout options", FPSPingLayout.Vertical, "Layout of FPS and Ping counters");
         FPSCounterX = ConfigHelper.Bind("Misc", "Layout position X", 10f, "X position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 840f));
         FPSCounterY = ConfigHelper.Bind("Misc", "Layout position Y", 10f, "Y position of the FPS counter on screen.", false, new AcceptableValueRange<float>(0f, 480f));
@@ -343,6 +345,11 @@ public class ConfigEntries
         FadeOut.SettingChanged += (obj, args) => { ScanController.UpdateScanAlpha(); };
         VignetteIntensity.SettingChanged += (obj, args) => { ScanController.UpdateVignetteIntensity(); };
         RecolorScanLines.SettingChanged += (obj, args) => { ScanController.UpdateScanTexture(); };
+
+        LootInfoColor.SettingChanged += (obj, args) => { LootInfoManager.ApplyLootInfoColor(); };
+        DisplayTime.SettingChanged += (obj, args) => { LootInfoManager.OnDisplayTimeChanged(); };
+        ShowShipLoot.SettingChanged += (obj, args) => { LootInfoManager.OnShowShipLootChanged(); };
+        ReplaceScrapCounterVisual.SettingChanged += (obj, args) => { LootInfoManager.OnReplaceScrapCounterVisualChanged(); };
         #endregion
         #region ScanNode Changes
         ScanNodeLifetime.SettingChanged += (obj, args) =>
@@ -367,12 +374,10 @@ public class ConfigEntries
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         #endregion
-
         #region Chat Changes
         GradientNameColorA.SettingChanged += PlayerColorNetworker.RefreshColors;
         GradientNameColorB.SettingChanged += PlayerColorNetworker.RefreshColors;
         #endregion
-
         #region Clock Changes
         ClockFormat.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockSizeMultiplier.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };

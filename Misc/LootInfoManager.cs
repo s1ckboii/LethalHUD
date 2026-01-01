@@ -1,9 +1,10 @@
-﻿/*
-using GameNetcodeStuff;
+﻿using GameNetcodeStuff;
+using LethalHUD.HUD;
 using System.Collections;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LethalHUD.Misc;
 
@@ -11,178 +12,276 @@ public static class LootInfoManager
 {
     private static GameObject _ship;
     private static GameObject _totalCounter;
+    private static GameObject _shipCounter;
     private static GameObject _vanillaTotalLoot;
-    private static TextMeshProUGUI _textMesh;
-    private static TextMeshProUGUI _textMeshVanillaTotalNum;
+
+    private static TextMeshProUGUI _totalText;
+    private static TextMeshProUGUI _shipText;
+    private static TextMeshProUGUI _vanillaTotalNum;
+
+    private static Image _totalBg;
+    private static Image _shipBg;
+
+    private static RectTransform _totalDiagonalRT;
+    private static RectTransform _shipDiagonalRT;
 
     private static float _displayTimeLeft;
-    private static bool _isCoroutineRunning = false;
+    private static bool _isCoroutineRunning;
 
-    private static readonly AnimationCurve FadeCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    private const float FadeDuration = 0.5f;
+    private static int _shipLootValue;
+    private static int _scanRealTotal;
+    private static int _scanDisplayTotal;
 
-    private static GameObject Ship
+    private static Color _lootInfoColor = Color.white;
+
+    private const float CountSpeed = 1500f;
+
+    public static void ApplyLootInfoColor()
     {
-        get
+        _lootInfoColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.LootInfoColor.Value);
+        ApplyColor(_totalText, _totalBg);
+        ApplyColor(_shipText, _shipBg);
+    }
+
+    private static void ApplyColor(TextMeshProUGUI text, Image bg)
+    {
+        if (text != null)
+            text.color = _lootInfoColor;
+
+        if (bg != null)
         {
-            if (_ship == null)
-                _ship = GameObject.Find("/Environment/HangarShip");
-            return _ship;
+            Color c = _lootInfoColor;
+            c.a *= 0.25f;
+            bg.color = c;
+        }
+    }
+
+    public static void OnDisplayTimeChanged()
+    {
+        _displayTimeLeft = Plugins.ConfigEntries.DisplayTime.Value;
+    }
+
+    public static void OnShowShipLootChanged()
+    {
+        if (!Plugins.ConfigEntries.ShowShipLoot.Value && _shipCounter != null)
+            _shipCounter.SetActive(false);
+    }
+
+    public static void OnReplaceScrapCounterVisualChanged()
+    {
+        if (!Plugins.ConfigEntries.ReplaceScrapCounterVisual.Value)
+        {
+            if (_totalCounter != null)
+                _totalCounter.SetActive(false);
+
+            RestoreVanillaScanUI();
         }
     }
 
     public static void LootScan()
     {
-        PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
-        if (localPlayer == null) return;
-
-        if (localPlayer.isInHangarShipRoom)
-            ShowShipLoot();
-        else if (!localPlayer.isInHangarShipRoom)
-            ShowOutsideLoot();
-
-            _displayTimeLeft = Plugins.ConfigEntries.DisplayTime.Value;
-    }
-
-    public static void ShowShipLoot()
-    {
-        if (!Plugins.ConfigEntries.ShowShipLoot.Value) return;
-
-        if (!_totalCounter)
-            CopyValueCounter();
-        
-        int value = CalculateLootValue();
-        UpdateText($"Ship: ${value}");
-
-        if (!_isCoroutineRunning)
-            GameNetworkManager.Instance.StartCoroutine(ShipLootCoroutine());
-    }
-
-    public static void ShowOutsideLoot()
-    {
-        //if (Plugins.ConfigEntries.ReplaceScrapCounterVisual.Value)
-        //    HideVanillaTotalInfo();
-
-        if (!_totalCounter)
-            CopyValueCounter();
-
-        EnsureVanillaTotalLoot();
-
-        if (_textMeshVanillaTotalNum != null)
-            UpdateText($"Total: {_textMeshVanillaTotalNum.text}");
+        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+        if (player == null)
+            return;
 
         _displayTimeLeft = Plugins.ConfigEntries.DisplayTime.Value;
 
         if (!_isCoroutineRunning)
-            GameNetworkManager.Instance.StartCoroutine(ShipLootCoroutine());
+            GameNetworkManager.Instance.StartCoroutine(DisplayCoroutine());
     }
 
-    internal static void UpdateText(string text) => _textMesh?.SetText(text);
-
-    public static void HideVanillaTotalInfo()
+    private static IEnumerator DisplayCoroutine()
     {
-        if (_vanillaTotalLoot == null)
-            _vanillaTotalLoot = GameObject.Find("UI/Canvas/ObjectScanner/GlobalScanInfo/AnimContainer/Image");
-
-        if (_vanillaTotalLoot != null)
-        {
-            var cg = _vanillaTotalLoot.GetComponent<CanvasGroup>() ?? _vanillaTotalLoot.AddComponent<CanvasGroup>();
-            cg.alpha = 0f;
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
-            Loggers.Debug("Vanilla total loot counter hidden by setting alpha to 0.");
-        }
-        else
-        {
-            Loggers.Warning("Image GameObject not found!");
-        }
-    }
-
-    private static IEnumerator ShipLootCoroutine()
-    {
-        if (_totalCounter == null) yield break;
-
         _isCoroutineRunning = true;
-        _totalCounter.SetActive(true);
 
-        var cg = _totalCounter.GetComponent<CanvasGroup>() ?? _totalCounter.AddComponent<CanvasGroup>();
-        cg.alpha = 0f;
+        EnsureTotalCounter();
+        EnsureShipCounter();
+        EnsureVanillaTotalLoot();
 
-        // Fade in
-        for (float t = 0f; t < FadeDuration; t += Time.deltaTime)
+        AlignShipToTotalDiagonal();
+
+        float timer = 0f;
+
+        while (timer < _displayTimeLeft)
         {
-            cg.alpha = FadeCurve.Evaluate(t / FadeDuration);
+            timer += Time.deltaTime;
+
+            PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+            bool inShip = player != null && player.isInHangarShipRoom;
+
+            if (Plugins.ConfigEntries.ReplaceScrapCounterVisual.Value)
+            {
+                UpdateVanillaScanTotal();
+
+                _scanDisplayTotal = (int)Mathf.MoveTowards(
+                    _scanDisplayTotal,
+                    _scanRealTotal,
+                    CountSpeed * Time.deltaTime
+                );
+
+                if (_scanDisplayTotal > 0)
+                {
+                    _totalCounter.SetActive(true);
+                    _totalText.SetText($"Total: ${_scanDisplayTotal}");
+                    HideVanillaScanUI();
+                }
+                else
+                {
+                    _totalCounter.SetActive(false);
+                }
+
+            }
+            else
+            {
+                _totalCounter.SetActive(false);
+            }
+
+            if (inShip && Plugins.ConfigEntries.ShowShipLoot.Value)
+            {
+                _shipLootValue = CalculateShipLoot();
+                _shipCounter.SetActive(true);
+                _shipText.SetText($"Ship: ${_shipLootValue}");
+            }
+            else
+            {
+                _shipCounter.SetActive(false);
+            }
+
             yield return null;
         }
-        cg.alpha = 1f;
-
-        // Display
-        yield return new WaitForSeconds(_displayTimeLeft);
-
-        // Fade out
-        for (float t = 0f; t < FadeDuration; t += Time.deltaTime)
-        {
-            cg.alpha = FadeCurve.Evaluate(1f - t / FadeDuration);
-            yield return null;
-        }
-        cg.alpha = 0f;
 
         _totalCounter.SetActive(false);
+        _shipCounter.SetActive(false);
+
+        _scanDisplayTotal = 0;
+        _scanRealTotal = 0;
         _isCoroutineRunning = false;
     }
 
-    private static int CalculateLootValue()
+    private static void EnsureTotalCounter()
     {
-        if (Ship == null) return 0;
+        if (_totalCounter != null)
+            return;
 
-        var loot = Ship.GetComponentsInChildren<GrabbableObject>()
-            .Where(obj => obj.itemProperties.isScrap && obj is not RagdollGrabbableObject)
-            .ToList();
+        GameObject prefab = GameObject.Find("/Systems/UI/Canvas/IngamePlayerHUD/BottomMiddle/ValueCounter");
+        if (!prefab)
+            return;
 
-        Loggers.Debug("Calculating total ship scrap value.");
-        loot.ForEach(scrap => Loggers.Debug($"{scrap.name} - ${scrap.scrapValue}"));
+        _totalCounter = Object.Instantiate(prefab, prefab.transform.parent, false);
+        _totalText = _totalCounter.GetComponentInChildren<TextMeshProUGUI>(true);
+        _totalBg = _totalCounter.GetComponentInChildren<Image>(true);
 
-        return loot.Sum(scrap => scrap.scrapValue);
+        _totalDiagonalRT = _totalCounter
+            .GetComponentsInChildren<Image>(true)
+            .FirstOrDefault(i => i.name.ToLower().Contains("line"))
+            ?.GetComponent<RectTransform>();
+
+        ApplyLootInfoColor();
     }
+
+    private static void EnsureShipCounter()
+    {
+        if (_shipCounter != null)
+            return;
+
+        EnsureTotalCounter();
+
+        _shipCounter = Object.Instantiate(
+            _totalCounter,
+            _totalCounter.transform.parent,
+            false
+        );
+
+        RectTransform totalRT = _totalCounter.GetComponent<RectTransform>();
+        RectTransform shipRT = _shipCounter.GetComponent<RectTransform>();
+        
+        shipRT.localScale = totalRT.localScale * 0.95f;
+        shipRT.anchoredPosition = totalRT.anchoredPosition + new Vector2(18f, -17f);
+
+
+        _shipText = _shipCounter.GetComponentInChildren<TextMeshProUGUI>(true);
+        _shipBg = _shipCounter.GetComponentInChildren<Image>(true);
+
+        _shipDiagonalRT = _shipCounter
+            .GetComponentsInChildren<Image>(true)
+            .FirstOrDefault(i => i.name.ToLower().Contains("line"))
+            ?.GetComponent<RectTransform>();
+
+        ApplyLootInfoColor();
+    }
+
+
+    private static void AlignShipToTotalDiagonal()
+    {
+        if (_totalDiagonalRT == null || _shipDiagonalRT == null)
+            return;
+
+        RectTransform shipRT = _shipCounter.GetComponent<RectTransform>();
+
+        float totalEndY = _totalDiagonalRT.TransformPoint(_totalDiagonalRT.rect.min).y;
+        float shipStartY = _shipDiagonalRT.TransformPoint(_shipDiagonalRT.rect.max).y;
+
+        float deltaY = totalEndY - shipStartY;
+        shipRT.position += new Vector3(0f, deltaY, 0f);
+    }
+
+    private static int CalculateShipLoot()
+    {
+        if (_ship == null)
+            _ship = GameObject.Find("/Environment/HangarShip");
+
+        if (_ship == null)
+            return 0;
+
+        return _ship.GetComponentsInChildren<GrabbableObject>()
+            .Where(o => o.itemProperties.isScrap && o is not RagdollGrabbableObject)
+            .Sum(o => o.scrapValue);
+    }
+
     private static void EnsureVanillaTotalLoot()
     {
         if (_vanillaTotalLoot == null)
             _vanillaTotalLoot = GameObject.Find("UI/Canvas/ObjectScanner/GlobalScanInfo/AnimContainer/Image");
 
-        if (_vanillaTotalLoot != null)
+        if (_vanillaTotalLoot != null && _vanillaTotalNum == null)
         {
-            _textMeshVanillaTotalNum = _vanillaTotalLoot
+            _vanillaTotalNum = _vanillaTotalLoot
                 .GetComponentsInChildren<TextMeshProUGUI>(true)
                 .FirstOrDefault(t => t.gameObject.name == "TotalNum");
-
-            if (_textMeshVanillaTotalNum == null)
-                Loggers.Warning("TotalNum TMP_Text not found!");
-        }
-        else
-        {
-            Loggers.Warning("Vanilla total loot container not found!");
         }
     }
 
-    private static void CopyValueCounter()
+    private static void UpdateVanillaScanTotal()
     {
-        GameObject valueCounter = GameObject.Find("/Systems/UI/Canvas/IngamePlayerHUD/BottomMiddle/ValueCounter");
-        if (!valueCounter)
-        {
-            Loggers.Error("Failed to find ValueCounter object to copy!");
+        if (_vanillaTotalNum == null)
             return;
-        }
 
-        _totalCounter = Object.Instantiate(valueCounter, valueCounter.transform.parent, false);
-
-        var cg = _totalCounter.GetComponent<CanvasGroup>() ?? _totalCounter.AddComponent<CanvasGroup>();
-        cg.alpha = 0f;
-
-        Vector3 pos = _totalCounter.transform.localPosition;
-        _totalCounter.transform.localPosition = new Vector3(pos.x + 50f, pos.y - 50f, pos.z);
-
-        _textMesh = _totalCounter.GetComponentInChildren<TextMeshProUGUI>();
-        if (_textMesh == null)
-            Loggers.Warning("TMP_Text not found on copied value counter!");
+        string raw = _vanillaTotalNum.text.Replace("$", "");
+        int.TryParse(raw, out _scanRealTotal);
     }
-}*/
+
+    private static void HideVanillaScanUI()
+    {
+        if (_vanillaTotalLoot == null)
+            return;
+
+        CanvasGroup cg = _vanillaTotalLoot.GetComponent<CanvasGroup>() ?? _vanillaTotalLoot.AddComponent<CanvasGroup>();
+        cg.alpha = 0f;
+        cg.interactable = false;
+        cg.blocksRaycasts = false;
+    }
+
+    private static void RestoreVanillaScanUI()
+    {
+        if (_vanillaTotalLoot == null)
+            return;
+
+        CanvasGroup cg = _vanillaTotalLoot.GetComponent<CanvasGroup>();
+        if (cg == null)
+            return;
+
+        cg.alpha = 1f;
+        cg.interactable = true;
+        cg.blocksRaycasts = true;
+    }
+}

@@ -5,7 +5,6 @@ using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System.Collections;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -32,7 +31,7 @@ internal static class HUDManagerPatch
 
         if (ModCompats.IsGoodItemScanPresent)
             ScanNodeController.ResetGoodItemScanNodes();
-        //LootInfoManager.LootScan();
+       LootInfoManager.LootScan();
     }
 
     [HarmonyPrefix]
@@ -299,6 +298,8 @@ internal static class HUDManagerPatch
             __instance.scanEffectAnimator.SetTrigger("scan");
             __instance.PingHUDElement(__instance.Compass, 1f, 0.8f, 0.12f);
             __instance.UIAudio.PlayOneShot(__instance.scanSFX);
+
+            LootInfoManager.LootScan();
         }
     }
 }
