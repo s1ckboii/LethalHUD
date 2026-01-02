@@ -156,8 +156,7 @@ internal static class HUDUtils
                 {
                     VertexGradientLayout.Horizontal => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x),
                     VertexGradientLayout.Vertical => Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y),
-                    VertexGradientLayout.Diagonal => (Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x) +
-                                                       Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y)) / 2f,
+                    VertexGradientLayout.Diagonal => (Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x) + Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y)) / 2f,
                     _ => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x)
                 };
 
@@ -170,21 +169,48 @@ internal static class HUDUtils
     }
 
 
-    internal static void ApplyPulsingVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, float speed = 1f)
+    internal static void ApplyPulsingVertexGradient(TextMeshProUGUI tmpText, Color startColor, Color endColor, float time, VertexGradientLayout layout, float speed = 1f)
     {
-        if (tmpText == null)
-            return;
+        if (tmpText == null) return;
 
-        float phaseOffset = 0.2f;
-
-        float pulseTop = Mathf.SmoothStep(0f, 1f, Mathf.Sin((time * speed + 0f) * Mathf.PI * 2f) * 0.5f + 0.5f);
-        float pulseBottom = Mathf.SmoothStep(0f, 1f, Mathf.Sin((time * speed + phaseOffset) * Mathf.PI * 2f) * 0.5f + 0.5f);
-
-        Color topColor = Color.Lerp(startColor, endColor, pulseTop);
-        Color bottomColor = Color.Lerp(startColor, endColor, pulseBottom);
-
-        tmpText.colorGradient = new VertexGradient(topColor, topColor, bottomColor, bottomColor);
         tmpText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = tmpText.textInfo;
+        if (textInfo.characterCount == 0) return;
+
+        Bounds bounds = tmpText.mesh.bounds;
+        float minX = bounds.min.x, maxX = bounds.max.x;
+        float minY = bounds.min.y, maxY = bounds.max.y;
+
+        float pulse = Mathf.SmoothStep(0f, 1f, Mathf.Sin(time * speed * Mathf.PI * 2f) * 0.5f + 0.5f);
+
+        for (int i = 0; i < textInfo.characterCount; i++)
+        {
+            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+            if (!charInfo.isVisible) continue;
+
+            int matIndex = charInfo.materialReferenceIndex;
+            int vertIndex = charInfo.vertexIndex;
+
+            Vector3[] vertices = textInfo.meshInfo[matIndex].vertices;
+            Color32[] colors = textInfo.meshInfo[matIndex].colors32;
+
+            for (int v = 0; v < 4; v++)
+            {
+                float t = layout switch
+                {
+                    VertexGradientLayout.Horizontal => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x),
+                    VertexGradientLayout.Vertical => Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y),
+                    VertexGradientLayout.Diagonal => (Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x) + Mathf.InverseLerp(minY, maxY, vertices[vertIndex + v].y)) * 0.5f,
+                    _ => Mathf.InverseLerp(minX, maxX, vertices[vertIndex + v].x)
+                };
+
+                float blend = Mathf.Lerp(t, 1f - t, pulse);
+
+                colors[vertIndex + v] = Color.Lerp(startColor, endColor, blend);
+            }
+        }
+
+        tmpText.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
     }
 
     internal static void ApplyRainbowGradient(TextMeshProUGUI tmpText, float time)

@@ -11,9 +11,6 @@ internal class PlayerBillboardGradient : MonoBehaviour
 {
     private static bool ColoringEnabled => Plugins.ConfigEntries.BillboardColor.Value;
 
-    private static BillboardGradientMode BillboardMode => Plugins.ConfigEntries.BillboardMode.Value;
-    private static VertexGradientLayout BillboardLayout => Plugins.ConfigEntries.BillboardLayout.Value;
-
     private PlayerControllerB _player;
     private TextMeshProUGUI _text;
     private CanvasGroup _canvasAlpha;
@@ -87,18 +84,18 @@ internal class PlayerBillboardGradient : MonoBehaviour
 
         _currentColors = _networker._syncedPlayerColors.Value;
 
-        switch (BillboardMode)
+        switch (_currentColors.billboardMode)
         {
             case BillboardGradientMode.Static:
-                HUDUtils.ApplyStaticVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, BillboardLayout);
+                HUDUtils.ApplyStaticVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, _currentColors.billboardLayout);
                 break;
 
             case BillboardGradientMode.Wave:
-                HUDUtils.ApplyWaveVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f, BillboardLayout);
+                HUDUtils.ApplyWaveVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f, _currentColors.billboardLayout);
                 break;
 
             case BillboardGradientMode.Pulse:
-                HUDUtils.ApplyPulsingVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f);
+                HUDUtils.ApplyPulsingVertexGradient(_text, _currentColors.colorA, _currentColors.colorB, Time.time / 2f, _currentColors.billboardLayout);
                 break;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using Unity.Netcode;
 using UnityEngine;
+using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
 
@@ -37,9 +38,14 @@ internal class PlayerColorNetworker : NetworkBehaviour
                 colorBHex = Plugins.ConfigEntries.GradientNameColorB.Value;
 
             PlayerColors = new(ColorUtility.TryParseHtmlString(colorAHex, out Color colorA) ? colorA : Color.red,
-                ColorUtility.TryParseHtmlString(colorBHex, out Color colorB) ? colorB : null);
+                ColorUtility.TryParseHtmlString(colorBHex, out Color colorB) ? colorB : null)
+            {
+                billboardMode = Plugins.ConfigEntries.BillboardMode.Value,
+                billboardLayout = Plugins.ConfigEntries.BillboardLayout.Value
+            };
 
-            _syncedPlayerColors.Value = PlayerColors;
+            if (_syncedPlayerColors.Value != PlayerColors)
+                _syncedPlayerColors.Value = PlayerColors;
         }
 
         PlayerColors = _syncedPlayerColors.Value;
@@ -60,15 +66,23 @@ public struct PlayerColorInfo(Color32 a, Color32? b = null) : INetworkSerializab
     public Color32 colorA = a;
     public Color32 colorB = b ?? a;
 
+    public BillboardGradientMode billboardMode;
+    public VertexGradientLayout billboardLayout;
+
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref colorA);
         serializer.SerializeValue(ref colorB);
+        serializer.SerializeValue(ref billboardMode);
+        serializer.SerializeValue(ref billboardLayout);
     }
 
     public readonly bool Equals(PlayerColorInfo other)
     {
-        return colorA.Equals(other.colorA) && colorB.Equals(other.colorB);
+        return colorA.Equals(other.colorA)
+            && colorB.Equals(other.colorB)
+            && billboardMode == other.billboardMode
+            && billboardLayout == other.billboardLayout;
     }
 
     public override readonly bool Equals(object obj)
@@ -88,6 +102,6 @@ public struct PlayerColorInfo(Color32 a, Color32? b = null) : INetworkSerializab
 
     public override readonly int GetHashCode()
     {
-        return HashCode.Combine(colorA, colorB);
+        return HashCode.Combine(colorA, colorB, billboardMode, billboardLayout);
     }
 }

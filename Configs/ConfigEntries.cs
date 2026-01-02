@@ -53,6 +53,8 @@ public class ConfigEntries
     public ConfigEntry<bool> ShowShipLoot { get; private set; }
     public ConfigEntry<float> DisplayTime { get; private set; }
     public ConfigEntry<string> LootInfoColor { get; private set; }
+    public ConfigEntry<float> LootPosX { get; private set; }
+    public ConfigEntry<float> LootPosY { get; private set; }
 
     #endregion
     #region InventorySlot ConfigEntries
@@ -114,6 +116,8 @@ public class ConfigEntries
     public ConfigEntry<ClockStyle> ClockFormat { get; private set; }
     public ConfigEntry<bool> RealtimeClock { get; private set; }
     public ConfigEntry<float> ClockSizeMultiplier { get; private set; }
+    //public ConfigEntry<float> ClockPosX { get; private set; }
+    //public ConfigEntry<float> ClockPosY { get; private set; }
     public ConfigEntry<string> ClockNumberColor { get; private set; }
     public ConfigEntry<string> ClockBoxColor { get; private set; }
     public ConfigEntry<string> ClockIconColor { get; private set; }
@@ -190,7 +194,9 @@ public class ConfigEntries
         ReplaceScrapCounterVisual = ConfigHelper.Bind("Scan", "Scrap Counter Visual", false, "Replace total value scanner with shiploot visual.");
         ShowShipLoot = ConfigHelper.Bind("Scan", "Ship Loot", true, "Enable ship loot info");
         DisplayTime = ConfigHelper.Bind("Scan", "Ship Loot Display Time", 5f, "Change how long ship loot should be displayed.", false, new AcceptableValueRange<float>(0f, 20f));
-        LootInfoColor = ConfigHelper.Bind(true, "Scan", "Ship Loot Color", "#00FF00", "Color of the ship loot info text.");
+        LootInfoColor = ConfigHelper.Bind(true, "Scan", "Loot Color", "#00FF00", "Color of the loot info text.");
+        LootPosX = ConfigHelper.Bind("Scan", "Loot Position X", 200f, "Y position of the loot info text.", false, new AcceptableValueRange<float>(-220f, 240f));
+        LootPosY = ConfigHelper.Bind("Scan", "Loot Position Y", 10f, "X position of the loot info text.", false, new AcceptableValueRange<float>(-70f, 210f));
         #endregion
         #region ScanNode Binds
         ScanNodeFade = ConfigHelper.Bind("ScanNodes", "Fade Away", true, "Allows you to apply fadeaway for scannodes.");
@@ -251,6 +257,8 @@ public class ConfigEntries
         //SpectatorClockVisibility = ConfigHelper.Bind("Clock", "Spectator Clock", 0f, "Show clock when spectating.", false, new AcceptableValueRange<float>(0f, 1f));
         RealtimeClock = ConfigHelper.Bind("Clock", "Realtime Clock", false, "Toggle fixed clock numbers, no more jumpy numbers.");
         ClockSizeMultiplier = ConfigHelper.Bind("Clock", "Clock Size Multiplier", 1f, "Change the size of the clock.", false, new AcceptableValueRange<float>(0.69f, 3f));
+        //ClockPosX = ConfigHelper.Bind("Clock", "Clock Position X", 0f, "X position of the clock on screen.", false, new AcceptableValueRange<float>(-360f, 520f));
+        //ClockPosY = ConfigHelper.Bind("Clock", "Clock Position Y", 0f, "Y position of the clock on screen.", false, new AcceptableValueRange<float>(-750f, 135f));
         ClockNumberColor = ConfigHelper.Bind(true, "Clock", "Clock Number Color", "#FF4C00", "Color of the clock’s numbers.");
         ClockBoxColor = ConfigHelper.Bind(true, "Clock", "Clock Box Color", "#FF4C00", "Color of the box around the clock.");
         ClockIconColor = ConfigHelper.Bind(true, "Clock", "Clock Icon Color", "#FF4C00", "Color of the icon.");
@@ -350,6 +358,8 @@ public class ConfigEntries
         DisplayTime.SettingChanged += (obj, args) => { LootInfoManager.OnDisplayTimeChanged(); };
         ShowShipLoot.SettingChanged += (obj, args) => { LootInfoManager.OnShowShipLootChanged(); };
         ReplaceScrapCounterVisual.SettingChanged += (obj, args) => { LootInfoManager.OnReplaceScrapCounterVisualChanged(); };
+        LootPosX.SettingChanged += (obj, args) => { LootInfoManager.ApplyLootInfoPos(); };
+        LootPosY.SettingChanged += (obj, args) => { LootInfoManager.ApplyLootInfoPos(); };
         #endregion
         #region ScanNode Changes
         ScanNodeLifetime.SettingChanged += (obj, args) =>
@@ -374,9 +384,11 @@ public class ConfigEntries
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         #endregion
-        #region Chat Changes
+        #region Chat and Billboard Changes
         GradientNameColorA.SettingChanged += PlayerColorNetworker.RefreshColors;
         GradientNameColorB.SettingChanged += PlayerColorNetworker.RefreshColors;
+        BillboardLayout.SettingChanged += PlayerColorNetworker.RefreshColors;
+        BillboardMode.SettingChanged += PlayerColorNetworker.RefreshColors;
         #endregion
         #region Clock Changes
         ClockFormat.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
