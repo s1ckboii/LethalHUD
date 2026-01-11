@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using LethalHUD.Configs;
+using LethalHUD.Networking;
 using System.Linq;
 using TMPro;
 using UnityEngine;

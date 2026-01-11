@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using LethalHUD.HUD;
+using LethalHUD.Networking;
 using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;

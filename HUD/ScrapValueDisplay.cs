@@ -339,4 +339,26 @@ internal static class ScrapValueDisplay
         if (_totalText != null)
             _totalText.transform.rotation = Quaternion.identity;
     }
+    internal static void ResetForNewHUD()
+    {
+        if (slotTexts != null)
+        {
+            for (int i = 0; i < slotTexts.Length; i++)
+            {
+                if (slotTexts[i] != null)
+                    Object.Destroy(slotTexts[i].gameObject);
+            }
+        }
+
+        slotTexts = null;
+        _slotValues = null;
+
+        if (_totalText != null)
+        {
+            Object.Destroy(_totalText.gameObject);
+            _totalText = null;
+        }
+
+        _lastTotal = 0;
+    }
 }

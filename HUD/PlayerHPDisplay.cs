@@ -26,9 +26,8 @@ public static class PlayerHPDisplay
     private static readonly float _percentSizeMult = 0.7f;
     private static readonly float _labelSizeMult = 0.65f;
 
+    // This one is fucked, I gotta figure out a good way to do this config work properly with the new coloring system
     internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
-    private static Color _midHPColor = new(1f, 0.3f, 0.3f);
-    private static Color _lowHPColor = new(0.6f, 0f, 0f);
 
     public static void Init()
     {
@@ -135,24 +134,9 @@ public static class PlayerHPDisplay
         }
 
         _hpText.fontSize = Mathf.Lerp(_hpText.fontSize, targetSize, Time.deltaTime * _sizeLerpSpeed);
-        
-        if (hp >= 30)
-        {
-            float t = (hp - 30f) / 70f;
-            _hpText.color = Color.Lerp(_midHPColor, FullHPColor, t);
-        }
-        else if (hp >= 20)
-        {
-            float t = (hp - 20f) / 10f;
-            _hpText.color = Color.Lerp(_midHPColor, _lowHPColor, t);
-        }
-        else
-        {
-            float t = hp / 20f;
-            _hpText.color = Color.Lerp(_lowHPColor, _midHPColor, t);
-        }
-    }
 
+        _hpText.color = HUDUtils.GetHPColor(hp);
+    }
     public static void ShakeOnHit(PlayerControllerB player)
     {
         if (player != null && player != GameNetworkManager.Instance.localPlayerController)

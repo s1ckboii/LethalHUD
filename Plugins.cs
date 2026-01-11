@@ -4,7 +4,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LethalHUD.Compats;
 using LethalHUD.Configs;
-using LethalHUD.HUD;
+using LethalHUD.Networking;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Netcode;
