@@ -16,6 +16,12 @@ internal class PlayerColorNetworker : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if (Plugins.NetworkingDisabled)
+        {
+            enabled = false;
+            return;
+        }
+
         base.OnNetworkSpawn();
 
         _syncedPlayerColors.OnValueChanged += (previousValue, newValue) => PlayerColors = newValue;
@@ -25,6 +31,9 @@ internal class PlayerColorNetworker : NetworkBehaviour
 
     protected override void OnOwnershipChanged(ulong previous, ulong current)
     {
+        if (Plugins.NetworkingDisabled)
+            return;
+
         base.OnOwnershipChanged(previous, current);
 
         RefreshColors();

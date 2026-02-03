@@ -27,8 +27,10 @@ public class Plugins : BaseUnityPlugin
     internal static new ManualLogSource Logger { get; private set; }
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
+    internal static GameObject LHSlotPrefab;
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
+    internal static bool NetworkingDisabled;
     internal struct ScanNodeTextures
     {
         public Sprite Outer;
@@ -43,13 +45,22 @@ public class Plugins : BaseUnityPlugin
 
         Harmony = new(MyPluginInfo.PLUGIN_GUID);
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
-        
-        SerializeNetworkVariables();
 
         ConfigFile bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
-        ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart."
-        );
+        ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart.");
+        ConfigEntry<bool> disableNetworkingEntry = bootstrapConfig.Bind("Main", "Disable Networked Features", false, "If enabled, disables all networked HUD features. Requires restart.");
+        
         bool useLocal = useLocalEntry.Value;
+        NetworkingDisabled = disableNetworkingEntry.Value;
+
+        if (!NetworkingDisabled)
+        {
+            SerializeNetworkVariables();
+        }
+        else
+        {
+            Loggers.Info("Networked HUD features are disabled via bootstrap config.");
+        }
 
         Config = useLocal
             ? ConfigUtils.CreateLocalConfigFile(this)
@@ -58,12 +69,12 @@ public class Plugins : BaseUnityPlugin
         ConfigEntries = new ConfigEntries();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "incomprehensibleandalsoridiculousoriginalassetbundlenameforlethalhud");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "lethalhudbundle");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
 
         if (assetBundle == null)
         {
-            Loggers.Error("Failed to load unfathomablyridiculousoriginalassetbundlenameforlethalhud assetbundle.");
+            Loggers.Error("Failed to load lethalhudbundle assetbundle.");
             return;
         }
 
@@ -98,6 +109,14 @@ public class Plugins : BaseUnityPlugin
                 Inner = innerTex
             };
         }
+
+        LHSlotPrefab = assetBundle.LoadAsset<GameObject>("LHSlot");
+
+        if (LHSlotPrefab == null)
+        {
+            Loggers.Error("LHSlot prefab not found in lethalhudbundle.");
+        }
+
         Harmony.PatchAll();
         bootstrapConfig.Save();
 

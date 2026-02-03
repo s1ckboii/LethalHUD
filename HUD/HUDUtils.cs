@@ -436,4 +436,45 @@ internal static class HUDUtils
             text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
     }
     #endregion
+    #region HP and PlayerRedCanvas Helpers
+    internal static readonly Color HP_Yellow = new(1f, 1f, 0.2f);
+    internal static readonly Color HP_Orange = new(1f, 0.5f, 0.1f);
+    internal static readonly Color HP_BrightRed = new(1f, 0.1f, 0.1f);
+    internal static readonly Color HP_DarkRed = new(0.4f, 0f, 0f);
+
+    // Overheal stuff (100+ hp)
+    internal static readonly Color HP_Blue = new(0.2f, 0.2f, 1f);
+
+    internal static Color GetHPColor(int hp)
+    {
+        if (hp > 100)
+        {
+            float t = Mathf.Clamp01((hp - 100f) / 100f);
+            return Color.Lerp(PlayerHPDisplay.FullHPColor, HP_Blue, t);
+        }
+
+        float hp01 = Mathf.Clamp01(hp / 100f);
+
+        if (hp01 >= 0.7f)
+        {
+            float t = Mathf.InverseLerp(0.7f, 1f, hp01);
+            return Color.Lerp(HP_Yellow, PlayerHPDisplay.FullHPColor, t);
+        }
+        else if (hp01 >= 0.5f)
+        {
+            float t = Mathf.InverseLerp(0.5f, 0.7f, hp01);
+            return Color.Lerp(HP_Orange, HP_Yellow, t);
+        }
+        else if (hp01 >= 0.3f)
+        {
+            float t = Mathf.InverseLerp(0.3f, 0.5f, hp01);
+            return Color.Lerp(HP_BrightRed, HP_Orange, t);
+        }
+        else
+        {
+            float t = Mathf.InverseLerp(0f, 0.3f, hp01);
+            return Color.Lerp(HP_DarkRed, HP_BrightRed, t);
+        }
+    }
+    #endregion
 }

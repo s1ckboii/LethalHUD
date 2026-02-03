@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -39,7 +40,10 @@ public class ConfigEntries
     #region Main ConfigEntries
     public ConfigEntry<string> UnifyMostColors { get; private set; }
     #endregion
+    #region CUSTOM UI ConfigEntries
+    public ConfigEntry<bool> CustomInventoryFrames { get; private set; }
 
+    #endregion
     #region Scan ConfigEntries
     public ConfigEntry<ScanMode> ScanModeType { get; private set; }
     public ConfigEntry<bool> FadeOut { get; private set; }
@@ -142,14 +146,12 @@ public class ConfigEntries
     public ConfigEntry<string> PlanetHeaderColor { get; private set; }
     public ConfigEntry<bool> PlanetRisk { get; private set; }
     #endregion
-
     #region Spectator HUD ConfigEntries
     public ConfigEntry<string> SpectatorTipColor { get; private set; }
     public ConfigEntry<string> SpectatingPlayerColor { get; private set; }
     public ConfigEntry<string> HoldEndGameColor { get; private set; }
     public ConfigEntry<string> HoldEndGameVotesColor { get; private set; }
     #endregion
-
     #region Misc ConfigEntries
     public ConfigEntry<bool> BillboardColor { get; private set; }
     public ConfigEntry<BillboardGradientMode> BillboardMode { get; private set; }
@@ -181,7 +183,9 @@ public class ConfigEntries
         #region Main Binds
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
         #endregion
-
+        #region Custom UI Binds
+        CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", false, "Enable custom inventory frames.");
+        #endregion
         #region Scan Binds
         ScanModeType = ConfigHelper.Bind("Scan", "Scan Mode", ScanMode.Default, "Choose the scan mode.");
         FadeOut = ConfigHelper.Bind("Scan", "Fade Out", true, "Fade out effect for scan color.");
@@ -340,7 +344,12 @@ public class ConfigEntries
             }
         };
         #endregion
-
+        #region Custom UI Changes
+        CustomInventoryFrames.SettingChanged += (obj, args) =>
+        {
+            CustomFrames.Apply(CustomInventoryFrames.Value);
+        };
+        #endregion
         #region Scan Changes
         SelectedScanlineMode.SettingChanged += (obj, args) => ScanController.UpdateScanTexture();
         ScanColor.SettingChanged += (obj, args) =>
@@ -385,10 +394,13 @@ public class ConfigEntries
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         #endregion
         #region Chat and Billboard Changes
-        GradientNameColorA.SettingChanged += PlayerColorNetworker.RefreshColors;
-        GradientNameColorB.SettingChanged += PlayerColorNetworker.RefreshColors;
-        BillboardLayout.SettingChanged += PlayerColorNetworker.RefreshColors;
-        BillboardMode.SettingChanged += PlayerColorNetworker.RefreshColors;
+        if (!Plugins.NetworkingDisabled)
+        {
+            GradientNameColorA.SettingChanged += PlayerColorNetworker.RefreshColors;
+            GradientNameColorB.SettingChanged += PlayerColorNetworker.RefreshColors;
+            BillboardLayout.SettingChanged += PlayerColorNetworker.RefreshColors;
+            BillboardMode.SettingChanged += PlayerColorNetworker.RefreshColors;
+        }
         #endregion
         #region Clock Changes
         ClockFormat.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };

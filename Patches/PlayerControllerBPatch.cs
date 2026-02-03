@@ -8,12 +8,17 @@ namespace LethalHUD.Patches;
 [HarmonyPatch(typeof(PlayerControllerB))]
 internal static class PlayerControllerBPatch
 {
+    private static int _lastHealth = int.MinValue;
+
     [HarmonyPrefix]
     [HarmonyPatch("Awake")]
     private static void OnPlayerControllerBAwake(PlayerControllerB __instance)
     {
-        if (!__instance.TryGetComponent(out PlayerColorNetworker _))
-            __instance.gameObject.AddComponent<PlayerColorNetworker>();
+        if (!Plugins.NetworkingDisabled)
+        {
+            if (!__instance.TryGetComponent(out PlayerColorNetworker _))
+                __instance.gameObject.AddComponent<PlayerColorNetworker>();
+        }
         if (!__instance.TryGetComponent(out PlayerBillboardGradient _))
             __instance.gameObject.AddComponent<PlayerBillboardGradient>();
     }
@@ -121,5 +126,13 @@ internal static class PlayerControllerBPatch
         if (__instance.isTypingChat)
             ChatController.PlayerTypingIndicator();
         SprintMeterController.UpdateSprintMeterColor();
+
+
+        int health = __instance.health;
+        if (health == _lastHealth)
+            return;
+
+        _lastHealth = health;
+        PlayerRedCanvasController.ChangeSetting();
     }
 }

@@ -20,6 +20,18 @@ internal static class ChatController
         if (string.IsNullOrEmpty(playerName))
             return playerName;
 
+        if (Plugins.NetworkingDisabled)
+        {
+            if (ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorA.Value, out Color a))
+            {
+                ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientNameColorB.Value, out Color b);
+
+                return HUDUtils.ApplyStaticGradient(playerName, a, b == default ? a : b);
+            }
+
+            return playerName;
+        }
+
         if (ColoringEnabled && playerId < StartOfRound.Instance.allPlayerScripts.Length)
         {
             PlayerControllerB player = playerId >= 0 ? StartOfRound.Instance.allPlayerScripts[playerId] : GameNetworkManager.Instance.localPlayerController;

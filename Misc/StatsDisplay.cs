@@ -55,7 +55,7 @@ public class StatsDisplay : NetworkBehaviour
     private void Update()
     {
         _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f;
-
+        
         HandlePing();
         UpdateStatsText();
     }
@@ -63,14 +63,16 @@ public class StatsDisplay : NetworkBehaviour
     #region Ping Handling
     private void HandlePing()
     {
-        if (!IsOwner || _transport == null) return;
+        if (_transport == null || !NetworkManager.Singleton.IsClient)
+            return;
 
-        _pingTimer += Time.deltaTime;
-        if (_pingTimer >= 0.5f)
+        if (NetworkManager.Singleton.IsHost)
         {
-            _pingTimer = 0f;
-            RequestPingServerRpc();
+            _currentPing = 0;
+            return;
         }
+
+        _currentPing = _transport.GetCurrentRtt(NetworkManager.Singleton.LocalClientId);
     }
     #endregion
 
@@ -196,23 +198,4 @@ public class StatsDisplay : NetworkBehaviour
         }
     }
     #endregion
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestPingServerRpc(ServerRpcParams rpcParams = default)
-    {
-        if (_transport == null) return;
-
-        ulong clientId = rpcParams.Receive.SenderClientId;
-        ulong rtt = _transport.GetCurrentRtt(clientId);
-        SendPingClientRpc(rtt, new ClientRpcParams
-        {
-            Send = new ClientRpcSendParams { TargetClientIds = [clientId] }
-        });
-    }
-
-    [ClientRpc]
-    private void SendPingClientRpc(ulong ping, ClientRpcParams rpcParams = default)
-    {
-        _currentPing = ping;
-    }
 }

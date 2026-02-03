@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 using LethalHUD.Compats;
+using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -61,6 +62,9 @@ internal static class HUDManagerPatch
     [HarmonyPatch("Start")]
     private static void OnHUDManagerStart(HUDManager __instance)
     {
+        lastSlotCount = 0;
+        ScrapValueDisplay.ResetForNewHUD();
+
         _pingScanAction = IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan");
 
         ScanController.SetScanColor();
@@ -70,6 +74,7 @@ internal static class HUDManagerPatch
         ClockController.ApplyClockAppearance();
         PlanetInfoDisplay.ApplyColors();
         SpectatorHUDController.ApplyColors();
+
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
 
@@ -88,7 +93,16 @@ internal static class HUDManagerPatch
         {
             __instance.gameObject.AddComponent<StatsDisplay>();
         }
+
+        CanvasGroup selfRed = __instance.selfRedCanvasGroup;
+        if (selfRed == null)
+            return;
+
+        PlayerRedCanvasController.Bind(selfRed);
+        CustomFrames.OnHUDEnable(__instance);
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
+
+        __instance.StartCoroutine(ApplySelfRedAfterTick(__instance));
     }
 
     [HarmonyPrefix]
@@ -156,6 +170,26 @@ internal static class HUDManagerPatch
         {
             ScrapValueDisplay.RefreshSlots();
             lastSlotCount = currentCount;
+        }
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("UpdateHealthUI")]
+    private static void OnHUDManagerUpdateHealthUI(int health)
+    {
+        switch (Plugins.ConfigEntries.SelfRedCanvasMode.Value)
+        {
+            case SelfRedMode.Vanilla:
+                return;
+
+            case SelfRedMode.ColoredFilled:
+                PlayerRedCanvasController.ApplyFillAndColor(health);
+                break;
+
+            case SelfRedMode.RedFillUp:
+                PlayerRedCanvasController.ApplyFillWithRedFade(health);
+                break;
+
         }
     }
 
@@ -300,6 +334,33 @@ internal static class HUDManagerPatch
             __instance.UIAudio.PlayOneShot(__instance.scanSFX);
 
             LootInfoManager.LootScan();
+        }
+    }
+    private static IEnumerator ApplySelfRedAfterTick(HUDManager hud)
+    {
+        yield return null;
+
+        if (hud == null || hud.selfRedCanvasGroup == null)
+            yield break;
+
+        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+        if (player == null)
+            yield break;
+
+        int health = player.health;
+
+        switch (Plugins.ConfigEntries.SelfRedCanvasMode.Value)
+        {
+            case SelfRedMode.Vanilla:
+                yield break;
+
+            case SelfRedMode.ColoredFilled:
+                PlayerRedCanvasController.ApplyFillAndColor(health);
+                break;
+
+            case SelfRedMode.RedFillUp:
+                PlayerRedCanvasController.ApplyFillWithRedFade(health);
+                break;
         }
     }
 }
