@@ -2,6 +2,7 @@
 using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
+using LethalHUD.Networking;
 using LethalHUD.Scan;
 using System;
 using UnityEngine.InputSystem;
@@ -23,16 +24,12 @@ public class ConfigEntries
     {
         ConfigFile configFile = Plugins.Config;
 
-        // Disable saving config after a call to 'Bind()' is made.
         configFile.SaveOnConfigSet = false;
 
-        // Bind config entries.
         Setup();
 
-        // Remove old config settings.
         configFile.OrphanedEntries.Clear();
 
-        // Re-enable saving and save config.
         configFile.SaveOnConfigSet = true;
         configFile.Save();
     }
@@ -156,6 +153,7 @@ public class ConfigEntries
     public ConfigEntry<bool> BillboardColor { get; private set; }
     public ConfigEntry<BillboardGradientMode> BillboardMode { get; private set; }
     public ConfigEntry<VertexGradientLayout> BillboardLayout { get; private set; }
+    public ConfigEntry<SelfRedMode> SelfRedCanvasMode { get; private set; }
     public ConfigEntry<float> TerminalFadeDelaysTime { get; private set; }
     public ConfigEntry<bool> ShowFPSDisplay { get; private set; }
     public ConfigEntry<bool> ShowPingDisplay { get; private set; }
@@ -239,7 +237,7 @@ public class ConfigEntries
         HealthFormat = ConfigHelper.Bind("Health/Stamina/Weight", "Health Format", HPDisplayMode.Plain, "Change the display mode of the HP Indicator.");
         HealthSize = ConfigHelper.Bind("Health/Stamina/Weight", "Health Size", 24, "Change the fontsize of the HP Indicator.", false, new AcceptableValueRange<int>(1, 50));
         HealthRotation = ConfigHelper.Bind("Health/Stamina/Weight", "Health Rotation", 356, "Change the rotation of the HP Indicator.", false, new AcceptableValueRange<int>(0, 359));
-        HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#00CC00", "Base color for HP Indicator.");
+        HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#33FF33", "Base color for HP Indicator.");
         HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
         HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
         SprintBool = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter", true, "Enable sprint meter coloring.");
@@ -296,6 +294,7 @@ public class ConfigEntries
         BillboardColor = ConfigHelper.Bind("Misc", "Billboard Gradient Color", true, "Enable billboard gradient coloring.");
         BillboardLayout = ConfigHelper.Bind("Misc", "Billboard Layout", VertexGradientLayout.Vertical, "Change the billboard gradient layout.");
         BillboardMode = ConfigHelper.Bind("Misc", "Billboard Gradient Mode", BillboardGradientMode.Wave, "Change the billboard gradient mode.");
+        SelfRedCanvasMode = ConfigHelper.Bind("Misc", "Player Icon", SelfRedMode.ColoredFilled, "Change the player icon's visual (ColorFilled = starts with green goes to red [over 100 hp blue], RedFillUp = fills up from bottom to top from bright to dark red).");
         TerminalFadeDelaysTime = ConfigHelper.Bind("Misc", "Terminal Fade Delay", 0.5f, "Change the delay time for fading out HUD stuff.", false, new AcceptableValueRange<float>(0f, 5f));
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
         ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
@@ -409,8 +408,15 @@ public class ConfigEntries
         ClockBoxColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockIconColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
         ClockShipLeaveColor.SettingChanged += (obj, args) => { ClockController.ApplyClockAppearance(); };
+        //ClockPosX.SettingChanged += (obj, args) => { ClockController.ApplyClockOffset(); };
+        //ClockPosY.SettingChanged += (obj, args) => { ClockController.ApplyClockOffset(); };
         #endregion
         #region HSW Changes
+        HealthColor.SettingChanged += (obj, args) =>
+        {
+            if (SelfRedCanvasMode.Value == SelfRedMode.ColoredFilled)
+                PlayerRedCanvasController.ChangeSetting();
+        };
         SprintColoring.SettingChanged += (obj, args) =>
         {
             SprintMeterController.UpdateSprintMeterColor();
@@ -450,6 +456,7 @@ public class ConfigEntries
         SpectatingPlayerColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         HoldEndGameColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         HoldEndGameVotesColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
+        SelfRedCanvasMode.SettingChanged += (obj, args) => { PlayerRedCanvasController.ChangeSetting(); };
         #endregion
         HideHUDButton.SettingChanged += (obj, args) =>
         {

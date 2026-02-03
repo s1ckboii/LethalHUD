@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using static LethalHUD.Enums;
 
-namespace LethalHUD.HUD;
+namespace LethalHUD.Networking;
 
 [DisallowMultipleComponent]
 internal class PlayerColorNetworker : NetworkBehaviour

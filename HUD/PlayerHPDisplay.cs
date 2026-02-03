@@ -135,22 +135,8 @@ public static class PlayerHPDisplay
         }
 
         _hpText.fontSize = Mathf.Lerp(_hpText.fontSize, targetSize, Time.deltaTime * _sizeLerpSpeed);
-        
-        if (hp >= 30)
-        {
-            float t = (hp - 30f) / 70f;
-            _hpText.color = Color.Lerp(_midHPColor, FullHPColor, t);
-        }
-        else if (hp >= 20)
-        {
-            float t = (hp - 20f) / 10f;
-            _hpText.color = Color.Lerp(_midHPColor, _lowHPColor, t);
-        }
-        else
-        {
-            float t = hp / 20f;
-            _hpText.color = Color.Lerp(_lowHPColor, _midHPColor, t);
-        }
+
+        _hpText.color = HUDUtils.GetHPColor(hp);
     }
 
     public static void ShakeOnHit(PlayerControllerB player)

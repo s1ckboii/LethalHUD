@@ -37,11 +37,10 @@ public static class LootInfoManager
 
     private static Color _lootInfoColor = Color.white;
 
-    private const float CountSpeed = 1500f;
+    private const float CountSpeed = 500f;
     private const float FadeDuration = 0.25f;
 
-    private static readonly AnimationCurve FadeCurve =
-        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    private static readonly AnimationCurve FadeCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     public static void ApplyLootInfoColor()
     {
         _lootInfoColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.LootInfoColor.Value);
@@ -111,11 +110,7 @@ public static class LootInfoManager
             {
                 UpdateVanillaScanTotal();
 
-                _scanDisplayTotal = (int)Mathf.MoveTowards(
-                    _scanDisplayTotal,
-                    _scanRealTotal,
-                    CountSpeed * Time.deltaTime
-                );
+                _scanDisplayTotal = (int)Mathf.MoveTowards(_scanDisplayTotal, _scanRealTotal, CountSpeed * Time.deltaTime);
 
                 if (_scanDisplayTotal > 0)
                 {
@@ -131,6 +126,7 @@ public static class LootInfoManager
             else
             {
                 FadeOutCounter(_totalCounter, _totalCG);
+                RestoreVanillaScanUI();
             }
 
             if (inShip && Plugins.ConfigEntries.ShowShipLoot.Value)
@@ -159,9 +155,7 @@ public static class LootInfoManager
         if (_totalCounter != null)
             return;
 
-        GameObject prefab = GameObject.Find(
-            "/Systems/UI/Canvas/IngamePlayerHUD/BottomMiddle/ValueCounter"
-        );
+        GameObject prefab = GameObject.Find("/Systems/UI/Canvas/IngamePlayerHUD/BottomMiddle/ValueCounter");
         if (!prefab)
             return;
 
@@ -199,8 +193,7 @@ public static class LootInfoManager
             .FirstOrDefault(i => i.name.ToLower().Contains("line"))
             ?.GetComponent<RectTransform>();
 
-        _shipCG = _shipCounter.GetComponent<CanvasGroup>()
-                 ?? _shipCounter.AddComponent<CanvasGroup>();
+        _shipCG = _shipCounter.GetComponent<CanvasGroup>() ?? _shipCounter.AddComponent<CanvasGroup>();
 
         _shipCG.alpha = 0f;
         _shipCounter.SetActive(false);
@@ -249,9 +242,9 @@ public static class LootInfoManager
 
         if (bg != null)
         {
-            Color c = _lootInfoColor;
-            c.a *= 0.25f;
-            bg.color = c;
+            Color color = _lootInfoColor;
+            color.a *= 0.25f;
+            bg.color = color;
         }
     }
     private static void AlignShipToTotalDiagonal()
@@ -281,9 +274,7 @@ public static class LootInfoManager
     private static void EnsureVanillaTotalLoot()
     {
         if (_vanillaTotalLoot == null)
-            _vanillaTotalLoot = GameObject.Find(
-                "UI/Canvas/ObjectScanner/GlobalScanInfo/AnimContainer/Image"
-            );
+            _vanillaTotalLoot = GameObject.Find("UI/Canvas/ObjectScanner/GlobalScanInfo/AnimContainer/Image");
 
         if (_vanillaTotalLoot != null && _vanillaTotalNum == null)
         {
@@ -294,19 +285,18 @@ public static class LootInfoManager
     }
     private static void UpdateVanillaScanTotal()
     {
-        if (_vanillaTotalNum == null)
+        HUDManager hud = HUDManager.Instance;
+        if (hud == null)
             return;
 
-        string raw = _vanillaTotalNum.text.Replace("$", "");
-        int.TryParse(raw, out _scanRealTotal);
+        _scanRealTotal = hud.totalScrapScanned;
     }
     private static void HideVanillaScanUI()
     {
         if (_vanillaTotalLoot == null)
             return;
 
-        CanvasGroup cg = _vanillaTotalLoot.GetComponent<CanvasGroup>()
-                         ?? _vanillaTotalLoot.AddComponent<CanvasGroup>();
+        CanvasGroup cg = _vanillaTotalLoot.GetComponent<CanvasGroup>() ?? _vanillaTotalLoot.AddComponent<CanvasGroup>();
 
         cg.alpha = 0f;
         cg.interactable = false;

@@ -2,6 +2,7 @@
 using HarmonyLib;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
+using LethalHUD.Networking;
 using System;
 
 namespace LethalHUD.Patches;

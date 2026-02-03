@@ -5,6 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace LethalHUD;
 public static class Enums
 {
+    public enum SelfRedMode
+    {
+        Vanilla,
+        ColoredFilled,
+        RedFillUp
+    }
     public enum BillboardGradientMode
     {
         Static,
