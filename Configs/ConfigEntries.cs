@@ -38,7 +38,10 @@ public class ConfigEntries
     public ConfigEntry<string> UnifyMostColors { get; private set; }
     #endregion
     #region CUSTOM UI ConfigEntries
-    public ConfigEntry<bool> CustomInventoryFrames { get; private set; }
+    public ConfigEntry<HealthBarStyle> CustomHealthBar { get; private set; }
+    public ConfigEntry<string> CustomHealthShaderColor { get; private set; }
+    public ConfigEntry<InventoryFrameStyle> CustomInventoryFrames { get; private set; }
+    public ConfigEntry<string> CustomFrameShaderColor { get; private set; }
 
     #endregion
     #region Scan ConfigEntries
@@ -182,7 +185,10 @@ public class ConfigEntries
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
         #endregion
         #region Custom UI Binds
-        CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", false, "Enable custom inventory frames.");
+        CustomHealthBar = ConfigHelper.Bind("Custom UI", "Custom Health Bar", HealthBarStyle.Default, "Change the style of the health bar.");
+        CustomHealthShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Health Bar Color", "#FFFF00", "Change the color of the health bar in HEX format.");
+        CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", InventoryFrameStyle.Default, "Change the style of the inventory frames.");
+        CustomFrameShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Frame Shader Color", "#FFFF00", "Change the color of the custom inventory frame shader in HEX format.");
         #endregion
         #region Scan Binds
         ScanModeType = ConfigHelper.Bind("Scan", "Scan Mode", ScanMode.Default, "Choose the scan mode.");
@@ -344,10 +350,10 @@ public class ConfigEntries
         };
         #endregion
         #region Custom UI Changes
-        CustomInventoryFrames.SettingChanged += (obj, args) =>
-        {
-            CustomFrames.Apply(CustomInventoryFrames.Value);
-        };
+        CustomHealthBar.SettingChanged += (obj, args) => { CustomHUD.CustomHealthBar.Apply(Plugins.ConfigEntries.CustomHealthBar.Value); };
+        CustomHealthShaderColor.SettingChanged += (obj, args) => { CustomHUD.CustomHealthBar.UpdateShaderColor(); };
+        CustomInventoryFrames.SettingChanged += (obj, args) => { CustomFrames.Apply(CustomInventoryFrames.Value); };
+        CustomFrameShaderColor.SettingChanged += (obj, args) => { CustomFrames.UpdateShaderColor(); };
         #endregion
         #region Scan Changes
         SelectedScanlineMode.SettingChanged += (obj, args) => ScanController.UpdateScanTexture();

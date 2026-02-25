@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalHUD.CustomHUD;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.Enums;
@@ -92,6 +93,7 @@ internal static class PlayerRedCanvasController
 
     internal static void ApplyFillAndColor(int health)
     {
+        if (CustomHealthBar.UsingCustom) return;
         ApplyFilledBase();
 
         float hp01 = Mathf.Clamp01(health / 100f);
@@ -105,6 +107,7 @@ internal static class PlayerRedCanvasController
 
     internal static void ApplyFillWithRedFade(int health)
     {
+        if (CustomHealthBar.UsingCustom) return;
         ApplyFilledBase();
 
         health = Mathf.Min(health, 100);
@@ -141,6 +144,7 @@ internal static class PlayerRedCanvasController
         if (_image == null || !_cachedOriginal)
             return;
 
+        _image.enabled = true;
         _canvas.alpha = (float)(100 - health) / 100f;
 
         _image.type = _originalType;
@@ -162,6 +166,12 @@ internal static class PlayerRedCanvasController
         if (player == null)
             return;
 
+        if (CustomHealthBar.UsingCustom)
+        {
+            DisableLogicAndHide();
+            return;
+        }
+
         int health = player.health;
 
         switch (Plugins.ConfigEntries.SelfRedCanvasMode.Value)
@@ -178,5 +188,12 @@ internal static class PlayerRedCanvasController
                 ApplyFillWithRedFade(health);
                 break;
         }
+    }
+    private static void DisableLogicAndHide()
+    {
+        if (_canvas != null) _canvas.alpha = 0f;
+        if (_image != null) _image.enabled = false;
+        if (_overhealImage != null) _overhealImage.enabled = false;
+        if (_overhealCanvas != null) _overhealCanvas.alpha = 0f;
     }
 }

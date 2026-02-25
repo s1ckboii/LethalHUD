@@ -50,45 +50,29 @@ internal static class ScrapValueDisplay
 
         if (slotTexts == null || slotTexts.Length != slotCount)
         {
-            if (slotTexts != null)
-            {
-                for (int i = 0; i < slotTexts.Length; i++)
-                {
-                    if (slotTexts[i] != null)
-                        Object.Destroy(slotTexts[i].gameObject);
-                }
-            }
-
             slotTexts = new TMP_Text[slotCount];
             _slotValues = new int[slotCount];
         }
 
         for (int i = 0; i < slotCount; i++)
         {
-            Image slot = hud.itemSlotIconFrames[i];
-            if (slot == null)
-                continue;
+            Image currentSlotFrame = hud.itemSlotIconFrames[i];
+            if (currentSlotFrame == null) continue;
 
-            bool mustCreate = false;
+            bool needsUpdate = slotTexts[i] == null || slotTexts[i].gameObject == null || slotTexts[i].transform.parent != currentSlotFrame.transform;
 
-            if (slotTexts[i] == null)
-                mustCreate = true;
-
-            else if (slotTexts[i].gameObject == null)
-                mustCreate = true;
-
-            else if (slotTexts[i].transform.parent != slot.transform)
-                mustCreate = true;
-
-            if (mustCreate)
+            if (needsUpdate)
             {
-                foreach (Transform child in slot.transform)
+                if (slotTexts[i] != null)
+                    Object.Destroy(slotTexts[i].gameObject);
+
+                foreach (Transform child in currentSlotFrame.transform)
                 {
                     if (child.name == "InventoryScrapValueText")
                         Object.Destroy(child.gameObject);
                 }
 
-                CreateSlotTextForIndex(i, slot);
+                CreateSlotTextForIndex(i, currentSlotFrame);
             }
         }
 

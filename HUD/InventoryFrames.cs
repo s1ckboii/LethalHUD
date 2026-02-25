@@ -121,8 +121,11 @@ internal static class InventoryFrames
                 Color color = ConfigHelper.GetSlotColor();
                 foreach (var frame in _allFrames)
                 {
-                    if (frame != null)
-                        frame.color = color;
+                    if (frame == null) continue;
+
+                    Color c = color;
+                    c.a = frame.color.a;
+                    frame.color = c;
                 }
                 CompassController.SetCompassColor(color);
                 break;

@@ -16,11 +16,11 @@ internal static class HUDUtils
     {
         if (ColorUtility.TryParseHtmlString(hex, out Color color))
         {
-            return new Color(color.r, color.g, color.b);
+            return color;
         }
 
         Loggers.Warning($"Invalid HEX color: {hex}. Defaulting to original blue.");
-        return new Color(0f, 0.047f, 1f);
+        return new Color(0f, 0.047f, 1f, 1f);
     }
 
     internal static Color ParseHexColor(string hex, Color fallback)
@@ -265,28 +265,33 @@ internal static class HUDUtils
 
         for (int i = 0; i < count; i++)
         {
+            if (frames[i] == null) continue;
+
             float hue = (hueShift + (float)i / count) % 1f;
             Color rainbowColor = Color.HSVToRGB(hue, 1f, 1f);
 
-            if (frames[i] != null)
-                frames[i].color = rainbowColor;
+            rainbowColor.a = frames[i].color.a;
+            frames[i].color = rainbowColor;
         }
     }
 
     internal static void ApplyWavyGradient(Image[] frames, Color startColor, Color endColor, float speed = 0.15f, float waveFrequency = 2f)
     {
-        if (frames == null || frames.Length == 0)
-            return;
+        if (frames == null || frames.Length == 0) return;
 
         _gradientWaveTime = (_gradientWaveTime + Time.deltaTime * speed) % 1f;
 
         int count = frames.Length;
         for (int i = 0; i < count; i++)
         {
+            if (frames[i] == null) continue;
+
             float normalizedIndex = (float)i / (count - 1);
             float waveOffset = Mathf.SmoothStep(0f, 1f, Mathf.Sin((_gradientWaveTime + normalizedIndex * waveFrequency) * Mathf.PI * 2f) * 0.5f + 0.5f);
 
             Color interpolated = Color.Lerp(startColor, endColor, waveOffset).gamma;
+
+            interpolated.a = frames[i].color.a;
             frames[i].color = interpolated;
         }
     }

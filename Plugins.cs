@@ -27,7 +27,9 @@ public class Plugins : BaseUnityPlugin
     internal static new ManualLogSource Logger { get; private set; }
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
-    internal static GameObject LHSlotPrefab;
+
+    internal static readonly Dictionary<HealthBarStyle, GameObject> HealthBarPrefabs = [];
+    internal static readonly Dictionary<InventoryFrameStyle, GameObject> SlotPrefabs = [];
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
     internal static bool NetworkingDisabled;
@@ -110,11 +112,38 @@ public class Plugins : BaseUnityPlugin
             };
         }
 
-        LHSlotPrefab = assetBundle.LoadAsset<GameObject>("LHSlot");
-
-        if (LHSlotPrefab == null)
+        foreach (HealthBarStyle style in System.Enum.GetValues(typeof(HealthBarStyle)))
         {
-            Loggers.Error("LHSlot prefab not found in lethalhudbundle.");
+            if (style == HealthBarStyle.Default)
+                continue;
+
+            string prefabName = $"LHHealthBar_{style}";
+            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+            if (prefab == null)
+            {
+                Loggers.Warning($"HealthBar prefab '{prefabName}' not found in lethalhudbundle.");
+                continue;
+            }
+
+            HealthBarPrefabs[style] = prefab;
+        }
+
+        foreach (InventoryFrameStyle style in System.Enum.GetValues(typeof(InventoryFrameStyle)))
+        {
+            if (style == InventoryFrameStyle.Default)
+                continue;
+
+            string prefabName = $"LHSlot_{style}";
+            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+            if (prefab == null)
+            {
+                Loggers.Warning($"Slot prefab '{prefabName}' not found in lethalhudbundle.");
+                continue;
+            }
+
+            SlotPrefabs[style] = prefab;
         }
 
         Harmony.PatchAll();

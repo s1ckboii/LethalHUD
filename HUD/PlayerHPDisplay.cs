@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using LethalHUD.Compats;
+using LethalHUD.CustomHUD;
 using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;
@@ -27,8 +28,6 @@ public static class PlayerHPDisplay
     private static readonly float _labelSizeMult = 0.65f;
 
     internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
-    private static Color _midHPColor = new(1f, 0.3f, 0.3f);
-    private static Color _lowHPColor = new(0.6f, 0f, 0f);
 
     public static void Init()
     {
@@ -66,36 +65,24 @@ public static class PlayerHPDisplay
         _basePosition = rect.anchoredPosition;
     }
 
-    public static void UpdateNumber()
+    public static void UpdateNumber(TextMeshProUGUI externalText = null, Vector2? customBasePos = null)
     {
-        if (_hpObj == null || _hpText == null) return;
+        bool isCustom = externalText != null;
 
-        if (_hpObj.activeSelf)
+        if (_hpObj != null)
         {
-            if (!Plugins.ConfigEntries.HealthIndicator.Value)
-            {
-                _hpObj.SetActive(false);
-            }
-        }
-        else
-        {
-            if (Plugins.ConfigEntries.HealthIndicator.Value)
-            {
-                _hpObj.SetActive(true);
-            }
+            _hpObj.SetActive(!CustomHealthBar.UsingCustom && Plugins.ConfigEntries.HealthIndicator.Value);
         }
 
-        if (ModCompats.IsEladsHUDPresent) return;
-        if (_hpText == null) return;
+        TextMeshProUGUI targetText = isCustom ? externalText : _hpText;
+        if (targetText == null) return;
+
         if (_localPlayer == null) _localPlayer = GameNetworkManager.Instance.localPlayerController;
         if (_localPlayer == null) return;
 
-        _hpObj.transform.localRotation = Quaternion.Euler(0f, 0f, HealthRotation);
-        _basePosition = new Vector2(Plugins.ConfigEntries.HPIndicatorX.Value, Plugins.ConfigEntries.HPIndicatorY.Value);
-
         int hp = _localPlayer.health;
 
-        _hpText.text = Plugins.ConfigEntries.HealthFormat.Value switch
+        targetText.text = Plugins.ConfigEntries.HealthFormat.Value switch
         {
             HPDisplayMode.Percent => $"{hp} %",
             HPDisplayMode.Label => $"{hp} HP",
@@ -113,8 +100,18 @@ public static class PlayerHPDisplay
             intensity = _criticalMaxShakeIntensity * (20 - hp) / 20f;
         }
 
-        RectTransform rect = _hpText.rectTransform;
-        rect.anchoredPosition = _basePosition + Random.insideUnitCircle * intensity;
+        Vector2 basePos;
+        if (isCustom)
+        {
+            basePos = customBasePos ?? Vector2.zero;
+        }
+        else
+        {
+            basePos = _basePosition;
+        }
+
+        RectTransform rect = targetText.rectTransform;
+        rect.anchoredPosition = basePos + Random.insideUnitCircle * intensity;
 
         float formatMult = Plugins.ConfigEntries.HealthFormat.Value switch
         {
@@ -124,19 +121,12 @@ public static class PlayerHPDisplay
         };
 
         float targetSize = BaseFontSize * formatMult;
+        if (_shakeTimer > 0f) targetSize *= _sizeBump;
+        else if (hp < 20) targetSize *= (1f + 0.1f * (20 - hp) / 20f);
 
-        if (_shakeTimer > 0f)
-        {
-            targetSize *= _sizeBump;
-        }
-        else if (hp < 20)
-        {
-            targetSize *= (1f + 0.1f * (20 - hp) / 20f);
-        }
+        targetText.fontSize = Mathf.Lerp(targetText.fontSize, targetSize, Time.deltaTime * _sizeLerpSpeed);
 
-        _hpText.fontSize = Mathf.Lerp(_hpText.fontSize, targetSize, Time.deltaTime * _sizeLerpSpeed);
-
-        _hpText.color = HUDUtils.GetHPColor(hp);
+        targetText.color = HUDUtils.GetHPColor(hp);
     }
 
     public static void ShakeOnHit(PlayerControllerB player)
