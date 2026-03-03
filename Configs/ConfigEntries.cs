@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using LethalHUD.Compats;
 using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
@@ -40,6 +41,8 @@ public class ConfigEntries
     #region CUSTOM UI ConfigEntries
     public ConfigEntry<HealthBarStyle> CustomHealthBar { get; private set; }
     public ConfigEntry<string> CustomHealthShaderColor { get; private set; }
+    public ConfigEntry<StaminaBarStyle> CustomStaminaBar { get; private set; }
+    public ConfigEntry<string> CustomStaminaShaderColor { get; private set; }
     public ConfigEntry<InventoryFrameStyle> CustomInventoryFrames { get; private set; }
     public ConfigEntry<string> CustomFrameShaderColor { get; private set; }
 
@@ -187,6 +190,8 @@ public class ConfigEntries
         #region Custom UI Binds
         CustomHealthBar = ConfigHelper.Bind("Custom UI", "Custom Health Bar", HealthBarStyle.Default, "Change the style of the health bar.");
         CustomHealthShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Health Bar Color", "#FFFF00", "Change the color of the health bar in HEX format.");
+        CustomStaminaBar = ConfigHelper.Bind("Custom UI", "Custom Stamina Bar", StaminaBarStyle.Default, "Change the style of the stamina bar.");
+        CustomStaminaShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Stamina Bar Color", "#FFFF00", "Change the color of the stamina bar in HEX format.");
         CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", InventoryFrameStyle.Default, "Change the style of the inventory frames.");
         CustomFrameShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Frame Shader Color", "#FFFF00", "Change the color of the custom inventory frame shader in HEX format.");
         #endregion
@@ -200,7 +205,7 @@ public class ConfigEntries
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
         VignetteIntensity = ConfigHelper.Bind("Scan", "Vignette Intensity", 0.46f, "Intensity of the vignette / borders effect during scan.", false, new AcceptableValueRange<float>(0f, 1f));
         ReplaceScrapCounterVisual = ConfigHelper.Bind("Scan", "Scrap Counter Visual", false, "Replace total value scanner with shiploot visual.");
-        ShowShipLoot = ConfigHelper.Bind("Scan", "Ship Loot", true, "Enable ship loot info");
+        ShowShipLoot = ConfigHelper.Bind("Scan", "Ship Loot", false, "Enable ship loot info");
         DisplayTime = ConfigHelper.Bind("Scan", "Ship Loot Display Time", 5f, "Change how long ship loot should be displayed.", false, new AcceptableValueRange<float>(0f, 20f));
         LootInfoColor = ConfigHelper.Bind(true, "Scan", "Loot Color", "#00FF00", "Color of the loot info text.");
         LootPosX = ConfigHelper.Bind("Scan", "Loot Position X", 200f, "Y position of the loot info text.", false, new AcceptableValueRange<float>(-220f, 240f));
@@ -239,16 +244,16 @@ public class ConfigEntries
         GradientMessageColorB = ConfigHelper.Bind(true, "Chat", "Gradient Message Color B", "#FFFF00", "Ending color for a gradient, if both left untouched ChatMessageColor takes priority.");
         #endregion
         #region HSW Binds
-        HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "Health Indicator", true, "Enable health points indicator.");
+        HealthIndicator = ConfigHelper.Bind("Health/Stamina/Weight", "Health Indicator", false, "Enable health points indicator.");
         HealthFormat = ConfigHelper.Bind("Health/Stamina/Weight", "Health Format", HPDisplayMode.Plain, "Change the display mode of the HP Indicator.");
         HealthSize = ConfigHelper.Bind("Health/Stamina/Weight", "Health Size", 24, "Change the fontsize of the HP Indicator.", false, new AcceptableValueRange<int>(1, 50));
         HealthRotation = ConfigHelper.Bind("Health/Stamina/Weight", "Health Rotation", 356, "Change the rotation of the HP Indicator.", false, new AcceptableValueRange<int>(0, 359));
         HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#33FF33", "Base color for HP Indicator.");
-        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-360f, 520));
-        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-250f, 250f));
+        HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-1360f, 1520));
+        HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-1250f, 1250f));
         SprintBool = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter", true, "Enable sprint meter coloring.");
         SprintColoring = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter Style", SprintStyle.Solid, "Choose a style for the sprint meter.");
-        SprintMeterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color Solid", "#FF7600", "Base color for sprint meter");
+        SprintMeterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Sprint Meter Color", "#FF7600", "Base color for sprint meter");
         WeightUnitConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit", WeightUnit.Pounds, "Select the weight unit.");
         WeightDecimalFormatConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Decimal Format", WeightDecimalFormat.Rounded, "Choose how many decimals should be shown.");
         WeightUnitDisplayConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit Display", WeightUnitDisplay.OnlyOne, "Choose how the weight unit should be displayed.");
@@ -288,7 +293,7 @@ public class ConfigEntries
         LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#A5F4FF", "Color of the loading text.");
         PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#86ECFF", "Color of the planet summary text.");
         PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#86ECFF", "Color of the planet header text.");
-        PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", true, "Custom coloring based on risk level.");
+        PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", false, "Custom coloring based on risk level.");
         #endregion
         #region Spectator HUD Binds
         SpectatorTipColor = ConfigHelper.Bind(true, "Spectator", "Tip Text Color", "#FF4834", "Color of the spectator tip text. (I have absolutely no idea which one is this, good luck)");
@@ -299,8 +304,8 @@ public class ConfigEntries
         #region Misc Binds
         BillboardColor = ConfigHelper.Bind("Misc", "Billboard Gradient Color", true, "Enable billboard gradient coloring.");
         BillboardLayout = ConfigHelper.Bind("Misc", "Billboard Layout", VertexGradientLayout.Vertical, "Change the billboard gradient layout.");
-        BillboardMode = ConfigHelper.Bind("Misc", "Billboard Gradient Mode", BillboardGradientMode.Wave, "Change the billboard gradient mode.");
-        SelfRedCanvasMode = ConfigHelper.Bind("Misc", "Player Icon", SelfRedMode.ColoredFilled, "Change the player icon's visual (ColorFilled = starts with green goes to red [over 100 hp blue], RedFillUp = fills up from bottom to top from bright to dark red).");
+        BillboardMode = ConfigHelper.Bind("Misc", "Billboard Gradient Mode", BillboardGradientMode.Static, "Change the billboard gradient mode.");
+        SelfRedCanvasMode = ConfigHelper.Bind("Misc", "Player Icon", SelfRedMode.Vanilla, "Change the player icon's visual (ColorFilled = starts with green goes to red [over 100 hp blue], RedFillUp = fills up from bottom to top from bright to dark red).");
         TerminalFadeDelaysTime = ConfigHelper.Bind("Misc", "Terminal Fade Delay", 0.5f, "Change the delay time for fading out HUD stuff.", false, new AcceptableValueRange<float>(0f, 5f));
         ShowFPSDisplay = ConfigHelper.Bind("Misc", "FPS Counter", false, "Enables an FPS counter.");
         ShowPingDisplay = ConfigHelper.Bind("Misc", "Ping Counter", false, "Display the current network ping (ms) on the HUD.");
@@ -352,6 +357,8 @@ public class ConfigEntries
         #region Custom UI Changes
         CustomHealthBar.SettingChanged += (obj, args) => { CustomHUD.CustomHealthBar.Apply(Plugins.ConfigEntries.CustomHealthBar.Value); };
         CustomHealthShaderColor.SettingChanged += (obj, args) => { CustomHUD.CustomHealthBar.UpdateShaderColor(); };
+        CustomStaminaBar.SettingChanged += (obj, args) => { CustomStaminaMeter.Apply(Plugins.ConfigEntries.CustomStaminaBar.Value); };
+        CustomStaminaShaderColor.SettingChanged += (obj, args) => { CustomStaminaMeter.UpdateShaderColor(); };
         CustomInventoryFrames.SettingChanged += (obj, args) => { CustomFrames.Apply(CustomInventoryFrames.Value); };
         CustomFrameShaderColor.SettingChanged += (obj, args) => { CustomFrames.UpdateShaderColor(); };
         #endregion
@@ -423,26 +430,14 @@ public class ConfigEntries
             if (SelfRedCanvasMode.Value == SelfRedMode.ColoredFilled)
                 PlayerRedCanvasController.ChangeSetting();
         };
-        SprintColoring.SettingChanged += (obj, args) =>
-        {
-            SprintMeterController.UpdateSprintMeterColor();
-        };
-        SprintMeterColor.SettingChanged += (obj, args) =>
-        {
-            SprintMeterController.UpdateSprintMeterColor();
-        };
-        WeightUnitConfig.SettingChanged += (obj, args) =>
-        {
-            WeightController.UpdateWeightDisplay();
-        };
-        WeightUnitDisplayConfig.SettingChanged += (obj, args) =>
-        {
-            WeightController.UpdateWeightDisplay();
-        };
-        WeightDecimalFormatConfig.SettingChanged += (obj, args) =>
-        {
-            WeightController.UpdateWeightDisplay();
-        };
+        HPIndicatorX.SettingChanged += (obj, args) => PlayerHPDisplay.RefreshPosition();
+        HPIndicatorY.SettingChanged += (obj, args) => PlayerHPDisplay.RefreshPosition();
+        HealthRotation.SettingChanged += (obj, args) => PlayerHPDisplay.RefreshPosition();
+        SprintColoring.SettingChanged += (obj, args) => { SprintMeterController.UpdateSprintMeterColor(); };
+        SprintMeterColor.SettingChanged += (obj, args) => { SprintMeterController.UpdateSprintMeterColor(); };
+        WeightUnitConfig.SettingChanged += (obj, args) => { WeightController.UpdateWeightDisplay(); };
+        WeightUnitDisplayConfig.SettingChanged += (obj, args) => { WeightController.UpdateWeightDisplay(); };
+        WeightDecimalFormatConfig.SettingChanged += (obj, args) => { WeightController.UpdateWeightDisplay(); };
         ShowTotalDelta.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalPrefix.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalValueOffsetX.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };

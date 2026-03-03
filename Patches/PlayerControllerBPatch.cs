@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
+using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Networking;
@@ -13,7 +14,7 @@ internal static class PlayerControllerBPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("Awake")]
-    private static void OnPlayerControllerBAwake(PlayerControllerB __instance)
+    private static void OnPlayerControllerBAwake_Prefix(PlayerControllerB __instance)
     {
         if (!Plugins.NetworkingDisabled)
         {
@@ -45,6 +46,13 @@ internal static class PlayerControllerBPatch
         }
 
         return false;
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("Start")]
+    private static void OnPlayerControllerBAwake_Postfix(PlayerControllerB __instance)
+    {
+        CustomStaminaMeter.Init(__instance);
     }
 
     [HarmonyPostfix]
@@ -127,7 +135,7 @@ internal static class PlayerControllerBPatch
         if (__instance.isTypingChat)
             ChatController.PlayerTypingIndicator();
         SprintMeterController.UpdateSprintMeterColor();
-
+        CustomStaminaMeter.UpdateFromPlayer(__instance);
 
         int health = __instance.health;
         if (health == _lastHealth)

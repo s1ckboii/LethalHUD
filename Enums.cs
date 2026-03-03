@@ -5,10 +5,18 @@ using UnityEngine.Rendering.HighDefinition;
 namespace LethalHUD;
 public static class Enums
 {
+    public enum StaminaBarStyle
+    {
+        Default,
+        Minimal,
+        Shapes,
+        SciFi
+    }
     public enum HealthBarStyle
     {
         Default,
         Minimal,
+        Shapes,
         SciFi
     }
     public enum InventoryFrameStyle

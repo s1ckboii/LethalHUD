@@ -29,7 +29,7 @@ public static class PlayerHPDisplay
 
     internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
 
-    public static void Init()
+    internal static void Init()
     {
         if (ModCompats.IsEladsHUDPresent) return;
         HUDManager hud = HUDManager.Instance;
@@ -71,7 +71,9 @@ public static class PlayerHPDisplay
 
         if (_hpObj != null)
         {
-            _hpObj.SetActive(!CustomHealthBar.UsingCustom && Plugins.ConfigEntries.HealthIndicator.Value);
+            bool shouldShowStandalone = Plugins.ConfigEntries.HealthIndicator.Value && (!CustomHealthBar.UsingCustom || !CustomHealthBar.HasCustomNumber);
+
+            _hpObj.SetActive(shouldShowStandalone);
         }
 
         TextMeshProUGUI targetText = isCustom ? externalText : _hpText;
@@ -129,11 +131,25 @@ public static class PlayerHPDisplay
         targetText.color = HUDUtils.GetHPColor(hp);
     }
 
-    public static void ShakeOnHit(PlayerControllerB player)
+    internal static void ShakeOnHit(PlayerControllerB player)
     {
         if (player != null && player != GameNetworkManager.Instance.localPlayerController)
             return;
 
         _shakeTimer = _shakeDuration;
+    }
+    internal static void RefreshPosition()
+    {
+        if (_hpText == null) return;
+
+        _basePosition = new Vector2(
+            Plugins.ConfigEntries.HPIndicatorX.Value,
+            Plugins.ConfigEntries.HPIndicatorY.Value
+        );
+
+        _hpObj.transform.localRotation = Quaternion.Euler(0f, 0f, Plugins.ConfigEntries.HealthRotation.Value);
+        _hpText.fontSize = Plugins.ConfigEntries.HealthSize.Value;
+
+        _hpText.rectTransform.anchoredPosition = _basePosition;
     }
 }

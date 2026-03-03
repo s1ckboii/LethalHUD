@@ -22,6 +22,7 @@ internal static class CustomHealthBar
     private static HealthBarStyle _activeStyle = HealthBarStyle.Default;
 
     internal static bool UsingCustom => _activeStyle != HealthBarStyle.Default;
+    internal static bool HasCustomNumber => _refs != null && _refs.Number != null;
 
     internal static void OnHUDEnable(HUDManager hud)
     {
@@ -42,6 +43,11 @@ internal static class CustomHealthBar
         }
 
         Apply(Plugins.ConfigEntries.CustomHealthBar.Value);
+
+        if (hud.localPlayer != null)
+        {
+            UpdateFromPlayer(hud.localPlayer);
+        }
     }
     internal static void Apply(HealthBarStyle style)
     {
@@ -89,34 +95,28 @@ internal static class CustomHealthBar
     }
     private static void Build(GameObject prefab, HealthBarStyle style)
     {
-        Transform hudParent = _vanillaPulseImage?.transform.parent;
+        Transform hudParent = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner")?.transform;
+
         if (hudParent == null) return;
 
         _root = Object.Instantiate(prefab, hudParent, false);
         _root.name = $"LHHealthBar_{style}";
-        _root.transform.SetAsLastSibling();
-
-        _refs = _root.GetComponent<LHHealthBarRefs>();
 
         RectTransform rect = _root.GetComponent<RectTransform>();
-        if (rect != null && _vanillaFrameImage != null)
+        RectTransform prefabRect = prefab.GetComponent<RectTransform>();
+
+        if (rect != null && prefabRect != null)
         {
-            RectTransform vanillaRect = _vanillaFrameImage.rectTransform;
-
-            rect.anchorMin = vanillaRect.anchorMin;
-            rect.anchorMax = vanillaRect.anchorMax;
-            rect.pivot = vanillaRect.pivot;
-            rect.sizeDelta = vanillaRect.sizeDelta;
-            rect.anchoredPosition = vanillaRect.anchoredPosition;
-            rect.localScale = Vector3.one;
-
-            if (_refs != null && _refs.Number != null)
-            {
-                RectTransform prefabRect = prefab.GetComponent<LHHealthBarRefs>().Number.rectTransform;
-                _refs.Number.rectTransform.anchoredPosition = prefabRect.anchoredPosition;
-                _refs.Number.rectTransform.localPosition = prefabRect.localPosition;
-            }
+            rect.anchorMin = prefabRect.anchorMin;
+            rect.anchorMax = prefabRect.anchorMax;
+            rect.pivot = prefabRect.pivot;
+            rect.anchoredPosition = prefabRect.anchoredPosition;
+            rect.sizeDelta = prefabRect.sizeDelta;
+            rect.localScale = prefabRect.localScale;
         }
+
+        _refs = _root.GetComponent<LHHealthBarRefs>();
+        _root.transform.SetAsLastSibling();
     }
     internal static void UpdateShaderColor()
     {

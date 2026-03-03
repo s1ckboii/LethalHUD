@@ -39,9 +39,25 @@ internal static class HUDManagerPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("UseSignalTranslatorClientRpc")]
-    private static void OnHUDManagerUseSignalTranslatorClientRpc_Prefix(ref string signalMessage)
+    private static bool OnHUDManagerUseSignalTranslatorClientRpc_Prefix(HUDManager __instance, string signalMessage, int timesSendingMessage)
     {
-        SignalTranslatorController.SetSignalText(signalMessage);
+        SignalTranslator signalTranslator = Object.FindObjectOfType<SignalTranslator>();
+        if (string.IsNullOrEmpty(signalMessage) || signalTranslator == null) return true;
+
+        signalTranslator.timeLastUsingSignalTranslator = Time.realtimeSinceStartup;
+
+        if (signalTranslator.signalTranslatorCoroutine != null)
+        {
+            __instance.StopCoroutine(signalTranslator.signalTranslatorCoroutine);
+        }
+
+        signalTranslator.timesSendingMessage = timesSendingMessage;
+
+        signalTranslator.signalTranslatorCoroutine = __instance.StartCoroutine(
+            SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, timesSendingMessage, signalTranslator)
+        );
+
+        return false;
     }
 
     [HarmonyPrefix]
@@ -67,9 +83,25 @@ internal static class HUDManagerPatch
         return !CustomHealthBar.UsingCustom;
     }
 
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
+    private static bool OnHUDManagerDisplaySignalTranslatorMessage_Prefix(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
+    {
+        if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
+        {
+            __result = SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, seed, signalTranslator);
+            return false;
+        }
+
+        return true;
+    }
+    #endregion
+
+    #region Postfixes
+
     [HarmonyPostfix]
     [HarmonyPatch("Start")]
-    private static void OnHUDManagerStart(HUDManager __instance)
+    private static void OnHUDManagerStart_Postfix(HUDManager __instance)
     {
         lastSlotCount = 0;
         ScrapValueDisplay.ResetForNewHUD();
@@ -90,9 +122,10 @@ internal static class HUDManagerPatch
         __instance.StartCoroutine(ScanTextureRoutine());
     }
 
+
     [HarmonyPostfix]
     [HarmonyPatch("OnEnable")]
-    private static void OnHUDManagerEnable(HUDManager __instance)
+    private static void OnHUDManagerEnable_Postfix(HUDManager __instance)
     {
         if (__instance.gameObject.GetComponent<LethalHUDMono>() == null)
         {
@@ -116,22 +149,6 @@ internal static class HUDManagerPatch
 
         __instance.StartCoroutine(ApplySelfRedAfterTick(__instance));
     }
-
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
-    private static bool OnHUDManagerDisplaySignalTranslatorMessage_Prefix(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
-    {
-        if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
-        {
-            __result = SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, seed, signalTranslator);
-            return false;
-        }
-
-        return true;
-    }
-    #endregion
-
-    #region Postfixes
 
     [HarmonyPostfix]
     [HarmonyPatch("DisplayNewScrapFound")]
@@ -185,12 +202,14 @@ internal static class HUDManagerPatch
             CustomHealthBar.UpdateFromPlayer(__instance.localPlayer);
         }
 
-        int currentCount = __instance.itemSlotIconFrames.Length;
-        if (currentCount != lastSlotCount)
+        if (__instance.itemSlotIconFrames != null)
         {
-            ScrapValueDisplay.RefreshSlots();
-            CustomFrames.Apply(Plugins.ConfigEntries.CustomInventoryFrames.Value);
-            lastSlotCount = currentCount;
+            int currentCount = __instance.itemSlotIconFrames.Length;
+            if (currentCount != lastSlotCount && lastSlotCount != 0)
+            {
+                lastSlotCount = currentCount;
+                CustomFrames.Apply(Plugins.ConfigEntries.CustomInventoryFrames.Value);
+            }
         }
     }
 

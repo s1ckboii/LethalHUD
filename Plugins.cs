@@ -29,6 +29,7 @@ public class Plugins : BaseUnityPlugin
     internal static ConfigEntries ConfigEntries { get; private set; }
 
     internal static readonly Dictionary<HealthBarStyle, GameObject> HealthBarPrefabs = [];
+    internal static readonly Dictionary<StaminaBarStyle, GameObject> StaminaBarPrefabs = [];
     internal static readonly Dictionary<InventoryFrameStyle, GameObject> SlotPrefabs = [];
 
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
@@ -127,6 +128,22 @@ public class Plugins : BaseUnityPlugin
             }
 
             HealthBarPrefabs[style] = prefab;
+        }
+        foreach (StaminaBarStyle style in System.Enum.GetValues(typeof(StaminaBarStyle)))
+        {
+            if (style == StaminaBarStyle.Default)
+                continue;
+
+            string prefabName = $"LHStaminaBar_{style}";
+            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+            if (prefab == null)
+            {
+                Loggers.Warning($"HealthBar prefab '{prefabName}' not found in lethalhudbundle.");
+                continue;
+            }
+
+            StaminaBarPrefabs[style] = prefab;
         }
 
         foreach (InventoryFrameStyle style in System.Enum.GetValues(typeof(InventoryFrameStyle)))
