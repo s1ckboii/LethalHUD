@@ -6,7 +6,6 @@ using UnityEngine.UI;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.CustomHUD;
-
 internal static class CustomFrames
 {
     private static Image[] _vanillaFrames;

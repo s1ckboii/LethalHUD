@@ -7,7 +7,6 @@ using static LethalHUD.Enums;
 using System.Collections.Generic;
 
 namespace LethalHUD.CustomHUD;
-
 internal static class CustomStaminaMeter
 {
     private static LHStaminaBarRefs _refs;

@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.CustomHUD.Refs;
-
 public class LHHealthBarRefs : MonoBehaviour
 {
     [Header("Images")]

@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 
 namespace LethalHUD.CustomHUD.Refs;
-
 public class LHStaminaBarRefs : MonoBehaviour
 {
     [Header("Images")]

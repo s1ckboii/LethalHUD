@@ -6,7 +6,6 @@ using UnityEngine.UI;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.CustomHUD;
-
 internal static class CustomHealthBar
 {
     private static LHHealthBarRefs _refs;
