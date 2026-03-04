@@ -236,6 +236,26 @@ internal static class HUDManagerPatch
     }
 
     [HarmonyPostfix]
+    [HarmonyPatch("UpdateHealthUI")]
+    private static void OnHUDManagerUpdateHealthUI(int health)
+    {
+        switch (Plugins.ConfigEntries.SelfRedCanvasMode.Value)
+        {
+            case SelfRedMode.Vanilla:
+                return;
+
+            case SelfRedMode.ColoredFilled:
+                PlayerRedCanvasController.ApplyFillAndColor(health);
+                break;
+
+            case SelfRedMode.RedFillUp:
+                PlayerRedCanvasController.ApplyFillWithRedFade(health);
+                break;
+
+        }
+    }
+
+    [HarmonyPostfix]
     [HarmonyPatch("UpdateScanNodes")]
     private static void OnHUDManagerUpdateScanNodes_Postfix(HUDManager __instance)
     {

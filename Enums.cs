@@ -46,7 +46,6 @@ public static class Enums
         Diagonal
     }
 
-
     public enum SlotEnums
     {
         None,

@@ -24,7 +24,6 @@ public class ConfigEntries
     public ConfigEntries()
     {
         ConfigFile configFile = Plugins.Config;
-
         configFile.SaveOnConfigSet = false;
 
         Setup();
@@ -459,6 +458,7 @@ public class ConfigEntries
         HoldEndGameVotesColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };
         SelfRedCanvasMode.SettingChanged += (obj, args) => { PlayerRedCanvasController.ChangeSetting(); };
         #endregion
+        SelfRedCanvasMode.SettingChanged += (obj, args) => { PlayerRedCanvasController.ChangeSetting(); };
         HideHUDButton.SettingChanged += (obj, args) =>
         {
             if (LethalHUDMono.Instance != null)
