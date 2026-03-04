@@ -51,7 +51,7 @@ public class Plugins : BaseUnityPlugin
 
         ConfigFile bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
         ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart.");
-        ConfigEntry<bool> disableNetworkingEntry = bootstrapConfig.Bind("Main", "Disable Networked Features", false, "If enabled, disables all networked HUD features. Requires restart.");
+        ConfigEntry<bool> disableNetworkingEntry = bootstrapConfig.Bind("Main", "Disable Networked Features", false, "If enabled, disables all networked features. Requires restart.");
         
         bool useLocal = useLocalEntry.Value;
         NetworkingDisabled = disableNetworkingEntry.Value;
