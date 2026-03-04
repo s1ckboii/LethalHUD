@@ -99,33 +99,36 @@ internal static class SignalTranslatorController
     }
 
 
-    public static void SetSignalText(string message)
+    public static void SetSignalText(string message, bool isTyping = true)
     {
         HUDManager hud = HUDManager.Instance;
         TMP_Text signalText = hud.signalTranslatorText;
         if (signalText == null) return;
 
-        string trimmed = message.Length > 12 ? message[..12] : message;
-        trimmed = trimmed.Trim();
+        int maxLimit = 32;
+        string processed = message.Length > maxLimit ? message[..maxLimit] : message;
 
-        signalText.text = trimmed;
+        signalText.text = processed;
 
-        ApplyColor();
-
-        CenterText();
+        if (!isTyping)
+        {
+            ApplyColor();
+            CenterText();
+            ApplyInMono();
+        }
     }
     public static IEnumerator DisplaySignalTranslatorMessage(string signalMessage, int seed, SignalTranslator signalTranslator)
     {
         if (signalTranslator == null) yield break;
 
         System.Random signalMessageRandom = new(seed + StartOfRound.Instance.randomMapSeed);
-
         HUDManager hud = HUDManager.Instance;
+
         hud.signalTranslatorAnimator.SetBool("transmitting", true);
         signalTranslator.localAudio.Play();
         hud.UIAudio.PlayOneShot(signalTranslator.startTransmissionSFX, 1f);
 
-        SetSignalText("");
+        SetSignalText("", false);
 
         yield return new WaitForSeconds(1.21f);
 
@@ -134,12 +137,17 @@ internal static class SignalTranslatorController
             if (signalTranslator == null || !signalTranslator.gameObject.activeSelf)
                 break;
 
-            hud.UIAudio.PlayOneShot(signalTranslator.typeTextClips[Random.Range(0, signalTranslator.typeTextClips.Length)]);
+            char currentChar = signalMessage[i];
 
-            SetSignalText(hud.signalTranslatorText.text + signalMessage[i]);
+            if (currentChar != ' ')
+            {
+                hud.UIAudio.PlayOneShot(signalTranslator.typeTextClips[UnityEngine.Random.Range(0, signalTranslator.typeTextClips.Length)]);
+            }
 
-            float num = Mathf.Min(signalMessageRandom.Next(-1, 4) * 0.05f, 0f);
-            yield return new WaitForSeconds(Plugins.ConfigEntries.SignalLetterDisplay.Value + num);
+            SetSignalText(hud.signalTranslatorText.text + currentChar, true);
+
+            float variance = Mathf.Min(signalMessageRandom.Next(-1, 4) * 0.05f, 0f);
+            yield return new WaitForSeconds(Plugins.ConfigEntries.SignalLetterDisplay.Value + variance);
         }
 
         if (signalTranslator != null)

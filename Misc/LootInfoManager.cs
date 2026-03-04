@@ -40,8 +40,7 @@ public static class LootInfoManager
     private const float CountSpeed = 500f;
     private const float FadeDuration = 0.25f;
 
-    private static readonly AnimationCurve FadeCurve =
-        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    private static readonly AnimationCurve FadeCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     public static void ApplyLootInfoColor()
     {
         _lootInfoColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.LootInfoColor.Value);

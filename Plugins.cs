@@ -28,7 +28,12 @@ public class Plugins : BaseUnityPlugin
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
 
+    internal static readonly Dictionary<HealthBarStyle, GameObject> HealthBarPrefabs = [];
+    internal static readonly Dictionary<StaminaBarStyle, GameObject> StaminaBarPrefabs = [];
+    internal static readonly Dictionary<InventoryFrameStyle, GameObject> SlotPrefabs = [];
+
     internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
+    internal static bool NetworkingDisabled;
     internal struct ScanNodeTextures
     {
         public Sprite Outer;
@@ -43,13 +48,22 @@ public class Plugins : BaseUnityPlugin
 
         Harmony = new(MyPluginInfo.PLUGIN_GUID);
         Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
-        
-        SerializeNetworkVariables();
 
         ConfigFile bootstrapConfig = ConfigUtils.CreateLocalConfigFile(this, "bootstrap", true);
-        ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart."
-        );
+        ConfigEntry<bool> useLocalEntry = bootstrapConfig.Bind("Main", "Use Local Config", false, "If enabled, uses a local config file instead of the global config. Requires restart.");
+        ConfigEntry<bool> disableNetworkingEntry = bootstrapConfig.Bind("Main", "Disable Networked Features", false, "If enabled, disables all networked features. Requires restart.");
+        
         bool useLocal = useLocalEntry.Value;
+        NetworkingDisabled = disableNetworkingEntry.Value;
+
+        if (!NetworkingDisabled)
+        {
+            SerializeNetworkVariables();
+        }
+        else
+        {
+            Loggers.Info("Networked HUD features are disabled via bootstrap config.");
+        }
 
         Config = useLocal
             ? ConfigUtils.CreateLocalConfigFile(this)
@@ -58,12 +72,12 @@ public class Plugins : BaseUnityPlugin
         ConfigEntries = new ConfigEntries();
 
         string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "incomprehensibleandalsoridiculousoriginalassetbundlenameforlethalhud");
+        string assetBundleFilePath = Path.Combine(pluginFolderPath, "lethalhudbundle");
         AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
 
         if (assetBundle == null)
         {
-            Loggers.Error("Failed to load unfathomablyridiculousoriginalassetbundlenameforlethalhud assetbundle.");
+            Loggers.Error("Failed to load lethalhudbundle assetbundle.");
             return;
         }
 
@@ -98,6 +112,57 @@ public class Plugins : BaseUnityPlugin
                 Inner = innerTex
             };
         }
+
+        foreach (HealthBarStyle style in System.Enum.GetValues(typeof(HealthBarStyle)))
+        {
+            if (style == HealthBarStyle.Default)
+                continue;
+
+            string prefabName = $"LHHealthBar_{style}";
+            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+            if (prefab == null)
+            {
+                Loggers.Warning($"HealthBar prefab '{prefabName}' not found in lethalhudbundle.");
+                continue;
+            }
+
+            HealthBarPrefabs[style] = prefab;
+        }
+        foreach (StaminaBarStyle style in System.Enum.GetValues(typeof(StaminaBarStyle)))
+        {
+            if (style == StaminaBarStyle.Default)
+                continue;
+
+            string prefabName = $"LHStaminaBar_{style}";
+            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+            if (prefab == null)
+            {
+                Loggers.Warning($"HealthBar prefab '{prefabName}' not found in lethalhudbundle.");
+                continue;
+            }
+
+            StaminaBarPrefabs[style] = prefab;
+        }
+
+        foreach (InventoryFrameStyle style in System.Enum.GetValues(typeof(InventoryFrameStyle)))
+        {
+            if (style == InventoryFrameStyle.Default)
+                continue;
+
+            string prefabName = $"LHSlot_{style}";
+            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+            if (prefab == null)
+            {
+                Loggers.Warning($"Slot prefab '{prefabName}' not found in lethalhudbundle.");
+                continue;
+            }
+
+            SlotPrefabs[style] = prefab;
+        }
+
         Harmony.PatchAll();
         bootstrapConfig.Save();
 

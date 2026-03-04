@@ -24,6 +24,7 @@ internal class PlayerBillboardGradient : MonoBehaviour
     private float _timeSinceLastUpdate;
     private PlayerColorInfo _currentColors;
     private bool _hasColors;
+    private bool _useNetworking;
 
     private void Awake()
     {
@@ -32,7 +33,10 @@ internal class PlayerBillboardGradient : MonoBehaviour
 
         _text = _player.usernameBillboardText;
         _canvasAlpha = _player.usernameAlpha;
-        _networker = _player.GetComponent<PlayerColorNetworker>();
+        _useNetworking = !Plugins.NetworkingDisabled;
+
+        if (_useNetworking)
+            _networker = _player.GetComponent<PlayerColorNetworker>();
 
         if (_text != null)
             _text.enableVertexGradient = true;
@@ -40,7 +44,7 @@ internal class PlayerBillboardGradient : MonoBehaviour
 
     private void Start()
     {
-        if (_networker == null)
+        if (!_useNetworking || _networker == null)
             return;
 
         _currentColors = _networker._syncedPlayerColors.Value;
@@ -66,7 +70,22 @@ internal class PlayerBillboardGradient : MonoBehaviour
         if (!_text.enableVertexGradient)
             _text.enableVertexGradient = true;
 
-        if (!_hasColors) return;
+        if (_useNetworking)
+        {
+            if (!_hasColors || _networker == null)
+                return;
+
+            _currentColors = _networker._syncedPlayerColors.Value;
+        }
+        else
+        {
+            _currentColors = new PlayerColorInfo(HUDUtils.ParseHexColor(Plugins.ConfigEntries.GradientNameColorA.Value, Color.white),
+                HUDUtils.ParseHexColor(Plugins.ConfigEntries.GradientNameColorB.Value, Color.white))
+            {
+                billboardMode = Plugins.ConfigEntries.BillboardMode.Value,
+                billboardLayout = Plugins.ConfigEntries.BillboardLayout.Value
+            };
+        }
         if (_player == null || _text == null || _canvasAlpha == null) return;
         if (!_player.usernameCanvas.gameObject.activeSelf) return;
         if (_canvasAlpha.alpha < 0.95f) return;
@@ -82,8 +101,6 @@ internal class PlayerBillboardGradient : MonoBehaviour
             return;
 
         _timeSinceLastUpdate = 0f;
-
-        _currentColors = _networker._syncedPlayerColors.Value;
 
         switch (_currentColors.billboardMode)
         {

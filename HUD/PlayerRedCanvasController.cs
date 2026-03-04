@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalHUD.CustomHUD;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.Enums;
@@ -15,6 +16,9 @@ internal static class PlayerRedCanvasController
     private static int _originalFillOrigin;
     private static Color _originalColor;
     private static bool _cachedOriginal;
+    private static Image _overhealImage;
+    private static bool _cachedOverheal;
+    private static CanvasGroup _overhealCanvas;
 
     internal static void Bind(CanvasGroup original)
     {
@@ -34,6 +38,26 @@ internal static class PlayerRedCanvasController
             _originalColor = _image.color;
 
             _cachedOriginal = true;
+        }
+
+        if (!_cachedOverheal)
+        {
+            _overhealImage = Object.Instantiate(_image, _image.transform.parent);
+            _overhealImage.name = "SelfRedCanvas_Overheal";
+            _overhealImage.transform.SetAsLastSibling();
+
+            _overhealCanvas = _overhealImage.GetComponentInParent<CanvasGroup>();
+
+            if (_overhealCanvas != null)
+                _overhealCanvas.alpha = 1f;
+
+            _overhealImage.type = Image.Type.Filled;
+            _overhealImage.fillMethod = Image.FillMethod.Vertical;
+            _overhealImage.fillOrigin = (int)Image.OriginVertical.Bottom;
+            _overhealImage.fillAmount = 0f;
+            _overhealImage.color = HUDUtils.HP_Blue;
+
+            _cachedOverheal = true;
         }
 
         _image.type = Image.Type.Filled;
@@ -69,18 +93,21 @@ internal static class PlayerRedCanvasController
 
     internal static void ApplyFillAndColor(int health)
     {
+        if (CustomHealthBar.UsingCustom) return;
         ApplyFilledBase();
 
         float hp01 = Mathf.Clamp01(health / 100f);
         
         SetFill(hp01);
 
-        SetColor(HUDUtils.GetHPColor(health)
-        );
+        SetColor(HUDUtils.GetHPColor(Mathf.Min(health, 100)));
+
+        ApplyOverheal(health);
     }
 
     internal static void ApplyFillWithRedFade(int health)
     {
+        if (CustomHealthBar.UsingCustom) return;
         ApplyFilledBase();
 
         health = Mathf.Min(health, 100);
@@ -90,21 +117,43 @@ internal static class PlayerRedCanvasController
 
         SetFill(damage01);
 
-        Color red = Color.Lerp(HUDUtils.HP_BrightRed, HUDUtils.HP_DarkRed, damage01);
+        SetColor(Color.Lerp(HUDUtils.HP_BrightRed, HUDUtils.HP_DarkRed, damage01));
 
-        SetColor(red);
+        if (_overhealImage != null)
+            _overhealImage.fillAmount = 0f;
     }
+
+    private static void ApplyOverheal(int health)
+    {
+        if (_overhealImage == null)
+            return;
+
+        if (health <= 100)
+        {
+            _overhealImage.fillAmount = 0f;
+            return;
+        }
+
+        float overheal01 = Mathf.Clamp01((health - 100f) / 100f);
+        _overhealImage.fillAmount = overheal01;
+        _overhealImage.color = HUDUtils.GetHPColor(health);
+    }
+
     internal static void ResetToVanilla(int health)
     {
         if (_image == null || !_cachedOriginal)
             return;
 
+        _image.enabled = true;
         _canvas.alpha = (float)(100 - health) / 100f;
 
         _image.type = _originalType;
         _image.fillMethod = _originalFillMethod;
         _image.fillOrigin = _originalFillOrigin;
         _image.color = _originalColor;
+
+        if (_overhealImage != null)
+            _overhealImage.fillAmount = 0f;
     }
 
     internal static void ChangeSetting()
@@ -116,6 +165,12 @@ internal static class PlayerRedCanvasController
         PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
         if (player == null)
             return;
+
+        if (CustomHealthBar.UsingCustom)
+        {
+            DisableLogicAndHide();
+            return;
+        }
 
         int health = player.health;
 
@@ -133,5 +188,12 @@ internal static class PlayerRedCanvasController
                 ApplyFillWithRedFade(health);
                 break;
         }
+    }
+    private static void DisableLogicAndHide()
+    {
+        if (_canvas != null) _canvas.alpha = 0f;
+        if (_image != null) _image.enabled = false;
+        if (_overhealImage != null) _overhealImage.enabled = false;
+        if (_overhealCanvas != null) _overhealCanvas.alpha = 0f;
     }
 }

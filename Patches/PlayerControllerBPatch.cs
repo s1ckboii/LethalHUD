@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
+using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Networking;
@@ -9,12 +10,17 @@ namespace LethalHUD.Patches;
 [HarmonyPatch(typeof(PlayerControllerB))]
 internal static class PlayerControllerBPatch
 {
+    private static int _lastHealth = int.MinValue;
+
     [HarmonyPrefix]
     [HarmonyPatch("Awake")]
-    private static void OnPlayerControllerBAwake(PlayerControllerB __instance)
+    private static void OnPlayerControllerBAwake_Prefix(PlayerControllerB __instance)
     {
-        if (!__instance.TryGetComponent(out PlayerColorNetworker _))
-            __instance.gameObject.AddComponent<PlayerColorNetworker>();
+        if (!Plugins.NetworkingDisabled)
+        {
+            if (!__instance.TryGetComponent(out PlayerColorNetworker _))
+                __instance.gameObject.AddComponent<PlayerColorNetworker>();
+        }
         if (!__instance.TryGetComponent(out PlayerBillboardGradient _))
             __instance.gameObject.AddComponent<PlayerBillboardGradient>();
     }
@@ -40,6 +46,13 @@ internal static class PlayerControllerBPatch
         }
 
         return false;
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("Start")]
+    private static void OnPlayerControllerBAwake_Postfix(PlayerControllerB __instance)
+    {
+        CustomStaminaMeter.Init(__instance);
     }
 
     [HarmonyPostfix]
@@ -122,5 +135,13 @@ internal static class PlayerControllerBPatch
         if (__instance.isTypingChat)
             ChatController.PlayerTypingIndicator();
         SprintMeterController.UpdateSprintMeterColor();
+        CustomStaminaMeter.UpdateFromPlayer(__instance);
+
+        int health = __instance.health;
+        if (health == _lastHealth)
+            return;
+
+        _lastHealth = health;
+        PlayerRedCanvasController.ChangeSetting();
     }
 }

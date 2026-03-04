@@ -16,11 +16,11 @@ internal static class HUDUtils
     {
         if (ColorUtility.TryParseHtmlString(hex, out Color color))
         {
-            return new Color(color.r, color.g, color.b);
+            return color;
         }
 
         Loggers.Warning($"Invalid HEX color: {hex}. Defaulting to original blue.");
-        return new Color(0f, 0.047f, 1f);
+        return new Color(0f, 0.047f, 1f, 1f);
     }
 
     internal static Color ParseHexColor(string hex, Color fallback)
@@ -265,28 +265,33 @@ internal static class HUDUtils
 
         for (int i = 0; i < count; i++)
         {
+            if (frames[i] == null) continue;
+
             float hue = (hueShift + (float)i / count) % 1f;
             Color rainbowColor = Color.HSVToRGB(hue, 1f, 1f);
 
-            if (frames[i] != null)
-                frames[i].color = rainbowColor;
+            rainbowColor.a = frames[i].color.a;
+            frames[i].color = rainbowColor;
         }
     }
 
     internal static void ApplyWavyGradient(Image[] frames, Color startColor, Color endColor, float speed = 0.15f, float waveFrequency = 2f)
     {
-        if (frames == null || frames.Length == 0)
-            return;
+        if (frames == null || frames.Length == 0) return;
 
         _gradientWaveTime = (_gradientWaveTime + Time.deltaTime * speed) % 1f;
 
         int count = frames.Length;
         for (int i = 0; i < count; i++)
         {
+            if (frames[i] == null) continue;
+
             float normalizedIndex = (float)i / (count - 1);
             float waveOffset = Mathf.SmoothStep(0f, 1f, Mathf.Sin((_gradientWaveTime + normalizedIndex * waveFrequency) * Mathf.PI * 2f) * 0.5f + 0.5f);
 
             Color interpolated = Color.Lerp(startColor, endColor, waveOffset).gamma;
+
+            interpolated.a = frames[i].color.a;
             frames[i].color = interpolated;
         }
     }
@@ -443,37 +448,36 @@ internal static class HUDUtils
     internal static readonly Color HP_DarkRed = new(0.4f, 0f, 0f);
 
     // Overheal stuff (100+ hp)
-    internal static readonly Color HP_StartingBlue = new(0.5f, 0.85f, 1f);
-    internal static readonly Color HP_EndingBlue = new(0.2f, 0.6f, 1f);
+    internal static readonly Color HP_Blue = new(0.2f, 0.2f, 1f);
 
     internal static Color GetHPColor(int hp)
     {
         if (hp > 100)
         {
-            float t = Mathf.Clamp01((hp - 100f) / 50f);
-            return Color.Lerp(HP_StartingBlue, HP_EndingBlue, t);
+            float t = Mathf.Clamp01((hp - 100f) / 100f);
+            return Color.Lerp(PlayerHPDisplay.FullHPColor, HP_Blue, t);
         }
 
         float hp01 = Mathf.Clamp01(hp / 100f);
 
-        if (hp01 >= 0.65f)
+        if (hp01 >= 0.7f)
         {
-            float t = (hp01 - 0.65f) / 0.25f;
+            float t = Mathf.InverseLerp(0.7f, 1f, hp01);
             return Color.Lerp(HP_Yellow, PlayerHPDisplay.FullHPColor, t);
         }
-        else if (hp01 >= 0.4f)
+        else if (hp01 >= 0.5f)
         {
-            float t = (hp01 - 0.4f) / 0.25f;
+            float t = Mathf.InverseLerp(0.5f, 0.7f, hp01);
             return Color.Lerp(HP_Orange, HP_Yellow, t);
         }
-        else if (hp01 >= 0.2f)
+        else if (hp01 >= 0.3f)
         {
-            float t = (hp01 - 0.3f) / 0.25f;
+            float t = Mathf.InverseLerp(0.3f, 0.5f, hp01);
             return Color.Lerp(HP_BrightRed, HP_Orange, t);
         }
         else
         {
-            float t = hp01 / 0.25f;
+            float t = Mathf.InverseLerp(0f, 0.3f, hp01);
             return Color.Lerp(HP_DarkRed, HP_BrightRed, t);
         }
     }

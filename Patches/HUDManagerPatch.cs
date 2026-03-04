@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 using LethalHUD.Compats;
+using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
@@ -23,9 +24,11 @@ internal static class HUDManagerPatch
 
     private static int lastSlotCount = 0;
 
+    #region Prefixes
+
     [HarmonyPrefix]
     [HarmonyPatch("PingScan_performed")]
-    private static void OnScanTriggered(ref CallbackContext context)
+    private static void OnScanTriggered_Prefix(ref CallbackContext context)
     {
         _pingScan = context;
 
@@ -36,14 +39,30 @@ internal static class HUDManagerPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("UseSignalTranslatorClientRpc")]
-    private static void OnHUDManagerUseSignalTranslatorClientRpc(ref string signalMessage)
+    private static bool OnHUDManagerUseSignalTranslatorClientRpc_Prefix(HUDManager __instance, string signalMessage, int timesSendingMessage)
     {
-        SignalTranslatorController.SetSignalText(signalMessage);
+        SignalTranslator signalTranslator = Object.FindObjectOfType<SignalTranslator>();
+        if (string.IsNullOrEmpty(signalMessage) || signalTranslator == null) return true;
+
+        signalTranslator.timeLastUsingSignalTranslator = Time.realtimeSinceStartup;
+
+        if (signalTranslator.signalTranslatorCoroutine != null)
+        {
+            __instance.StopCoroutine(signalTranslator.signalTranslatorCoroutine);
+        }
+
+        signalTranslator.timesSendingMessage = timesSendingMessage;
+
+        signalTranslator.signalTranslatorCoroutine = __instance.StartCoroutine(
+            SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, timesSendingMessage, signalTranslator)
+        );
+
+        return false;
     }
 
     [HarmonyPrefix]
     [HarmonyPatch("DisableAllScanElements")]
-    private static void OnHUDManagerDisabledAllScanElements()
+    private static void OnHUDManagerDisabledAllScanElements_Prefix()
     {
         if (ModCompats.IsGoodItemScanPresent)
             ScanNodeController.ResetGoodItemScanNodes();
@@ -51,15 +70,38 @@ internal static class HUDManagerPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("SetClockVisible")]
-    private static void OnHUDManagerSetClockVisible(ref bool visible)
+    private static void OnHUDManagerSetClockVisible_Prefix(ref bool visible)
     {
         ClockController.UpdateClockVisibility(ref visible);
         ClockController.ApplyClockAlpha();
     }
 
+    [HarmonyPrefix]
+    [HarmonyPatch("UpdateHealthUI")]
+    private static bool OnHUDManagerUpdateHealthUI_Prefix()
+    {
+        return !CustomHealthBar.UsingCustom;
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
+    private static bool OnHUDManagerDisplaySignalTranslatorMessage_Prefix(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
+    {
+        if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
+        {
+            __result = SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, seed, signalTranslator);
+            return false;
+        }
+
+        return true;
+    }
+    #endregion
+
+    #region Postfixes
+
     [HarmonyPostfix]
     [HarmonyPatch("Start")]
-    private static void OnHUDManagerStart(HUDManager __instance)
+    private static void OnHUDManagerStart_Postfix(HUDManager __instance)
     {
         lastSlotCount = 0;
         ScrapValueDisplay.ResetForNewHUD();
@@ -74,22 +116,16 @@ internal static class HUDManagerPatch
         PlanetInfoDisplay.ApplyColors();
         SpectatorHUDController.ApplyColors();
 
-
-        CanvasGroup selfRed = __instance.selfRedCanvasGroup;
-        if (selfRed == null)
-            return;
-
-        PlayerRedCanvasController.Bind(selfRed);
-
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
 
         __instance.StartCoroutine(ScanTextureRoutine());
     }
 
+
     [HarmonyPostfix]
     [HarmonyPatch("OnEnable")]
-    private static void OnHUDManagerEnable(HUDManager __instance)
+    private static void OnHUDManagerEnable_Postfix(HUDManager __instance)
     {
         if (__instance.gameObject.GetComponent<LethalHUDMono>() == null)
         {
@@ -99,41 +135,38 @@ internal static class HUDManagerPatch
         {
             __instance.gameObject.AddComponent<StatsDisplay>();
         }
+
+        CanvasGroup selfRed = __instance.selfRedCanvasGroup;
+        if (selfRed == null)
+            return;
+
+        PlayerRedCanvasController.Bind(selfRed);
+
+        CustomHealthBar.OnHUDEnable(__instance);
+        CustomFrames.OnHUDEnable(__instance);
+
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
 
         __instance.StartCoroutine(ApplySelfRedAfterTick(__instance));
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
-    private static bool OnHUDManagerDisplaySignalTranslatorMessage(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
-    {
-        if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
-        {
-            __result = SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, seed, signalTranslator);
-            return false;
-        }
-
-        return true;
-    }
-
     [HarmonyPostfix]
     [HarmonyPatch("DisplayNewScrapFound")]
-    private static void OnHUDManagerDisplayNewScrapFound()
+    private static void OnHUDManagerDisplayNewScrapFound_Postfix()
     {
         InventoryFrames.SetSlotColors();
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("SetClock")]
-    private static void OnHUDManagerSetClock(HUDManager __instance, float timeNormalized, float numberOfHours)
+    private static void OnHUDManagerSetClock_Postfix(HUDManager __instance, float timeNormalized, float numberOfHours)
     {
         ClockController.TryOverrideClock(__instance, timeNormalized, numberOfHours);
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("Update")]
-    private static void OnHUDManagerUpdate(HUDManager __instance)
+    private static void OnHUDManagerUpdate_Postfix(HUDManager __instance)
     {
         ScanController.UpdateScanAlpha();
         PlayerHPDisplay.UpdateNumber();
@@ -164,11 +197,41 @@ internal static class HUDManagerPatch
                 break;
         }
 
-        int currentCount = __instance.itemSlotIconFrames.Length;
-        if (currentCount != lastSlotCount)
+        if (CustomHealthBar.UsingCustom && __instance.localPlayer != null)
         {
-            ScrapValueDisplay.RefreshSlots();
-            lastSlotCount = currentCount;
+            CustomHealthBar.UpdateFromPlayer(__instance.localPlayer);
+        }
+
+        if (__instance.itemSlotIconFrames != null)
+        {
+            int currentCount = __instance.itemSlotIconFrames.Length;
+            if (currentCount != lastSlotCount && lastSlotCount != 0)
+            {
+                lastSlotCount = currentCount;
+                CustomFrames.Apply(Plugins.ConfigEntries.CustomInventoryFrames.Value);
+            }
+        }
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("UpdateHealthUI")]
+    private static void OnHUDManagerUpdateHealthUI_Postfix(int health)
+    {
+        if (CustomHealthBar.UsingCustom) return;
+
+        switch (Plugins.ConfigEntries.SelfRedCanvasMode.Value)
+        {
+            case SelfRedMode.Vanilla:
+                return;
+
+            case SelfRedMode.ColoredFilled:
+                PlayerRedCanvasController.ApplyFillAndColor(health);
+                break;
+
+            case SelfRedMode.RedFillUp:
+                PlayerRedCanvasController.ApplyFillWithRedFade(health);
+                break;
+
         }
     }
 
@@ -194,7 +257,7 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("UpdateScanNodes")]
-    private static void OnHUDManagerUpdateScanNodes(HUDManager __instance)
+    private static void OnHUDManagerUpdateScanNodes_Postfix(HUDManager __instance)
     {
         if (Plugins.ConfigEntries.ScanNodeFade.Value)
             ScanNodeController.UpdateTimers(__instance.scanElements, __instance.scanNodes);
@@ -202,7 +265,7 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("AddChatMessage")]
-    private static void OnHUDManagerAddChatMessage(HUDManager __instance, string chatMessage, string nameOfUserWhoTyped, int playerWhoSent)
+    private static void OnHUDManagerAddChatMessage_Postfix(HUDManager __instance, string chatMessage, string nameOfUserWhoTyped, int playerWhoSent)
     {
         if (string.IsNullOrEmpty(chatMessage))
             return;
@@ -255,7 +318,7 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("OpenMenu_performed")]
-    private static void OnHUDManagerOpenMenu_performed(HUDManager __instance)
+    private static void OnHUDManagerOpenMenu_performed_Postfix(HUDManager __instance)
     {
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
@@ -271,17 +334,20 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("ChangeControlTipMultiple")]
-    private static void AfterChangeControlTipMultiple()
+    private static void AfterChangeControlTipMultiple_Postfix()
     {
         ControlTipController.ApplyColor();
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("ClearControlTips")]
-    private static void AfterClearControlTips()
+    private static void AfterClearControlTips_Postfix()
     {
         ControlTipController.ApplyColor();
     }
+    #endregion
+
+    #region IEnumerators, Utils
 
     private static IEnumerator ScanTextureRoutine()
     {
@@ -362,4 +428,5 @@ internal static class HUDManagerPatch
                 break;
         }
     }
+    #endregion
 }

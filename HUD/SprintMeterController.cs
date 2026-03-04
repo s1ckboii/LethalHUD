@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using LethalHUD.CustomHUD;
 using UnityEngine;
 using static LethalHUD.Enums;
 
@@ -18,38 +19,30 @@ internal static class SprintMeterController
         if (player?.sprintMeterUI == null)
             return;
 
+        float fillAmount = player.sprintMeterUI.fillAmount;
+        Color finalColor;
+
         switch (Plugins.ConfigEntries.SprintColoring.Value)
         {
             case SprintStyle.Gradient:
-                ApplyGradientMode(player);
+                finalColor = HUDUtils.GetGradientColor(BaseColor, fillAmount);
                 break;
             case SprintStyle.Shades:
-                ApplyShadesMode(player);
+                finalColor = HUDUtils.GetShadeColor(BaseColor, fillAmount);
                 break;
             default:
-                ApplySolidMode(player);
+                finalColor = BaseColor;
                 break;
         }
-    }
 
-    private static void ApplySolidMode(PlayerControllerB player)
-    {
-        player.sprintMeterUI.color = BaseColor;
-    }
-
-    private static void ApplyGradientMode(PlayerControllerB player)
-    {
-        float fillAmount = player.sprintMeterUI.fillAmount;
-        Color finalColor = HUDUtils.GetGradientColor(BaseColor, fillAmount);
-
-        player.sprintMeterUI.color = finalColor;
-    }
-
-    private static void ApplyShadesMode(PlayerControllerB player)
-    {
-        float fillAmount = player.sprintMeterUI.fillAmount;
-        Color finalColor = HUDUtils.GetShadeColor(BaseColor, fillAmount);
-
-        player.sprintMeterUI.color = finalColor;
+        if (CustomStaminaMeter.UsingCustom && CustomStaminaMeter.Refs != null)
+        {
+            CustomStaminaMeter.Refs.SetBarColor(finalColor);
+            CustomStaminaMeter.Refs.UpdateStaminaUI(fillAmount, finalColor);
+        }
+        else
+        {
+            player.sprintMeterUI.color = finalColor;
+        }
     }
 }
