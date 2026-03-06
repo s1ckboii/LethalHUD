@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static LethalHUD.Enums;
 
 namespace LethalHUD.Scan;
 internal static class ScanNodeTextureManager
@@ -13,7 +12,7 @@ internal static class ScanNodeTextureManager
         GameObject scanner = GameObject.Find("UI/Canvas/ObjectScanner");
         if (scanner == null) return;
 
-        ScanNodeShape chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
+        string chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
         if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out Plugins.ScanNodeTextures spritePair))
             return;
 

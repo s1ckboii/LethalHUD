@@ -3,7 +3,6 @@ using LethalHUD.CustomHUD.Refs;
 using LethalHUD.HUD;
 using UnityEngine;
 using UnityEngine.UI;
-using static LethalHUD.Enums;
 using System.Collections.Generic;
 
 namespace LethalHUD.CustomHUD;
@@ -11,14 +10,14 @@ internal static class CustomStaminaMeter
 {
     private static LHStaminaBarRefs _refs;
     private static GameObject _root;
-    private static readonly Dictionary<StaminaBarStyle, GameObject> _pool = [];
+    private static readonly Dictionary<string, GameObject> _pool = [];
 
     private static Image _vanillaMeterFill;
     private static Image _vanillaMeterFrame;
-    private static StaminaBarStyle _activeStyle = StaminaBarStyle.Default;
+    private static string _activeStyle = "Default";
 
     internal static LHStaminaBarRefs Refs => _refs;
-    internal static bool UsingCustom => _activeStyle != StaminaBarStyle.Default;
+    internal static bool UsingCustom => _activeStyle != "Default";
 
     internal static void Init(PlayerControllerB player)
     {
@@ -30,11 +29,11 @@ internal static class CustomStaminaMeter
         Apply(Plugins.ConfigEntries.CustomStaminaBar.Value);
     }
 
-    internal static void Apply(StaminaBarStyle style)
+    internal static void Apply(string style)
     {
         if (_root != null) _root.SetActive(false);
 
-        if (style == StaminaBarStyle.Default)
+        if (style == "Default")
         {
             _activeStyle = style;
             RestoreVanilla();
@@ -50,6 +49,12 @@ internal static class CustomStaminaMeter
         {
             Build(prefab, style);
         }
+        else
+        {
+            _activeStyle = "Default";
+            RestoreVanilla();
+            return;
+        }
 
         _refs = _root?.GetComponent<LHStaminaBarRefs>();
         _activeStyle = style;
@@ -57,7 +62,7 @@ internal static class CustomStaminaMeter
         UpdateShaderColor();
         HideVanilla();
     }
-    private static void Build(GameObject prefab, StaminaBarStyle style)
+    private static void Build(GameObject prefab, string style)
     {
         Transform hudParent = _vanillaMeterFill?.transform.parent?.parent;
 
@@ -69,7 +74,7 @@ internal static class CustomStaminaMeter
         if (hudParent == null) return;
 
         _root = Object.Instantiate(prefab, hudParent, false);
-        _root.name = $"LHStaminaBar_{style}";
+        _root.name = prefab.name;
         _root.transform.SetAsLastSibling();
         _pool[style] = _root;
 

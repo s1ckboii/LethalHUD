@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using LethalHUD.API;
 using LethalHUD.Compats;
 using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
@@ -38,11 +39,11 @@ public class ConfigEntries
     public ConfigEntry<string> UnifyMostColors { get; private set; }
     #endregion
     #region CUSTOM UI ConfigEntries
-    public ConfigEntry<HealthBarStyle> CustomHealthBar { get; private set; }
+    public ConfigEntry<string> CustomHealthBar { get; private set; }
     public ConfigEntry<string> CustomHealthShaderColor { get; private set; }
-    public ConfigEntry<StaminaBarStyle> CustomStaminaBar { get; private set; }
+    public ConfigEntry<string> CustomStaminaBar { get; private set; }
     public ConfigEntry<string> CustomStaminaShaderColor { get; private set; }
-    public ConfigEntry<InventoryFrameStyle> CustomInventoryFrames { get; private set; }
+    public ConfigEntry<string> CustomInventoryFrames { get; private set; }
     public ConfigEntry<string> CustomFrameShaderColor { get; private set; }
 
     #endregion
@@ -54,7 +55,7 @@ public class ConfigEntries
     public ConfigEntry<float> DirtIntensity { get; private set; }
     public ConfigEntry<string> ScanColor { get; private set; }
     public ConfigEntry<float> VignetteIntensity { get; private set; }
-    public ConfigEntry<ScanLines> SelectedScanlineMode { get; private set; }
+    public ConfigEntry<string> SelectedScanlineMode { get; private set; }
     public ConfigEntry<bool> ReplaceScrapCounterVisual { get; private set; }
     public ConfigEntry<bool> ShowShipLoot { get; private set; }
     public ConfigEntry<float> DisplayTime { get; private set; }
@@ -83,7 +84,7 @@ public class ConfigEntries
     public ConfigEntry<bool> ScanNodeFade { get; private set; }
     public ConfigEntry<float> ScanNodeLifetime { get; private set; }
     public ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
-    public ConfigEntry<ScanNodeShape> ScanNodeShapeChoice { get; private set; }
+    public ConfigEntry<string> ScanNodeShapeChoice { get; private set; }
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> HealthIndicator { get; private set; }
@@ -187,18 +188,18 @@ public class ConfigEntries
         UnifyMostColors = ConfigHelper.Bind(true, "Main", "Main Color", "#000CFF", "Allows you to change the scan and inventory frames colors in HEX format in a unified way, on reset they go back to default.");
         #endregion
         #region Custom UI Binds
-        CustomHealthBar = ConfigHelper.Bind("Custom UI", "Custom Health Bar", HealthBarStyle.Default, "Change the style of the health bar.");
+        CustomHealthBar = ConfigHelper.Bind("Custom UI", "Custom Health Bar", "Default", "Change the style of the health bar.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetHealthBarStyles()));
         CustomHealthShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Health Bar Color", "#FFFF00", "Change the color of the health bar in HEX format.");
-        CustomStaminaBar = ConfigHelper.Bind("Custom UI", "Custom Stamina Bar", StaminaBarStyle.Default, "Change the style of the stamina bar.");
+        CustomStaminaBar = ConfigHelper.Bind("Custom UI", "Custom Stamina Bar", "Default", "Change the style of the stamina bar.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetStaminaBarStyles()));
         CustomStaminaShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Stamina Bar Color", "#FFFF00", "Change the color of the stamina bar in HEX format.");
-        CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", InventoryFrameStyle.Default, "Change the style of the inventory frames.");
+        CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", "Default", "Change the style of the inventory frames.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetInventoryFrameStyles()));
         CustomFrameShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Frame Shader Color", "#FFFF00", "Change the color of the custom inventory frame shader in HEX format.");
         #endregion
         #region Scan Binds
         ScanModeType = ConfigHelper.Bind("Scan", "Scan Mode", ScanMode.Default, "Choose the scan mode.");
         FadeOut = ConfigHelper.Bind("Scan", "Fade Out", true, "Fade out effect for scan color.");
         RecolorScanLines = ConfigHelper.Bind("Scan", "Recolor Scan Lines", true, "Recolor the blue horizontal scan lines texture aswell.");
-        SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", ScanLines.Default, "Select the scanline style.", false);
+        SelectedScanlineMode = ConfigHelper.Bind("Scan", "Scanline", "Default", "Select the scanline style.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScanlines()));
         DirtIntensity = ConfigHelper.Bind("Scan", "Scanline Intensity", 0f, "Set the scanline's intensity yourself. (Default value for vanilla: 352.08, others are: 100", false, new AcceptableValueRange<float>(-500f, 500f));
         ScanColor = ConfigHelper.Bind(true, "Scan", "Scan Color", "#000CFF", "Allows you to change the scan's color in HEX format.");
         Alpha = ConfigHelper.Bind("Scan", "Alpha", 0.26f, "Alpha / opacity.", false, new AcceptableValueRange<float>(0f, 1f));
@@ -214,7 +215,7 @@ public class ConfigEntries
         ScanNodeFade = ConfigHelper.Bind("ScanNodes", "Fade Away", true, "Allows you to apply fadeaway for scannodes.");
         ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 10f));
         ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "Fade Duration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
-        ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", ScanNodeShape.Default, "Choose the shape for scan nodes.");
+        ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", "Default", "Choose the shape for scan nodes.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
         #endregion
         #region InventorySlot Binds
         SlotFade = ConfigHelper.Bind("Inventory", "Inventory Fade", 0.13f, "Change the base fadeout for the inventory.", false, new AcceptableValueRange<float>(0f, 0.99f));

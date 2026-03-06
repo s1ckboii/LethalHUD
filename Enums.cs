@@ -5,27 +5,6 @@ using UnityEngine.Rendering.HighDefinition;
 namespace LethalHUD;
 public static class Enums
 {
-    public enum StaminaBarStyle
-    {
-        Default,
-        Minimal,
-        Shapes,
-        SciFi
-    }
-    public enum HealthBarStyle
-    {
-        Default,
-        Minimal,
-        Shapes,
-        SciFi
-    }
-    public enum InventoryFrameStyle
-    {
-        Default,
-        Minimal,
-        Shapes,
-        SciFi
-    }
     public enum SelfRedMode
     {
         Vanilla,
@@ -67,25 +46,6 @@ public static class Enums
         Default,
         Hold,
         Toggle
-    }
-    public enum ScanLines
-    {
-        Default,
-        Circles,
-        Hexagons,
-        Circuit,
-        Noisy,
-        Scifi,
-        Bol,
-        Chu
-    }
-    public enum ScanNodeShape
-    {
-        Default,
-        Triangle,
-        Target,
-        Web,
-        Idk
     }
     public enum WeightUnit
     {
@@ -165,9 +125,9 @@ public static class Enums
         Bloom scanBloom = ScanController.ScanBloom;
         if (scanBloom == null) return;
 
-        ScanLines selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
+        string selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
 
-        if (selected == ScanLines.Default)
+        if (selected == "Default")
             scanBloom.dirtIntensity.Override(Mathf.Max(0f, _baseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));
         else
             scanBloom.dirtIntensity.Override(Mathf.Max(0f, _customBaseIntensity + Plugins.ConfigEntries.DirtIntensity.Value));

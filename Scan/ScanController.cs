@@ -178,8 +178,10 @@ internal static class ScanController
 
     private static void RecolorAndApplyTexture(Color color, Texture2D baseTex)
     {
-        Texture2D newTex = new(baseTex.width, baseTex.height, TextureFormat.RGBA32, true);
-        newTex.SetPixels(baseTex.GetPixels());
+        Texture2D readableTex = HUDUtils.GetReadableTexture(baseTex);
+
+        Texture2D newTex = new(readableTex.width, readableTex.height, TextureFormat.RGBA32, false);
+        newTex.SetPixels(readableTex.GetPixels());
         HUDUtils.RecolorTexture(ref newTex, color);
         newTex.Apply(true, false);
 
@@ -195,19 +197,16 @@ internal static class ScanController
 
     private static Texture2D GetSelectedTexture()
     {
-        ScanLines selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
+        string selected = Plugins.ConfigEntries.SelectedScanlineMode.Value;
+
+        if (selected == "Default")
+            return Plugins.DefaultScanlineTexture;
 
         if (Plugins.ScanlineTextures.TryGetValue(selected, out Texture2D tex) && tex != null)
             return tex;
 
         Loggers.Warning($"Scanline texture '{selected}' missing. Falling back to Default.");
 
-        if (selected != ScanLines.Default &&
-            Plugins.ScanlineTextures.TryGetValue(ScanLines.Default, out Texture2D fallback) &&
-            fallback != null)
-            return fallback;
-
-        Loggers.Error("No scanline textures could be applied.");
-        return null;
+        return Plugins.DefaultScanlineTexture;
     }
 }

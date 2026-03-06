@@ -104,6 +104,7 @@ internal static class HUDManagerPatch
     private static void OnHUDManagerStart_Postfix(HUDManager __instance)
     {
         lastSlotCount = 0;
+        Plugins.CacheDefaults();
         ScrapValueDisplay.ResetForNewHUD();
 
         _pingScanAction = IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan");

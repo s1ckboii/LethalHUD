@@ -3,7 +3,6 @@ using LethalHUD.CustomHUD.Refs;
 using LethalHUD.HUD;
 using UnityEngine;
 using UnityEngine.UI;
-using static LethalHUD.Enums;
 
 namespace LethalHUD.CustomHUD;
 internal static class CustomHealthBar
@@ -18,9 +17,9 @@ internal static class CustomHealthBar
 
     private static Vector3 _vanillaFrameScale = Vector3.one;
 
-    private static HealthBarStyle _activeStyle = HealthBarStyle.Default;
+    private static string _activeStyle = "Default";
 
-    internal static bool UsingCustom => _activeStyle != HealthBarStyle.Default;
+    internal static bool UsingCustom => _activeStyle != "Default";
     internal static bool HasCustomNumber => _refs != null && _refs.Number != null;
 
     internal static void OnHUDEnable(HUDManager hud)
@@ -48,13 +47,13 @@ internal static class CustomHealthBar
             UpdateFromPlayer(hud.localPlayer);
         }
     }
-    internal static void Apply(HealthBarStyle style)
+    internal static void Apply(string style)
     {
-        if (_activeStyle == style && (style == HealthBarStyle.Default || _root != null)) return;
+        if (_activeStyle == style && (style == "Default" || _root != null)) return;
 
         Cleanup();
 
-        if (style == HealthBarStyle.Default)
+        if (style == "Default")
         {
             _activeStyle = style;
             RestoreVanilla();
@@ -63,7 +62,8 @@ internal static class CustomHealthBar
 
         if (!Plugins.HealthBarPrefabs.TryGetValue(style, out GameObject prefab) || prefab == null)
         {
-            _activeStyle = HealthBarStyle.Default;
+            Cleanup();
+            _activeStyle = "Default";
             RestoreVanilla();
             return;
         }
@@ -92,14 +92,14 @@ internal static class CustomHealthBar
             PlayerHPDisplay.UpdateNumber(_refs.Number, _refs.NumberBasePosition);
         }
     }
-    private static void Build(GameObject prefab, HealthBarStyle style)
+    private static void Build(GameObject prefab, string style)
     {
         Transform hudParent = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner")?.transform;
 
         if (hudParent == null) return;
 
         _root = Object.Instantiate(prefab, hudParent, false);
-        _root.name = $"LHHealthBar_{style}";
+        _root.name = prefab.name;
 
         RectTransform rect = _root.GetComponent<RectTransform>();
         RectTransform prefabRect = prefab.GetComponent<RectTransform>();

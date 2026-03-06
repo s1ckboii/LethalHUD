@@ -44,18 +44,36 @@ internal static class HUDUtils
     #endregion
 
     #region Scan Helpers
+    internal static Texture2D GetReadableTexture(Texture2D source)
+    {
+        RenderTexture rt = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.sRGB);
+
+        Graphics.Blit(source, rt);
+
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = rt;
+
+        Texture2D readable = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+        readable.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+        readable.Apply();
+
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(rt);
+
+        return readable;
+    }
     internal static void RecolorTexture(ref Texture2D texture, Color color)
     {
-        Single colorIntensity = color.r + color.g + color.b;
+        float colorIntensity = color.r + color.g + color.b;
         List<Color> pixels = [.. texture.GetPixels()];
 
         Loggers.Debug("ScanTexture pixel count: " + pixels.Count);
         for (int i = pixels.Count - 1; i >= 0; i--)
         {
-            Single pixelIntensity = pixels[i].r + pixels[i].g + pixels[i].b;
+            float pixelIntensity = pixels[i].r + pixels[i].g + pixels[i].b;
             if (pixelIntensity < 0.05f || pixels[i].a < 0.05f) continue;
 
-            Single intensityDiff = colorIntensity == 0f ? 0f : (pixelIntensity / colorIntensity);
+            float intensityDiff = colorIntensity == 0f ? 0f : (pixelIntensity / colorIntensity);
             pixels[i] = new Color(color.r * intensityDiff, color.g * intensityDiff, color.b * intensityDiff);
         }
         texture.SetPixels([.. pixels]);

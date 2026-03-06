@@ -2,13 +2,16 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using LethalHUD.API;
 using LethalHUD.Compats;
 using LethalHUD.Configs;
 using LethalHUD.Networking;
+using LethalHUD.Scan;
 using System.Collections.Generic;
-using System.IO;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.UI;
 using static LethalHUD.Enums;
 
 namespace LethalHUD;
@@ -28,19 +31,22 @@ public class Plugins : BaseUnityPlugin
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
 
-    internal static readonly Dictionary<HealthBarStyle, GameObject> HealthBarPrefabs = [];
-    internal static readonly Dictionary<StaminaBarStyle, GameObject> StaminaBarPrefabs = [];
-    internal static readonly Dictionary<InventoryFrameStyle, GameObject> SlotPrefabs = [];
+    internal static readonly Dictionary<string, GameObject> HealthBarPrefabs = [];
+    internal static readonly Dictionary<string, GameObject> StaminaBarPrefabs = [];
+    internal static readonly Dictionary<string, GameObject> SlotPrefabs = [];
 
-    internal static Dictionary<ScanLines, Texture2D> ScanlineTextures = [];
-    internal static bool NetworkingDisabled;
+    internal static Texture2D DefaultScanlineTexture;
+    internal static ScanNodeTextures DefaultScanNodeSprites;
+
+    internal static Dictionary<string, Texture2D> ScanlineTextures = [];
+    internal static Dictionary<string, ScanNodeTextures> ScanNodeSprites = [];
     internal struct ScanNodeTextures
     {
         public Sprite Outer;
         public Sprite Inner;
     }
 
-    internal static Dictionary<ScanNodeShape, ScanNodeTextures> ScanNodeSprites = [];
+    internal static bool NetworkingDisabled;
 
     public void Awake()
     {
@@ -69,99 +75,10 @@ public class Plugins : BaseUnityPlugin
             ? ConfigUtils.CreateLocalConfigFile(this)
             : ConfigUtils.CreateGlobalConfigFile(this);
 
+        BundleLoader.Init();
+        ImageLoader.LoadFromFolders();
+
         ConfigEntries = new ConfigEntries();
-
-        string pluginFolderPath = Path.GetDirectoryName(Info.Location);
-        string assetBundleFilePath = Path.Combine(pluginFolderPath, "lethalhudbundle");
-        AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundleFilePath);
-
-        if (assetBundle == null)
-        {
-            Loggers.Error("Failed to load lethalhudbundle assetbundle.");
-            return;
-        }
-
-        foreach (ScanLines scanLine in System.Enum.GetValues(typeof(ScanLines)))
-        {
-            string name = scanLine.ToString();
-            Texture2D tex = assetBundle.LoadAsset<Texture2D>(name);
-
-            if (tex != null)
-            {
-                ScanlineTextures[scanLine] = tex;
-            }
-            else
-            {
-                Loggers.Warning($"Texture '{name}' not found in asset bundle.");
-            }
-        }
-        foreach (ScanNodeShape shape in System.Enum.GetValues(typeof(ScanNodeShape)))
-        {
-            string outerName = $"{shape}_Outer";
-            string innerName = $"{shape}_Inner";
-
-            Sprite outerTex = assetBundle.LoadAsset<Sprite>(outerName);
-            Sprite innerTex = assetBundle.LoadAsset<Sprite>(innerName);
-
-            if (outerTex == null) Logger.LogWarning($"ScanNode texture '{outerName}' not found.");
-            if (innerTex == null) Logger.LogWarning($"ScanNode texture '{innerName}' not found.");
-
-            ScanNodeSprites[shape] = new ScanNodeTextures
-            {
-                Outer = outerTex,
-                Inner = innerTex
-            };
-        }
-
-        foreach (HealthBarStyle style in System.Enum.GetValues(typeof(HealthBarStyle)))
-        {
-            if (style == HealthBarStyle.Default)
-                continue;
-
-            string prefabName = $"LHHealthBar_{style}";
-            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
-
-            if (prefab == null)
-            {
-                Loggers.Warning($"HealthBar prefab '{prefabName}' not found in lethalhudbundle.");
-                continue;
-            }
-
-            HealthBarPrefabs[style] = prefab;
-        }
-        foreach (StaminaBarStyle style in System.Enum.GetValues(typeof(StaminaBarStyle)))
-        {
-            if (style == StaminaBarStyle.Default)
-                continue;
-
-            string prefabName = $"LHStaminaBar_{style}";
-            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
-
-            if (prefab == null)
-            {
-                Loggers.Warning($"HealthBar prefab '{prefabName}' not found in lethalhudbundle.");
-                continue;
-            }
-
-            StaminaBarPrefabs[style] = prefab;
-        }
-
-        foreach (InventoryFrameStyle style in System.Enum.GetValues(typeof(InventoryFrameStyle)))
-        {
-            if (style == InventoryFrameStyle.Default)
-                continue;
-
-            string prefabName = $"LHSlot_{style}";
-            GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
-
-            if (prefab == null)
-            {
-                Loggers.Warning($"Slot prefab '{prefabName}' not found in lethalhudbundle.");
-                continue;
-            }
-
-            SlotPrefabs[style] = prefab;
-        }
 
         Harmony.PatchAll();
         bootstrapConfig.Save();
@@ -173,5 +90,66 @@ public class Plugins : BaseUnityPlugin
     {
         NetworkVariableSerializationTypes.InitializeSerializer_UnmanagedByMemcpy<PlayerColorInfo>();
         NetworkVariableSerializationTypes.InitializeEqualityChecker_UnmanagedIEquatable<PlayerColorInfo>();
+    }
+
+    internal static void CacheDefaults()
+    {
+        CacheDefaultScanline();
+        CacheDefaultScannodes();
+    }
+
+    private static void CacheDefaultScanline()
+    {
+        if (DefaultScanlineTexture != null)
+            return;
+
+        Bloom bloom = ScanController.ScanBloom;
+
+        if (bloom == null)
+            return;
+
+        Texture tex = bloom.dirtTexture.value;
+
+        if (tex is Texture2D tex2D)
+        {
+            DefaultScanlineTexture = tex2D;
+            ScanlineTextures["Default"] = tex2D;
+
+            Logger.LogInfo("Cached vanilla scanline texture.");
+        }
+    }
+
+    private static void CacheDefaultScannodes()
+    {
+        if (DefaultScanNodeSprites.Inner != null)
+            return;
+
+        GameObject scanner = GameObject.Find("UI/Canvas/ObjectScanner");
+
+        if (scanner == null)
+            return;
+
+        foreach (Transform child in scanner.transform)
+        {
+            if (!child.name.StartsWith("ScanObject"))
+                continue;
+
+            Image inner = child.Find("Circle/Inner")?.GetComponent<Image>();
+            Image outer = child.Find("Circle/Outer")?.GetComponent<Image>();
+
+            if (inner == null || outer == null)
+                continue;
+
+            DefaultScanNodeSprites = new ScanNodeTextures
+            {
+                Inner = inner.sprite,
+                Outer = outer.sprite
+            };
+
+            ScanNodeSprites["Default"] = DefaultScanNodeSprites;
+
+            Logger.LogInfo("Cached vanilla scannode sprites.");
+            break;
+        }
     }
 }

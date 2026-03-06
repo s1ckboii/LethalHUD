@@ -3,7 +3,6 @@ using LethalHUD.CustomHUD.Refs;
 using LethalHUD.HUD;
 using UnityEngine;
 using UnityEngine.UI;
-using static LethalHUD.Enums;
 
 namespace LethalHUD.CustomHUD;
 internal static class CustomFrames
@@ -15,7 +14,7 @@ internal static class CustomFrames
     private static Image[] _customIcons;
     private static GameObject[] _customRoots;
 
-    private static InventoryFrameStyle _activeStyle = InventoryFrameStyle.Default;
+    private static string _activeStyle = "Default";
     private static Coroutine _initializationRoutine;
     private static bool _isApplying = false;
 
@@ -23,7 +22,7 @@ internal static class CustomFrames
     {
         if (hud == null) return;
 
-        _activeStyle = InventoryFrameStyle.Default;
+        _activeStyle = "Default";
         _vanillaFrames = null;
         _vanillaIcons = null;
 
@@ -45,7 +44,7 @@ internal static class CustomFrames
         _initializationRoutine = null;
     }
 
-    internal static void Apply(InventoryFrameStyle style)
+    internal static void Apply(string style)
     {
         if (_isApplying) return;
 
@@ -56,7 +55,7 @@ internal static class CustomFrames
         {
             if (hud.itemSlotIconFrames != null && hud.itemSlotIconFrames != _customFrames)
                 CacheVanilla(hud);
-            else if (_activeStyle != InventoryFrameStyle.Default)
+            else if (_activeStyle != "Default")
                 return;
         }
 
@@ -66,7 +65,7 @@ internal static class CustomFrames
         _isApplying = true;
         RestoreVanilla();
 
-        if (style == InventoryFrameStyle.Default)
+        if (style == "Default")
         {
             CleanupCustom();
             _activeStyle = style;
@@ -78,7 +77,7 @@ internal static class CustomFrames
 
         if (!Plugins.SlotPrefabs.TryGetValue(style, out GameObject prefab) || prefab == null)
         {
-            _activeStyle = InventoryFrameStyle.Default;
+            _activeStyle = "Default";
             _isApplying = false;
             return;
         }
@@ -115,7 +114,7 @@ internal static class CustomFrames
         for (int i = 0; i < count; i++)
         {
             GameObject slot = Object.Instantiate(prefab, parent);
-            slot.name = $"LHSlot_{_activeStyle}_{i}";
+            slot.name = $"{prefab.name}_{i}";
             slot.transform.localPosition = _vanillaFrames[i].transform.localPosition;
             slot.transform.localScale = Vector3.one;
 
@@ -205,7 +204,7 @@ internal static class CustomFrames
 
     internal static void UpdateShaderColor()
     {
-        if (_customFrames == null || _activeStyle == InventoryFrameStyle.Default) return;
+        if (_customFrames == null || _activeStyle == "Default") return;
         Color flowColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.CustomFrameShaderColor.Value, Color.yellow);
         foreach (Image frame in _customFrames)
         {
