@@ -7,7 +7,6 @@ using UnityEngine;
 using static LethalHUD.Plugins;
 
 namespace LethalHUD.API;
-
 internal static class BundleLoader
 {
     internal static readonly List<AssetBundle> LoadedBundles = [];
@@ -163,6 +162,21 @@ internal static class BundleLoader
             {
                 ScanNodeSprites[pair.Key] = pair.Value;
                 Loggers.Info($"Registered ScanNode: {pair.Key}");
+            }
+        }
+
+        foreach (Sprite sprite in bundle.LoadAllAssets<Sprite>())
+        {
+            if (!sprite.name.StartsWith("Loading_"))
+                continue;
+
+            string name = sprite.name.Replace("Loading_", "");
+            string key = $"[{modName}] {name}";
+
+            if (!LoadingScreens.ContainsKey(key))
+            {
+                LoadingScreens.Add(key, sprite);
+                Loggers.Info($"Registered LoadingScreen: {key}");
             }
         }
     }

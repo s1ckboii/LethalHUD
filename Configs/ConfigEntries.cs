@@ -1,6 +1,5 @@
 ﻿using BepInEx.Configuration;
 using LethalHUD.API;
-using LethalHUD.Compats;
 using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
@@ -145,6 +144,9 @@ public class ConfigEntries
     #endregion
     #region MoreDisplay ConfigEntries
     public ConfigEntry<string> LoadingTextColor { get; private set; }
+    public ConfigEntry<bool> UseCustomLoadingScreens { get; private set; }
+    public ConfigEntry<LoadingScreenPackMode> LoadingScreenMode { get; private set; }
+    public ConfigEntry<string> SelectedLoadingScreenPacks { get; private set; }
     public ConfigEntry<string> PlanetSummaryColor { get; private set; }
     public ConfigEntry<string> PlanetHeaderColor { get; private set; }
     public ConfigEntry<bool> PlanetRisk { get; private set; }
@@ -291,6 +293,9 @@ public class ConfigEntries
         #endregion
         #region MoreDisplay Binds
         LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#A5F4FF", "Color of the loading text.");
+        UseCustomLoadingScreens = ConfigHelper.Bind("More Display", "Custom Loading Screens", false, "Allows loading screens from installed HUD packs.");
+        LoadingScreenMode = ConfigHelper.Bind("More Display", "Loading Screen Pack Mode", LoadingScreenPackMode.AllPacks, "Choose how loading screens from packs should be used");
+        SelectedLoadingScreenPacks = ConfigHelper.Bind("More Display", "Selected Loading Screen Packs", "", "Comma separated list of pack names to use when mode is SelectedPacks.");
         PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#86ECFF", "Color of the planet summary text.");
         PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#86ECFF", "Color of the planet header text.");
         PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", false, "Custom coloring based on risk level.");
@@ -451,6 +456,9 @@ public class ConfigEntries
         PlanetSummaryColor.SettingChanged += (ob, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetHeaderColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetRisk.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
+        UseCustomLoadingScreens.SettingChanged += (obj, args) => { LoadingScreenController.RefreshPool(); };
+        LoadingScreenMode.SettingChanged += (obj, args) => { LoadingScreenController.RefreshPool(); };
+        SelectedLoadingScreenPacks.SettingChanged += (obj, args) => { LoadingScreenController.RefreshPool(); };
         #endregion
         #region Spectator HUD Changes
         SpectatorTipColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };

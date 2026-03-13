@@ -5,6 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace LethalHUD;
 public static class Enums
 {
+    public enum LoadingScreenPackMode
+    {
+        SinglePack,
+        SelectedPacks,
+        AllPacks
+    }
     public enum SelfRedMode
     {
         Vanilla,

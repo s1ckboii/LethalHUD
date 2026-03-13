@@ -13,7 +13,6 @@ internal static class HUDStyleRegistry
 
         return [.. styles];
     }
-
     internal static string[] GetStaminaBarStyles()
     {
         List<string> styles = ["Default"];
@@ -24,7 +23,6 @@ internal static class HUDStyleRegistry
 
         return [.. styles];
     }
-
     internal static string[] GetInventoryFrameStyles()
     {
         List<string> styles = ["Default"];
@@ -35,7 +33,6 @@ internal static class HUDStyleRegistry
 
         return [.. styles];
     }
-
     internal static string[] GetScanlines()
     {
         List<string> styles = ["Default"];
@@ -46,7 +43,6 @@ internal static class HUDStyleRegistry
 
         return [.. styles];
     }
-
     internal static string[] GetScannodes()
     {
         List<string> styles = ["Default"];

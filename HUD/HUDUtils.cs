@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +10,7 @@ internal static class HUDUtils
     #region Basic Helpers
 
     // Change ParseHexColor logic to the latter one but I'd need to look thru all base colors first to switch.
-
+    // Maybe not? I remember doing something about this that backfired heavily
     internal static Color ParseHexColor(string hex)
     {
         if (ColorUtility.TryParseHtmlString(hex, out Color color))

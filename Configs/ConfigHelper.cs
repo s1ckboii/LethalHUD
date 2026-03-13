@@ -2,7 +2,6 @@
 using LethalHUD.Compats;
 using LethalHUD.HUD;
 using System;
-using System.Reflection;
 using UnityEngine;
 
 namespace LethalHUD.Configs;

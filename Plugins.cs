@@ -40,6 +40,7 @@ public class Plugins : BaseUnityPlugin
 
     internal static Dictionary<string, Texture2D> ScanlineTextures = [];
     internal static Dictionary<string, ScanNodeTextures> ScanNodeSprites = [];
+    internal static Dictionary<string, Sprite> LoadingScreens = [];
     internal struct ScanNodeTextures
     {
         public Sprite Outer;
