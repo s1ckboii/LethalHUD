@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static LethalHUD.Enums;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 namespace LethalHUD.HUD;
 internal static class HUDUtils
@@ -275,24 +276,32 @@ internal static class HUDUtils
     }
     #endregion
     #region InventoryFrames Helpers
-    internal static void ApplyRainbow(Image[] frames)
+    internal static void ApplyRainbow(Image[] frames, Dictionary<Image, Image> fadeMap)
     {
         int count = frames.Length;
         float hueShift = Time.time * 0.15f;
 
         for (int i = 0; i < count; i++)
         {
-            if (frames[i] == null) continue;
+            Image frame = frames[i];
+            if (frame == null) continue;
 
             float hue = (hueShift + (float)i / count) % 1f;
             Color rainbowColor = Color.HSVToRGB(hue, 1f, 1f);
 
             rainbowColor.a = frames[i].color.a;
             frames[i].color = rainbowColor;
+
+            if (fadeMap != null && fadeMap.TryGetValue(frame, out Image fadeImg) && fadeImg != null)
+            {
+                Color fadeColor = rainbowColor;
+                fadeColor.a = fadeImg.color.a;
+                fadeImg.color = fadeColor;
+            }
         }
     }
 
-    internal static void ApplyWavyGradient(Image[] frames, Color startColor, Color endColor, float speed = 0.15f, float waveFrequency = 2f)
+    internal static void ApplyWavyGradient(Image[] frames, Color startColor, Color endColor, Dictionary<Image, Image> fadeMap, float speed = 0.15f, float waveFrequency = 2f)
     {
         if (frames == null || frames.Length == 0) return;
 
@@ -301,15 +310,26 @@ internal static class HUDUtils
         int count = frames.Length;
         for (int i = 0; i < count; i++)
         {
-            if (frames[i] == null) continue;
+            Image frame = frames[i];
+            if (frame == null) continue;
 
             float normalizedIndex = (float)i / (count - 1);
-            float waveOffset = Mathf.SmoothStep(0f, 1f, Mathf.Sin((_gradientWaveTime + normalizedIndex * waveFrequency) * Mathf.PI * 2f) * 0.5f + 0.5f);
+            float waveOffset = Mathf.SmoothStep(
+                0f, 1f,
+                Mathf.Sin((_gradientWaveTime + normalizedIndex * waveFrequency) * Mathf.PI * 2f) * 0.5f + 0.5f
+            );
 
             Color interpolated = Color.Lerp(startColor, endColor, waveOffset).gamma;
 
-            interpolated.a = frames[i].color.a;
-            frames[i].color = interpolated;
+            interpolated.a = frame.color.a;
+            frame.color = interpolated;
+
+            if (fadeMap != null && fadeMap.TryGetValue(frame, out Image fadeImg) && fadeImg != null)
+            {
+                Color fadeColor = interpolated;
+                fadeColor.a = fadeImg.color.a;
+                fadeImg.color = fadeColor;
+            }
         }
     }
     #endregion
@@ -418,44 +438,43 @@ internal static class HUDUtils
         return sb.ToString();
     }
     #endregion
-    #region PlanetInfo Helpers
-    private static float _loadingOffset;
-    public static void AnimateLoadingText(TextMeshProUGUI text, string hexColor)
+    #region LoadingScreen Helpers
+    public static void ColorLoadingText(Transform root, string hexColor)
     {
-        if (text == null) return;
+        if (root == null) return;
 
-        Color baseColor = ParseHexColor(hexColor, Color.grey);
+        var loadText = root.Find("LoadText")?.GetComponent<TextMeshProUGUI>();
+        var loadTextB = root.Find("LoadTextB")?.GetComponent<TextMeshProUGUI>();
+        var textBG = root.Find("TextBG")?.GetComponent<Image>();
 
-        text.ForceMeshUpdate();
-        TMP_TextInfo textInfo = text.textInfo;
-        int characterCount = textInfo.characterCount;
-        if (characterCount == 0) return;
+        Color baseColor = ParseHexColor(hexColor, Color.gray);
 
-        _loadingOffset += Time.deltaTime * 2.5f;
-        if (_loadingOffset > 1f) _loadingOffset -= 1f;
-
-        for (int i = 0; i < characterCount; i++)
+        if (loadText != null)
         {
-            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
-            if (!charInfo.isVisible) continue;
+            if (loadText.fontMaterial != null)
+            {
+                var mat = loadText.fontMaterial;
 
-            int vertexIndex = charInfo.vertexIndex;
-            int meshIndex = charInfo.materialReferenceIndex;
-            Color32[] vertexColors = textInfo.meshInfo[meshIndex].colors32;
+                Color c = baseColor;
+                c.a = loadText.color.a;
 
-            float t = ((float)i / characterCount + _loadingOffset) % 1f;
-            Color color;
-
-            color = Color.Lerp(Color.gray, baseColor, Mathf.PingPong(t * 2f, 1f));
-
-            vertexColors[vertexIndex + 0] = color;
-            vertexColors[vertexIndex + 1] = color;
-            vertexColors[vertexIndex + 2] = color;
-            vertexColors[vertexIndex + 3] = color;
+                mat.SetColor("_FaceColor", c);
+            }
         }
 
-        for (int i = 0; i < textInfo.meshInfo.Length; i++)
-            text.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
+        if (loadTextB != null)
+        {
+            Color c = baseColor;
+            c.a = loadTextB.color.a;
+            loadTextB.color = c;
+        }
+
+        if (textBG != null)
+        {
+            Color bg = Color.Lerp(baseColor, Color.black, 0.6f);
+            bg.a = textBG.color.a;
+            textBG.color = bg;
+        }
     }
     #endregion
     #region HP and PlayerRedCanvas Helpers

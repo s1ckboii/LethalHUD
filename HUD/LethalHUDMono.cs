@@ -1,5 +1,4 @@
-﻿using GameNetcodeStuff;
-using LethalHUD.Compats;
+﻿using LethalHUD.Compats;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System;
@@ -18,7 +17,6 @@ namespace LethalHUD.HUD
 
         private HUDManager _hud;
         private Keyboard _keyboard;
-        private float _lastBillboardUpdate;
 
         private void Awake()
         {
@@ -63,7 +61,7 @@ namespace LethalHUD.HUD
                 EladsHUDProxy.OverrideHUD();
             if (_hud.loadingText != null)
             {
-                HUDUtils.AnimateLoadingText(_hud.loadingText, Plugins.ConfigEntries.LoadingTextColor.Value);
+                HUDUtils.ColorLoadingText(_hud.loadingText.transform.parent, Plugins.ConfigEntries.LoadingTextColor.Value);
             }
             PlanetInfoDisplay.UpdateColors();
             ControlTipController.ApplyColor();

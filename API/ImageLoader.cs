@@ -23,9 +23,6 @@ internal static class ImageLoader
 
             if (name.Equals("Scannodes", System.StringComparison.OrdinalIgnoreCase))
                 LoadScannodes(dir);
-
-            if (name.Equals("Loadingscreens", System.StringComparison.OrdinalIgnoreCase))
-                LoadLoadingScreens(dir);
         }
     }
 
@@ -109,32 +106,6 @@ internal static class ImageLoader
                 ScanNodeSprites[uniqueName] = pair.Value;
 
                 Loggers.Info($"Loaded Scannode (Folder): {uniqueName}");
-            }
-        }
-    }
-    private static void LoadLoadingScreens(string folder)
-    {
-        string modName = BundleLoader.GetModName(folder);
-
-        foreach (string file in Directory.GetFiles(folder))
-        {
-            if (!file.EndsWith(".png") && !file.EndsWith(".jpg"))
-                continue;
-
-            byte[] data = File.ReadAllBytes(file);
-
-            Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            tex.LoadImage(data);
-
-            Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-
-            string name = Path.GetFileNameWithoutExtension(file);
-            string key = $"[{modName}] {name}";
-
-            if (!LoadingScreens.ContainsKey(key))
-            {
-                LoadingScreens.Add(key, sprite);
-                Loggers.Info($"Loaded LoadingScreen (Folder): {key}");
             }
         }
     }

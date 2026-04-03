@@ -23,6 +23,16 @@ internal static class HUDStyleRegistry
 
         return [.. styles];
     }
+    internal static string[] GetBatteryStyles()
+    {
+        List<string> styles = ["Default"];
+
+        foreach (var key in Plugins.BatteryPrefabs.Keys)
+            if (!styles.Contains(key))
+                styles.Add(key);
+
+        return [.. styles];
+    }
     internal static string[] GetInventoryFrameStyles()
     {
         List<string> styles = ["Default"];

@@ -42,6 +42,8 @@ public class ConfigEntries
     public ConfigEntry<string> CustomHealthShaderColor { get; private set; }
     public ConfigEntry<string> CustomStaminaBar { get; private set; }
     public ConfigEntry<string> CustomStaminaShaderColor { get; private set; }
+    public ConfigEntry<string> CustomBatteryBar { get; private set; }
+    public ConfigEntry<string> CustomBatteryColor { get; private set; }
     public ConfigEntry<string> CustomInventoryFrames { get; private set; }
     public ConfigEntry<string> CustomFrameShaderColor { get; private set; }
 
@@ -61,6 +63,12 @@ public class ConfigEntries
     public ConfigEntry<string> LootInfoColor { get; private set; }
     public ConfigEntry<float> LootPosX { get; private set; }
     public ConfigEntry<float> LootPosY { get; private set; }
+    #region UtilitySlot Binds
+    //public ConfigEntry<string> UtilityGradientColorA { get; private set; }
+    //public ConfigEntry<string> UtilityGradientColorB { get; private set; }
+    //public ConfigEntry<bool> UtilityUseInventoryColors { get; private set; }
+    //public ConfigEntry<int> ExtraUtilitySlots { get; private set; }
+    #endregion
 
     #endregion
     #region InventorySlot ConfigEntries
@@ -100,6 +108,7 @@ public class ConfigEntries
     public ConfigEntry<WeightDecimalFormat> WeightDecimalFormatConfig { get; private set; }
     public ConfigEntry<WeightUnitDisplay> WeightUnitDisplayConfig { get; private set; }
     public ConfigEntry<string> WeightStarterColor { get; private set; }
+    public ConfigEntry<string> BatteryColor { get; private set; }
     #endregion
     #region Compass ConfigEntries
     public ConfigEntry<bool> CompassInvertMask { get; private set; }
@@ -144,9 +153,6 @@ public class ConfigEntries
     #endregion
     #region MoreDisplay ConfigEntries
     public ConfigEntry<string> LoadingTextColor { get; private set; }
-    public ConfigEntry<bool> UseCustomLoadingScreens { get; private set; }
-    public ConfigEntry<LoadingScreenPackMode> LoadingScreenMode { get; private set; }
-    public ConfigEntry<string> SelectedLoadingScreenPacks { get; private set; }
     public ConfigEntry<string> PlanetSummaryColor { get; private set; }
     public ConfigEntry<string> PlanetHeaderColor { get; private set; }
     public ConfigEntry<bool> PlanetRisk { get; private set; }
@@ -177,6 +183,7 @@ public class ConfigEntries
     #endregion
     #region KeyBind ConfigEntries
     public ConfigEntry<Key> HideHUDButton { get; private set; }
+    //public ConfigEntry<Key> UtilityFlashlight { get; private set; }
     #endregion
     public void Setup()
     {
@@ -194,8 +201,16 @@ public class ConfigEntries
         CustomHealthShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Health Bar Color", "#FFFF00", "Change the color of the health bar in HEX format.");
         CustomStaminaBar = ConfigHelper.Bind("Custom UI", "Custom Stamina Bar", "Default", "Change the style of the stamina bar.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetStaminaBarStyles()));
         CustomStaminaShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Stamina Bar Color", "#FFFF00", "Change the color of the stamina bar in HEX format.");
+        CustomBatteryBar = ConfigHelper.Bind("Custom UI", "Custom Battery Bar", "Default", "Change the style of the battery bar.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetBatteryStyles()));
+        CustomBatteryColor = ConfigHelper.Bind(true, "Custom UI", "Custom Battery Color", "#FFFF00", "Battery color in HEX.");
         CustomInventoryFrames = ConfigHelper.Bind("Custom UI", "Custom Inventory Frames", "Default", "Change the style of the inventory frames.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetInventoryFrameStyles()));
         CustomFrameShaderColor = ConfigHelper.Bind(true, "Custom UI", "Custom Frame Shader Color", "#FFFF00", "Change the color of the custom inventory frame shader in HEX format.");
+        #endregion
+        #region UtilitySlot Binds
+        //UtilityGradientColorA = ConfigHelper.Bind(true, "Utility Slot", "Gradient Color A", "#3226B4", "Start color for utility slot gradient.");
+        //UtilityGradientColorB = ConfigHelper.Bind(true, "Utility Slot", "Gradient Color B", "#3226B4", "End color for utility slot gradient.");
+        //UtilityUseInventoryColors = ConfigHelper.Bind("Utility Slot", "Use Inventory Colors", false, "If enabled, utility slot uses the same colors as inventory slots.");
+        //ExtraUtilitySlots = ConfigHelper.Bind("Utility Slot", "Extra Slots", 0, "Adds extra visual utility slots (0–2).", false, new AcceptableValueRange<int>(0, 2));
         #endregion
         #region Scan Binds
         ScanModeType = ConfigHelper.Bind("Scan", "Scan Mode", ScanMode.Default, "Choose the scan mode.");
@@ -260,6 +275,7 @@ public class ConfigEntries
         WeightDecimalFormatConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Decimal Format", WeightDecimalFormat.Rounded, "Choose how many decimals should be shown.");
         WeightUnitDisplayConfig = ConfigHelper.Bind("Health/Stamina/Weight", "Weight Unit Display", WeightUnitDisplay.OnlyOne, "Choose how the weight unit should be displayed.");
         WeightStarterColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "WeightColor", "#E55901", "The starting base color for weight display in hex format.");
+        BatteryColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Battery Color", "#FFFF00", "Color for vanilla battery meter, icon, and text.");
         #endregion
         #region Compass Binds
         CompassInvertMask = ConfigHelper.Bind("Compass", "Compass Invert Mask", false, "Lets you invert the mask in the inside.");
@@ -293,9 +309,6 @@ public class ConfigEntries
         #endregion
         #region MoreDisplay Binds
         LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#A5F4FF", "Color of the loading text.");
-        UseCustomLoadingScreens = ConfigHelper.Bind("More Display", "Custom Loading Screens", false, "Allows loading screens from installed HUD packs.");
-        LoadingScreenMode = ConfigHelper.Bind("More Display", "Loading Screen Pack Mode", LoadingScreenPackMode.AllPacks, "Choose how loading screens from packs should be used");
-        SelectedLoadingScreenPacks = ConfigHelper.Bind("More Display", "Selected Loading Screen Packs", "", "Comma separated list of pack names to use when mode is SelectedPacks.");
         PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#86ECFF", "Color of the planet summary text.");
         PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#86ECFF", "Color of the planet header text.");
         PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", false, "Custom coloring based on risk level.");
@@ -326,6 +339,7 @@ public class ConfigEntries
         #endregion
         #region Keybind Binds
         HideHUDButton = ConfigHelper.Bind("Keybinds", "Hide HUD Button", Key.Numpad5, "Keybind to hide the HUD.");
+        //UtilityFlashlight = ConfigHelper.Bind("Keybinds", "Utility Flashlight", Key.F, "Keybind to toggle the utility slot flashlight.");
         #endregion
 
         #region Main Changes
@@ -364,8 +378,12 @@ public class ConfigEntries
         CustomHealthShaderColor.SettingChanged += (obj, args) => { CustomHUD.CustomHealthBar.UpdateShaderColor(); };
         CustomStaminaBar.SettingChanged += (obj, args) => { CustomStaminaMeter.Apply(Plugins.ConfigEntries.CustomStaminaBar.Value); };
         CustomStaminaShaderColor.SettingChanged += (obj, args) => { CustomStaminaMeter.UpdateShaderColor(); };
+        //CustomBatteryBar.SettingChanged += (obj, args) => { CustomBattery.Apply(CustomBatteryBar.Value); };
+        //CustomBatteryColor.SettingChanged += (obj, args) => { CustomBattery.UpdateColor(); };
         CustomInventoryFrames.SettingChanged += (obj, args) => { CustomFrames.Apply(CustomInventoryFrames.Value); };
         CustomFrameShaderColor.SettingChanged += (obj, args) => { CustomFrames.UpdateShaderColor(); };
+        #endregion
+        #region Utility Slot Changes
         #endregion
         #region Scan Changes
         SelectedScanlineMode.SettingChanged += (obj, args) => ScanController.UpdateScanTexture();
@@ -447,18 +465,15 @@ public class ConfigEntries
         TotalPrefix.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalValueOffsetX.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
         TotalValueOffsetY.SettingChanged += (obj, args) => { ScrapValueDisplay.UpdateTotalTextPosition(); };
+        BatteryColor.SettingChanged += (obj, args) => { BatteryController.UpdateVanillaColor(); };
         #endregion
         #region Signal Changes
         CenterSTText.SettingChanged += (obj, args) => { SignalTranslatorController.CenterText(); };
         #endregion
         #region MoreDisplay Changes
-        LoadingTextColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetSummaryColor.SettingChanged += (ob, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetHeaderColor.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
         PlanetRisk.SettingChanged += (obj, args) => { PlanetInfoDisplay.ApplyColors(); };
-        UseCustomLoadingScreens.SettingChanged += (obj, args) => { LoadingScreenController.RefreshPool(); };
-        LoadingScreenMode.SettingChanged += (obj, args) => { LoadingScreenController.RefreshPool(); };
-        SelectedLoadingScreenPacks.SettingChanged += (obj, args) => { LoadingScreenController.RefreshPool(); };
         #endregion
         #region Spectator HUD Changes
         SpectatorTipColor.SettingChanged += (obj, args) => { SpectatorHUDController.ApplyColors(); };

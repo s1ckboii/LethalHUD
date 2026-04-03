@@ -38,26 +38,16 @@ internal static class HUDManagerPatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("UseSignalTranslatorClientRpc")]
-    private static bool OnHUDManagerUseSignalTranslatorClientRpc_Prefix(HUDManager __instance, string signalMessage, int timesSendingMessage)
+    [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
+    private static bool OnHUDManagerDisplaySignalTranslatorMessage_Prefix(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
     {
-        SignalTranslator signalTranslator = Object.FindObjectOfType<SignalTranslator>();
-        if (string.IsNullOrEmpty(signalMessage) || signalTranslator == null) return true;
-
-        signalTranslator.timeLastUsingSignalTranslator = Time.realtimeSinceStartup;
-
-        if (signalTranslator.signalTranslatorCoroutine != null)
+        if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
         {
-            __instance.StopCoroutine(signalTranslator.signalTranslatorCoroutine);
+            __result = SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, seed, signalTranslator);
+            return false;
         }
 
-        signalTranslator.timesSendingMessage = timesSendingMessage;
-
-        signalTranslator.signalTranslatorCoroutine = __instance.StartCoroutine(
-            SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, timesSendingMessage, signalTranslator)
-        );
-
-        return false;
+        return true;
     }
 
     [HarmonyPrefix]
@@ -82,19 +72,6 @@ internal static class HUDManagerPatch
     {
         return !CustomHealthBar.UsingCustom;
     }
-
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(HUDManager), "DisplaySignalTranslatorMessage")]
-    private static bool OnHUDManagerDisplaySignalTranslatorMessage_Prefix(string signalMessage, int seed, SignalTranslator signalTranslator, ref IEnumerator __result)
-    {
-        if (signalTranslator != null && !string.IsNullOrEmpty(signalMessage))
-        {
-            __result = SignalTranslatorController.DisplaySignalTranslatorMessage(signalMessage, seed, signalTranslator);
-            return false;
-        }
-
-        return true;
-    }
     #endregion
 
     #region Postfixes
@@ -106,8 +83,6 @@ internal static class HUDManagerPatch
         lastSlotCount = 0;
         Plugins.CacheDefaults();
         ScrapValueDisplay.ResetForNewHUD();
-        LoadingScreenController.RefreshPool();
-        LoadingScreenController.ApplyLoadingScreen(__instance);
 
         _pingScanAction = IngamePlayerSettings.Instance.playerInput.actions.FindAction("PingScan");
 
@@ -118,6 +93,7 @@ internal static class HUDManagerPatch
         ClockController.ApplyClockAppearance();
         PlanetInfoDisplay.ApplyColors();
         SpectatorHUDController.ApplyColors();
+        CustomBattery.Init();
 
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();

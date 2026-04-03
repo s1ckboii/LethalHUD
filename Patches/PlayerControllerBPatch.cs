@@ -136,6 +136,7 @@ internal static class PlayerControllerBPatch
             ChatController.PlayerTypingIndicator();
         SprintMeterController.UpdateSprintMeterColor();
         CustomStaminaMeter.UpdateFromPlayer(__instance);
+        BatteryController.Update(__instance);
 
         int health = __instance.health;
         if (health == _lastHealth)

@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.4.7</Version>
+    <Version>1.5.0</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -51,11 +51,64 @@
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="LethalCompany.GameLibs.Steam" Version="73.0.0-ngd.0" PrivateAssets="all" />
+    <!-- <PackageReference Include="LethalCompany.GameLibs.Steam" Version="73.0.0-ngd.0" PrivateAssets="all" /> -->
     <PackageReference Include="TestAccount666-GoodItemScan" Version="1.14.0" PrivateAssets="all" Publicize="true" />
     <PackageReference Include="DBJ-BetterScanVision" Version="*" PrivateAssets="all" Publicize="true" />
     <PackageReference Include="AinaVT-LethalConfig" Version="*" PrivateAssets="all" />
     <PackageReference Include="EladNLG-EladsHUD" Version="*" PrivateAssets="all" Publicize="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="com.olegknyazev.softmask">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\com.olegknyazev.softmask.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.InputSystem.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="Unity.Netcode.Runtime">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.HighDefinition.Runtime">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.RenderPipelines.HighDefinition.Runtime.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
+      <Publicize>true</Publicize>
+    </Reference>
   </ItemGroup>
 
   <!-- Netcode Patcher -->

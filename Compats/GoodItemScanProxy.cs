@@ -1,12 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace LethalHUD.Compats;
-internal class GoodItemScanProxy // Credits to Xu for the whole class
+internal class GoodItemScanProxy
 {
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static bool TryGetRectTransform(ScanNodeProperties scanNodeProperties, [NotNullWhen(true)] out RectTransform rectTransform)
+    public static bool TryGetRectTransform(ScanNodeProperties scanNodeProperties, out RectTransform rectTransform)
     {
         rectTransform = null;
         if (GoodItemScan.GoodItemScan.scanner == null)
@@ -23,7 +22,7 @@ internal class GoodItemScanProxy // Credits to Xu for the whole class
     }
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static bool TryGetScanNode(RectTransform rectTransform, [NotNullWhen(true)] out ScanNodeProperties scanNodeProperties)
+    public static bool TryGetScanNode(RectTransform rectTransform, out ScanNodeProperties scanNodeProperties)
     {
         scanNodeProperties = null;
         if (GoodItemScan.GoodItemScan.scanner == null)

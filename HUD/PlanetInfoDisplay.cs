@@ -9,7 +9,7 @@ internal static class PlanetInfoDisplay
     private static TMP_Text _hazardTMP;
     private static Image[] _targetImages;
 
-    private static readonly Color fallbackColor = new(134f, 236f, 355f);
+    private static readonly Color fallbackColor = new(0.525f, 0.925f, 1f);
     private static Color _headerColor;
     private static Color _summaryColor;
 
@@ -152,7 +152,7 @@ internal static class PlanetInfoDisplay
             'C' => Color.yellow,
             'D' => new Color(0.5f, 1f, 0f),
             'F' => Color.gray,
-            _ => Color.white,
+            _ => HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, fallbackColor),
         };
     }
 }

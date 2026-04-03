@@ -29,7 +29,7 @@ internal class PlayerColorNetworker : NetworkBehaviour
         RefreshColors();
     }
 
-    protected override void OnOwnershipChanged(ulong previous, ulong current)
+    public override void OnOwnershipChanged(ulong previous, ulong current)
     {
         if (Plugins.NetworkingDisabled)
             return;

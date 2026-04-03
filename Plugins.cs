@@ -12,7 +12,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UI;
-using static LethalHUD.Enums;
 
 namespace LethalHUD;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
@@ -24,7 +23,6 @@ namespace LethalHUD;
 [BepInDependency(ModCompats.HotbarPlus_PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugins : BaseUnityPlugin
 {
-
     internal static Plugins Instance { get; private set; }
     internal static Harmony Harmony { get; private set; }
     internal static new ManualLogSource Logger { get; private set; }
@@ -33,6 +31,7 @@ public class Plugins : BaseUnityPlugin
 
     internal static readonly Dictionary<string, GameObject> HealthBarPrefabs = [];
     internal static readonly Dictionary<string, GameObject> StaminaBarPrefabs = [];
+    internal static readonly Dictionary<string, GameObject> BatteryPrefabs = [];
     internal static readonly Dictionary<string, GameObject> SlotPrefabs = [];
 
     internal static Texture2D DefaultScanlineTexture;
@@ -40,7 +39,6 @@ public class Plugins : BaseUnityPlugin
 
     internal static Dictionary<string, Texture2D> ScanlineTextures = [];
     internal static Dictionary<string, ScanNodeTextures> ScanNodeSprites = [];
-    internal static Dictionary<string, Sprite> LoadingScreens = [];
     internal struct ScanNodeTextures
     {
         public Sprite Outer;
