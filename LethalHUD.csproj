@@ -9,7 +9,7 @@
     <!-- PLUGIN_GUID -->
     <Product>$(MSBuildProjectName)</Product>
     <!-- PLUGIN_NAME -->
-    <Version>1.5.0</Version>
+    <Version>1.5.1</Version>
     <!-- PLUGIN_VERSION -->
     <Authors>s1ckboy</Authors>
     <Description></Description>
@@ -52,7 +52,7 @@
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" PrivateAssets="all" />
     <!-- <PackageReference Include="LethalCompany.GameLibs.Steam" Version="73.0.0-ngd.0" PrivateAssets="all" /> -->
-    <PackageReference Include="TestAccount666-GoodItemScan" Version="1.14.0" PrivateAssets="all" Publicize="true" />
+    <PackageReference Include="TestAccount666-GoodItemScan" Version="2.0.2" PrivateAssets="all" Publicize="true" />
     <PackageReference Include="DBJ-BetterScanVision" Version="*" PrivateAssets="all" Publicize="true" />
     <PackageReference Include="AinaVT-LethalConfig" Version="*" PrivateAssets="all" />
     <PackageReference Include="EladNLG-EladsHUD" Version="*" PrivateAssets="all" Publicize="true" />

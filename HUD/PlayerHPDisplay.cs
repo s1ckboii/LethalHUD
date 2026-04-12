@@ -27,7 +27,6 @@ public static class PlayerHPDisplay
     private static readonly float _percentSizeMult = 0.7f;
     private static readonly float _labelSizeMult = 0.65f;
 
-    // This one is fucked, I gotta figure out a good way to do this config work properly with the new coloring system
     internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
 
     internal static void Init()

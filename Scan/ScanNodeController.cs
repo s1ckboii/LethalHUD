@@ -1,6 +1,6 @@
-﻿using LethalHUD.Compats;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LethalHUD.Scan;
 internal static class ScanNodeController
@@ -37,68 +37,20 @@ internal static class ScanNodeController
                 ? _fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration)
                 : 1f;
 
-            CanvasGroup canvasGroup = element.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = alpha;
+            ApplyAlphaToImages(element, alpha);
         }
     }
-    internal static void UpdateGoodItemScanNodes()
+    private static void ApplyAlphaToImages(RectTransform element, float alpha)
     {
-        if (!ModCompats.IsGoodItemScanPresent || GoodItemScan.GoodItemScan.scanner == null) return;
+        Image[] images = element.GetComponentsInChildren<Image>(true);
 
-        GoodItemScan.Scanner scanner = GoodItemScan.GoodItemScan.scanner;
-        List<ScanNodeProperties> keys = [.. scanner._scanNodes.Keys];
-
-        foreach (ScanNodeProperties node in keys)
+        foreach (var img in images)
         {
-            if (!GoodItemScanProxy.TryGetRectTransform(node, out RectTransform rect) || rect == null)
-            {
-                _nodeAppearTimes.Remove(node);
-                continue;
-            }
-
-            if (!rect.gameObject.activeInHierarchy)
-            {
-                _nodeAppearTimes.Remove(node);
-                continue;
-            }
-
-            if (!_nodeAppearTimes.ContainsKey(node))
-                _nodeAppearTimes[node] = Time.time;
-
-            float elapsed = Time.time - _nodeAppearTimes[node];
-            float alpha = elapsed > lifetime ? _fadeCurve.Evaluate((elapsed - lifetime) / fadeDuration) : 1f;
-
-            CanvasGroup canvasGroup = rect.GetComponent<CanvasGroup>();
-            if (canvasGroup != null)
-                canvasGroup.alpha = alpha;
-
-            rect.gameObject.SetActive(alpha > 0f);
+            Color color = img.color;
+            color.a = alpha;
+            img.color = color;
         }
     }
-    internal static void ResetGoodItemScanNodes()
-    {
-        if (!ModCompats.IsGoodItemScanPresent || GoodItemScan.GoodItemScan.scanner == null) return;
-
-        GoodItemScan.Scanner scanner = GoodItemScan.GoodItemScan.scanner;
-            if (scanner == null || scanner._scannedNodes == null)
-        return;
-
-        foreach (var kvp in scanner._scanNodes)
-        {
-            if (!GoodItemScanProxy.TryGetRectTransform(kvp.Key, out RectTransform rect)) continue;
-            if (rect == null) continue;
-
-            _nodeAppearTimes[kvp.Key] = Time.time;
-
-            rect.gameObject.SetActive(true);
-
-            CanvasGroup canvasGroup = rect.GetComponent<CanvasGroup>();
-            if (canvasGroup != null)
-                canvasGroup.alpha = 1f;
-
-        }
-    }
-
     private static void RemoveNode(RectTransform element, ScanNodeProperties node, Dictionary<RectTransform, ScanNodeProperties> scanNodes)
     {
         element.gameObject.SetActive(false);

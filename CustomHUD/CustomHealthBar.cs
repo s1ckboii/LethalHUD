@@ -60,7 +60,7 @@ internal static class CustomHealthBar
             return;
         }
 
-        if (!Plugins.HealthBarPrefabs.TryGetValue(style, out GameObject prefab) || prefab == null)
+        if (!Plugins.HealthBarPrefabs.TryGetValue(style, out var entry) || entry.Asset == null)
         {
             Cleanup();
             _activeStyle = "Default";
@@ -68,7 +68,7 @@ internal static class CustomHealthBar
             return;
         }
 
-        Build(prefab, style);
+        Build(entry.Asset, style);
 
         UpdateShaderColor();
         HideVanilla();

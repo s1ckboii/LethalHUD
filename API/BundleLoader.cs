@@ -46,24 +46,34 @@ internal static class BundleLoader
         Loggers.Info($"Loaded LethalHUD bundle: {Path.GetFileName(bundlePath)}");
     }
 
-    internal static string GetModName(string bundlePath)
+    internal static string GetModName(string path)
     {
         try
         {
-            string directory = Path.GetDirectoryName(bundlePath);
-            string manifestPath = Path.Combine(directory, "manifest.json");
+            string currentDir = Directory.Exists(path)
+                ? path
+                : Path.GetDirectoryName(path);
 
-            if (!File.Exists(manifestPath))
-                return Path.GetFileNameWithoutExtension(bundlePath);
+            while (!string.IsNullOrEmpty(currentDir))
+            {
+                string manifestPath = Path.Combine(currentDir, "manifest.json");
 
-            string json = File.ReadAllText(manifestPath);
-            JObject obj = JObject.Parse(json);
+                if (File.Exists(manifestPath))
+                {
+                    string json = File.ReadAllText(manifestPath);
+                    JObject obj = JObject.Parse(json);
 
-            return obj["name"]?.ToString() ?? Path.GetFileNameWithoutExtension(bundlePath);
+                    return obj["name"]?.ToString() ?? Path.GetFileNameWithoutExtension(path);
+                }
+
+                currentDir = Directory.GetParent(currentDir)?.FullName;
+            }
+
+            return Path.GetFileNameWithoutExtension(path);
         }
         catch
         {
-            return Path.GetFileNameWithoutExtension(bundlePath);
+            return Path.GetFileNameWithoutExtension(path);
         }
     }
 
@@ -76,45 +86,68 @@ internal static class BundleLoader
             if (prefab == null)
                 continue;
 
-            string styleName = prefab.name;
-            string uniqueName = $"[{modName}] {styleName}";
+            string key = prefab.name;
 
             if (prefab.GetComponent<LHHealthBarRefs>() != null)
             {
-                if (!HealthBarPrefabs.ContainsKey(uniqueName))
+                if (!HealthBarPrefabs.ContainsKey(key))
                 {
-                    HealthBarPrefabs.Add(uniqueName, prefab);
-                    Loggers.Info($"Registered HealthBar: {uniqueName}");
+                    HealthBarPrefabs[key] = new StyleEntry<GameObject>()
+                    {
+                        Name = key,
+                        ModName = modName,
+                        Asset = prefab
+                    };
+
+                    Loggers.Info($"Registered HealthBar: {key} (from {modName})");
                 }
                 continue;
             }
 
             if (prefab.GetComponent<LHStaminaBarRefs>() != null)
             {
-                if (!StaminaBarPrefabs.ContainsKey(uniqueName))
+                if (!StaminaBarPrefabs.ContainsKey(key))
                 {
-                    StaminaBarPrefabs.Add(uniqueName, prefab);
-                    Loggers.Info($"Registered StaminaBar: {uniqueName}");
+                    StaminaBarPrefabs[key] = new StyleEntry<GameObject>()
+                    {
+                        Name = key,
+                        ModName = modName,
+                        Asset = prefab
+                    };
+
+                    Loggers.Info($"Registered HealthBar: {key} (from {modName})");
                 }
                 continue;
             }
 
             if (prefab.GetComponent<LHBatteryRefs>() != null)
             {
-                if (!BatteryPrefabs.ContainsKey(uniqueName))
+                if (!BatteryPrefabs.ContainsKey(key))
                 {
-                    BatteryPrefabs.Add(uniqueName, prefab);
-                    Loggers.Info($"Registered BatteryBar: {uniqueName}");
+                    BatteryPrefabs[key] = new StyleEntry<GameObject>()
+                    {
+                        Name = key,
+                        ModName = modName,
+                        Asset = prefab
+                    };
+
+                    Loggers.Info($"Registered HealthBar: {key} (from {modName})");
                 }
                 continue;
             }
 
             if (prefab.GetComponent<LHSlotRefs>() != null)
             {
-                if (!SlotPrefabs.ContainsKey(uniqueName))
+                if (!SlotPrefabs.ContainsKey(key))
                 {
-                    SlotPrefabs.Add(uniqueName, prefab);
-                    Loggers.Info($"Registered InventoryFrame: {uniqueName}");
+                    SlotPrefabs[key] = new StyleEntry<GameObject>()
+                    {
+                        Name = key,
+                        ModName = modName,
+                        Asset = prefab
+                    };
+
+                    Loggers.Info($"Registered HealthBar: {key} (from {modName})");
                 }
                 continue;
             }
@@ -124,19 +157,30 @@ internal static class BundleLoader
     {
         foreach (Texture2D tex in bundle.LoadAllAssets<Texture2D>())
         {
-            if (tex.name.EndsWith("_Outer") || tex.name.EndsWith("_Inner"))
+            if (!tex.name.StartsWith("Scanline_", System.StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            string key = $"[{modName}] {tex.name}";
+            string key = tex.name;
+
+            string display = key.StartsWith("Scanline_", System.StringComparison.OrdinalIgnoreCase) ? key["Scanline_".Length..] : key;
 
             if (!ScanlineTextures.ContainsKey(key))
             {
-                ScanlineTextures.Add(key, tex);
-                Loggers.Info($"Registered Scanline: {key}");
+                ScanlineTextures[key] = new StyleEntry<Texture2D>()
+                {
+                    Name = key,
+                    DisplayName = display,
+                    ModName = modName,
+                    Asset = tex
+                };
+
+                ScanlineDisplayToKey[display] = key;
+
+                Loggers.Info($"Registered Scanline: {key} (from {modName})");
             }
         }
 
-        Dictionary<string, ScanNodeTextures> pairs = new();
+        Dictionary<string, ScanNodeTextures> pairs = [];
 
         foreach (Sprite sprite in bundle.LoadAllAssets<Sprite>())
         {
@@ -150,7 +194,7 @@ internal static class BundleLoader
                 .Replace("_Outer", "")
                 .Replace("_Inner", "");
 
-            string key = $"[{modName}] {baseName}";
+            string key = baseName;
 
             if (!pairs.ContainsKey(key))
                 pairs[key] = new ScanNodeTextures();
@@ -170,8 +214,14 @@ internal static class BundleLoader
         {
             if (pair.Value.Inner != null && pair.Value.Outer != null)
             {
-                ScanNodeSprites[pair.Key] = pair.Value;
-                Loggers.Info($"Registered ScanNode: {pair.Key}");
+                ScanNodeSprites[pair.Key] = new StyleEntry<ScanNodeTextures>()
+                {
+                    Name = pair.Key,
+                    ModName = modName,
+                    Asset = pair.Value
+                };
+
+                Loggers.Info($"Registered ScanNode: {pair.Key} (from {modName})");
             }
         }
     }

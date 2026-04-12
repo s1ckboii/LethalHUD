@@ -91,7 +91,13 @@ public class ConfigEntries
     public ConfigEntry<bool> ScanNodeFade { get; private set; }
     public ConfigEntry<float> ScanNodeLifetime { get; private set; }
     public ConfigEntry<float> ScanNodeFadeDuration { get; private set; }
-    public ConfigEntry<string> ScanNodeShapeChoice { get; private set; }
+    public ConfigEntry<string> ScanNodeShape_Default { get; private set; }
+    public ConfigEntry<string> ScanNodeShape_Scrap { get; private set; }
+    public ConfigEntry<string> ScanNodeShape_Creature { get; private set; }
+
+    public ConfigEntry<string> ScanNodeColor_Default { get; private set; }
+    public ConfigEntry<string> ScanNodeColor_Scrap { get; private set; }
+    public ConfigEntry<string> ScanNodeColor_Creature { get; private set; }
     #endregion
     #region HSW ConfigEntries
     public ConfigEntry<bool> HealthIndicator { get; private set; }
@@ -152,7 +158,7 @@ public class ConfigEntries
 
     #endregion
     #region MoreDisplay ConfigEntries
-    public ConfigEntry<string> LoadingTextColor { get; private set; }
+    public ConfigEntry<string> LoadingScreenColor { get; private set; }
     public ConfigEntry<string> PlanetSummaryColor { get; private set; }
     public ConfigEntry<string> PlanetHeaderColor { get; private set; }
     public ConfigEntry<bool> PlanetRisk { get; private set; }
@@ -210,7 +216,7 @@ public class ConfigEntries
         //UtilityGradientColorA = ConfigHelper.Bind(true, "Utility Slot", "Gradient Color A", "#3226B4", "Start color for utility slot gradient.");
         //UtilityGradientColorB = ConfigHelper.Bind(true, "Utility Slot", "Gradient Color B", "#3226B4", "End color for utility slot gradient.");
         //UtilityUseInventoryColors = ConfigHelper.Bind("Utility Slot", "Use Inventory Colors", false, "If enabled, utility slot uses the same colors as inventory slots.");
-        //ExtraUtilitySlots = ConfigHelper.Bind("Utility Slot", "Extra Slots", 0, "Adds extra visual utility slots (0–2).", false, new AcceptableValueRange<int>(0, 2));
+        //ExtraUtilitySlots = ConfigHelper.Bind("Utility Slot", "Extra Slots", 0, "Adds extra visual utility slots (0–3).", false, new AcceptableValueRange<int>(0, 3));
         #endregion
         #region Scan Binds
         ScanModeType = ConfigHelper.Bind("Scan", "Scan Mode", ScanMode.Default, "Choose the scan mode.");
@@ -232,7 +238,13 @@ public class ConfigEntries
         ScanNodeFade = ConfigHelper.Bind("ScanNodes", "Fade Away", true, "Allows you to apply fadeaway for scannodes.");
         ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 10f));
         ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "Fade Duration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
-        ScanNodeShapeChoice = ConfigHelper.Bind("ScanNodes", "Shape", "Default", "Choose the shape for scan nodes.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+        ScanNodeShape_Default = ConfigHelper.Bind("ScanNodes", "Default Shape", "Default", "", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+        ScanNodeShape_Scrap = ConfigHelper.Bind("ScanNodes", "Scrap Shape", "Default", "", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+        ScanNodeShape_Creature = ConfigHelper.Bind("ScanNodes", "Creature Shape", "Default", "", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+
+        ScanNodeColor_Default = ConfigHelper.Bind(true, "ScanNodes", "Default Color", "#0B00B2", "");
+        ScanNodeColor_Scrap = ConfigHelper.Bind(true, "ScanNodes", "Scrap Color", "#38AB00", "");
+        ScanNodeColor_Creature = ConfigHelper.Bind(true, "ScanNodes", "Creature Color", "#FF0A00", "");
         #endregion
         #region InventorySlot Binds
         SlotFade = ConfigHelper.Bind("Inventory", "Inventory Fade", 0.13f, "Change the base fadeout for the inventory.", false, new AcceptableValueRange<float>(0f, 0.99f));
@@ -308,7 +320,7 @@ public class ConfigEntries
         SignalLetterDisplay = ConfigHelper.Bind("Signal Translator", "Signal Letter Display", 0.7f, "Change the speed of the message (the smaller the number, the faster it is.)", false, new AcceptableValueRange<float>(0.01f, 1f));
         #endregion
         #region MoreDisplay Binds
-        LoadingTextColor = ConfigHelper.Bind(true, "More Display", "Loading Text Color", "#A5F4FF", "Color of the loading text.");
+        LoadingScreenColor = ConfigHelper.Bind(true, "More Display", "Loading Screen Color", "#A5F4FF", "Color of the loading screen stuff, they are slightly different shades.");
         PlanetSummaryColor = ConfigHelper.Bind(true, "More Display", "Planet Summary Color", "#86ECFF", "Color of the planet summary text.");
         PlanetHeaderColor = ConfigHelper.Bind(true, "More Display", "Planet Header Color", "#86ECFF", "Color of the planet header text.");
         PlanetRisk = ConfigHelper.Bind("More Display", "Planet Risk Color", false, "Custom coloring based on risk level.");
@@ -378,8 +390,8 @@ public class ConfigEntries
         CustomHealthShaderColor.SettingChanged += (obj, args) => { CustomHUD.CustomHealthBar.UpdateShaderColor(); };
         CustomStaminaBar.SettingChanged += (obj, args) => { CustomStaminaMeter.Apply(Plugins.ConfigEntries.CustomStaminaBar.Value); };
         CustomStaminaShaderColor.SettingChanged += (obj, args) => { CustomStaminaMeter.UpdateShaderColor(); };
-        //CustomBatteryBar.SettingChanged += (obj, args) => { CustomBattery.Apply(CustomBatteryBar.Value); };
-        //CustomBatteryColor.SettingChanged += (obj, args) => { CustomBattery.UpdateColor(); };
+        CustomBatteryBar.SettingChanged += (obj, args) => { CustomBattery.Apply(CustomBatteryBar.Value); };
+        CustomBatteryColor.SettingChanged += (obj, args) => { CustomBattery.UpdateColor(); };
         CustomInventoryFrames.SettingChanged += (obj, args) => { CustomFrames.Apply(CustomInventoryFrames.Value); };
         CustomFrameShaderColor.SettingChanged += (obj, args) => { CustomFrames.UpdateShaderColor(); };
         #endregion
@@ -416,7 +428,13 @@ public class ConfigEntries
             if (Plugins.ConfigEntries.ScanNodeFade.Value)
                 ScanNodeController.fadeDuration = ScanNodeFadeDuration.Value;
         };
-        ScanNodeShapeChoice.SettingChanged += (obj, args) => { ScanNodeTextureManager.ForceRefresh(); };
+        ScanNodeShape_Default.SettingChanged += (obj, arg) => ScanNodeTextureManager.ForceRefresh();
+        ScanNodeShape_Scrap.SettingChanged += (obj, arg) => ScanNodeTextureManager.ForceRefresh();
+        ScanNodeShape_Creature.SettingChanged += (obj, arg) => ScanNodeTextureManager.ForceRefresh();
+
+        ScanNodeColor_Default.SettingChanged += (obj, arg) => ScanNodeTextureManager.ForceRefresh();
+        ScanNodeColor_Scrap.SettingChanged += (obj, arg) => ScanNodeTextureManager.ForceRefresh();
+        ScanNodeColor_Creature.SettingChanged += (obj, arg) => ScanNodeTextureManager.ForceRefresh();
         #endregion
         #region Inventory Changes
         SlotColor.SettingChanged += (obj, args) =>

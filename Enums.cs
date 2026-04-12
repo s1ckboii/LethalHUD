@@ -5,6 +5,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace LethalHUD;
 public static class Enums
 {
+    public enum ScanNodeType
+    {
+        Default,
+        Scrap,
+        Creature
+    }
     public enum LoadingScreenPackMode
     {
         SinglePack,

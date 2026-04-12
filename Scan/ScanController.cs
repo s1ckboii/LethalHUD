@@ -202,8 +202,8 @@ internal static class ScanController
         if (selected == "Default")
             return Plugins.DefaultScanlineTexture;
 
-        if (Plugins.ScanlineTextures.TryGetValue(selected, out Texture2D tex) && tex != null)
-            return tex;
+        if (Plugins.ScanlineTextures.TryGetValue(selected, out var entry) && entry.Asset != null)
+            return entry.Asset;
 
         Loggers.Warning($"Scanline texture '{selected}' missing. Falling back to Default.");
 

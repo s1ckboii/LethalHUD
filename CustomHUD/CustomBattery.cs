@@ -47,9 +47,9 @@ internal static class CustomBattery
             _root = existing;
             _root.SetActive(true);
         }
-        else if (Plugins.BatteryPrefabs.TryGetValue(style, out GameObject prefab) && prefab != null)
+        else if (Plugins.BatteryPrefabs.TryGetValue(style, out var entry) && entry.Asset != null)
         {
-            Build(prefab, style);
+            Build(entry.Asset, style);
         }
         else
         {
@@ -82,20 +82,45 @@ internal static class CustomBattery
 
     private static void HideVanilla()
     {
+        var hud = HUDManager.Instance;
+
         if (_vanillaMeter != null)
             _vanillaMeter.gameObject.SetActive(false);
 
         if (_vanillaIcon != null)
             _vanillaIcon.enabled = false;
-    }
 
+        if (hud?.batteryBlinkUI != null)
+            hud.batteryBlinkUI.gameObject.SetActive(false);
+
+        GameObject tpc = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/");
+        if (tpc != null)
+        {
+            var off = tpc.transform.Find("BatteriesOff");
+            if (off != null)
+                off.gameObject.SetActive(false);
+        }
+    }
     private static void RestoreVanilla()
     {
+        var hud = HUDManager.Instance;
+
         if (_vanillaMeter != null)
             _vanillaMeter.gameObject.SetActive(true);
 
         if (_vanillaIcon != null)
             _vanillaIcon.enabled = true;
+
+        if (hud?.batteryBlinkUI != null)
+            hud.batteryBlinkUI.gameObject.SetActive(true);
+
+        GameObject tpc = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/TopLeftCorner/");
+        if (tpc != null)
+        {
+            var off = tpc.transform.Find("BatteriesOff");
+            if (off != null)
+                off.gameObject.SetActive(true);
+        }
     }
 
     internal static void Update(float fill, bool visible)

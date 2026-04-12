@@ -53,7 +53,7 @@ internal static class HUDUtils
         RenderTexture previous = RenderTexture.active;
         RenderTexture.active = rt;
 
-        Texture2D readable = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false);
+        Texture2D readable = new(source.width, source.height, TextureFormat.RGBA32, false);
         readable.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
         readable.Apply();
 
@@ -439,6 +439,14 @@ internal static class HUDUtils
     }
     #endregion
     #region LoadingScreen Helpers
+    private class LoadingTextDefaults
+    {
+        public Color LoadTextFaceColor;
+        public Color LoadTextBColor;
+        public Color TextBGColor;
+    }
+
+    private static readonly Dictionary<Transform, LoadingTextDefaults> _loadingDefaults = [];
     public static void ColorLoadingText(Transform root, string hexColor)
     {
         if (root == null) return;
@@ -447,32 +455,54 @@ internal static class HUDUtils
         var loadTextB = root.Find("LoadTextB")?.GetComponent<TextMeshProUGUI>();
         var textBG = root.Find("TextBG")?.GetComponent<Image>();
 
+        if (!_loadingDefaults.TryGetValue(root, out var defaults))
+        {
+            defaults = new LoadingTextDefaults
+            {
+                LoadTextFaceColor = loadText?.fontMaterial?.GetColor("_FaceColor") ?? Color.white,
+                LoadTextBColor = loadTextB?.color ?? Color.white,
+                TextBGColor = textBG?.color ?? Color.black
+            };
+
+            _loadingDefaults[root] = defaults;
+        }
+
+        bool isDefault = hexColor.Equals("#A5F4FF", System.StringComparison.OrdinalIgnoreCase);
+
+        if (isDefault)
+        {
+            if (loadText?.fontMaterial != null)
+                loadText.fontMaterial.SetColor("_FaceColor", defaults.LoadTextFaceColor);
+
+            if (loadTextB != null)
+                loadTextB.color = defaults.LoadTextBColor;
+
+            if (textBG != null)
+                textBG.color = defaults.TextBGColor;
+
+            return;
+        }
+
         Color baseColor = ParseHexColor(hexColor, Color.gray);
 
-        if (loadText != null)
+        if (loadText?.fontMaterial != null)
         {
-            if (loadText.fontMaterial != null)
-            {
-                var mat = loadText.fontMaterial;
-
-                Color c = baseColor;
-                c.a = loadText.color.a;
-
-                mat.SetColor("_FaceColor", c);
-            }
+            Color color = baseColor;
+            color.a = defaults.LoadTextFaceColor.a;
+            loadText.fontMaterial.SetColor("_FaceColor", color);
         }
 
         if (loadTextB != null)
         {
-            Color c = baseColor;
-            c.a = loadTextB.color.a;
-            loadTextB.color = c;
+            Color color = baseColor;
+            color.a = defaults.LoadTextBColor.a;
+            loadTextB.color = color;
         }
 
         if (textBG != null)
         {
             Color bg = Color.Lerp(baseColor, Color.black, 0.6f);
-            bg.a = textBG.color.a;
+            bg.a = defaults.TextBGColor.a;
             textBG.color = bg;
         }
     }

@@ -50,23 +50,22 @@ namespace LethalHUD.HUD
         {
             InventoryFrames.SetSlotColors();
             CompassController.SoftMaskStuff();
-            ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
+            ChatController.ColorChatInputField(_hud?.chatTextField, Time.time * 0.25f);
             ScrapValueDisplay.Tick(Time.deltaTime);
             WeightController.RecolorWeightText();
-            if (ModCompats.IsGoodItemScanPresent && Plugins.ConfigEntries.ScanNodeFade.Value)
-                ScanNodeController.UpdateGoodItemScanNodes();
             if (ModCompats.IsBetterScanVisionPresent)
                 BetterScanVisionProxy.OverrideNightVisionColor();
             if (ModCompats.IsEladsHUDPresent)
                 EladsHUDProxy.OverrideHUD();
             if (_hud.loadingText != null)
             {
-                HUDUtils.ColorLoadingText(_hud.loadingText.transform.parent, Plugins.ConfigEntries.LoadingTextColor.Value);
+                HUDUtils.ColorLoadingText(_hud.loadingText.transform.parent, Plugins.ConfigEntries.LoadingScreenColor.Value);
             }
             PlanetInfoDisplay.UpdateColors();
             ControlTipController.ApplyColor();
             PlanetInfoDisplay.HeaderAndFooterAndHazardLevel();
             SignalTranslatorController.ApplyInMono();
+            ScanNodeTextureManager.Tick(_hud?.scanNodes);
         }
     }
 }

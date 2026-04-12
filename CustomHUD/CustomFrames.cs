@@ -75,7 +75,7 @@ internal static class CustomFrames
 
         CleanupCustom();
 
-        if (!Plugins.SlotPrefabs.TryGetValue(style, out GameObject prefab) || prefab == null)
+        if (!Plugins.SlotPrefabs.TryGetValue(style, out var entry) || entry.Asset == null)
         {
             _activeStyle = "Default";
             _isApplying = false;
@@ -83,7 +83,7 @@ internal static class CustomFrames
         }
 
         _activeStyle = style;
-        BuildCustom(hud, prefab);
+        BuildCustom(hud, entry.Asset);
         EnableCustom();
 
         _isApplying = false;
@@ -154,8 +154,11 @@ internal static class CustomFrames
 
                 if (_customFrames[i].material != null)
                 {
-                    _customFrames[i].material = Object.Instantiate(_customFrames[i].material);
-                    _customFrames[i].material.SetColor("_FlowColor", flowColor);
+                    Material mat = Object.Instantiate(_customFrames[i].material);
+                    _customFrames[i].material = mat;
+
+                    if (mat.HasProperty("_FlowColor"))
+                        mat.SetColor("_FlowColor", flowColor);
                 }
             }
         }
@@ -208,7 +211,7 @@ internal static class CustomFrames
         Color flowColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.CustomFrameShaderColor.Value, Color.yellow);
         foreach (Image frame in _customFrames)
         {
-            if (frame != null && frame.material != null)
+            if (frame != null && frame.material != null && frame.material.HasProperty("_FlowColor"))
                 frame.material.SetColor("_FlowColor", flowColor);
         }
     }

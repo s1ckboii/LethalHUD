@@ -24,6 +24,11 @@ internal static class ClockController
     private static Vector2 _defaultIconSize;
     private static bool _defaultWordWrap;
 
+    private static int _prevMinutes = -1;
+    private static int _prevHours = -1;
+
+    private static ClockStyle _lastLayout;
+
     internal static void CacheDefaultLayout()
     {
         if (_clockParent == null || _clockNumber == null || _clockIcon == null)
@@ -48,17 +53,19 @@ internal static class ClockController
         _clockParent = _clockNumber.transform.parent;
         _boxImage = _clockParent.GetComponent<Image>();
 
-        if (_clockNumber != null )
+        if (_clockNumber != null)
             _clockNumber.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockNumberColor.Value, Color.white);
+
         if (_boxImage != null)
             _boxImage.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockBoxColor.Value, Color.white);
+
         if (_clockIcon != null)
             _clockIcon.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockIconColor.Value, new Color(1f, 0.31f, 0f));
+
         if (HUDManager.Instance.shipLeavingEarlyIcon != null)
             HUDManager.Instance.shipLeavingEarlyIcon.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ClockShipLeaveColor.Value, Color.white);
 
         Vector3 baseScale = new(-0.5893304f, 0.5893304f, 0.5893303f);
-
         _clockParent.localScale = baseScale * Plugins.ConfigEntries.ClockSizeMultiplier.Value;
 
         if (!_defaultsCached)
@@ -67,25 +74,45 @@ internal static class ClockController
             _defaultsCached = true;
         }
 
-        if (Plugins.ConfigEntries.ClockFormat.Value == ClockStyle.Compact)
+        _lastLayout = Plugins.ConfigEntries.ClockFormat.Value;
+
+        if (_lastLayout == ClockStyle.Compact)
             ApplyCompactLayout();
         else
             ApplyRegularLayout();
     }
+
     internal static void TryOverrideClock(HUDManager hud, float timeNormalized, float numberOfHours)
     {
         if (hud == null || hud.clockNumber == null)
             return;
 
+        bool use24h = Plugins.ConfigEntries.NormalHumanBeingClock.Value;
+        ClockStyle style = Plugins.ConfigEntries.ClockFormat.Value;
+
         int totalMinutes = (int)(timeNormalized * (60f * numberOfHours)) + 360;
         int hours = totalMinutes / 60;
         int minutes = totalMinutes % 60;
 
+        if (minutes == _prevMinutes && hours == _prevHours)
+            return;
+
+        _prevMinutes = minutes;
+        _prevHours = hours;
+
         string formatted;
 
-        if (Plugins.ConfigEntries.NormalHumanBeingClock.Value)
+        if (use24h)
         {
             formatted = $"{hours % 24:00}:{minutes:00}";
+
+            /*
+            if (hours >= 24)
+            {
+                hud.clockNumber.text = "12:00 AM";
+                return;
+            }
+            */
         }
         else
         {
@@ -93,8 +120,7 @@ internal static class ClockController
             if (displayHour == 0)
                 displayHour = 12;
 
-            bool compact = Plugins.ConfigEntries.ClockFormat.Value == ClockStyle.Compact;
-            string separator = compact ? " " : "\n";
+            string separator = style == ClockStyle.Compact ? " " : "\n";
             string ampm = hours >= 12 ? "PM" : "AM";
 
             formatted = $"{displayHour:00}:{minutes:00}{separator}{ampm}";
@@ -102,10 +128,15 @@ internal static class ClockController
 
         hud.clockNumber.text = formatted;
 
-        if (Plugins.ConfigEntries.ClockFormat.Value == ClockStyle.Compact)
-            ApplyCompactLayout();
-        else
-            ApplyRegularLayout();
+        if (style != _lastLayout)
+        {
+            _lastLayout = style;
+
+            if (style == ClockStyle.Compact)
+                ApplyCompactLayout();
+            else
+                ApplyRegularLayout();
+        }
     }
     internal static void ApplyCompactLayout()
     {
@@ -120,7 +151,6 @@ internal static class ClockController
         RectTransform iconRect = _clockIcon.GetComponent<RectTransform>();
         iconRect.sizeDelta = _defaultIconSize * 0.6f;
 
-
         if (Plugins.ConfigEntries.NormalHumanBeingClock.Value)
         {
             _clockNumber.transform.localPosition = _defaultClockPos + new Vector3(-10f, 0f, 0f);
@@ -132,7 +162,6 @@ internal static class ClockController
             _clockIcon.transform.localPosition = _defaultIconPos + new Vector3(-25f, 0f, 0f);
         }
     }
-
     internal static void ApplyRegularLayout()
     {
         if (_clockParent == null || _clockNumber == null || _clockIcon == null)
@@ -147,7 +176,6 @@ internal static class ClockController
         _clockIcon.transform.localPosition = _defaultIconPos;
         _clockNumber.enableWordWrapping = _defaultWordWrap;
     }
-
     internal static void UpdateClockVisibility(ref bool visible)
     {
         if (visible)
@@ -158,9 +186,7 @@ internal static class ClockController
 
         PlayerControllerB localPlayer = StartOfRound.Instance.localPlayerController;
         if (localPlayer == null)
-        {
             return;
-        }
 
         if (localPlayer.inTerminalMenu)
         {
@@ -194,8 +220,7 @@ internal static class ClockController
         if (HUDManager.Instance == null) return;
 
         CanvasGroup canvasGroup = _clockParent.GetComponent<CanvasGroup>() ?? _clockParent.gameObject.AddComponent<CanvasGroup>();
-        float targetAlpha = GetTargetAlpha();
-        canvasGroup.alpha = targetAlpha;
+        canvasGroup.alpha = GetTargetAlpha();
     }
 
     private static float GetTargetAlpha()

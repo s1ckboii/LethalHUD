@@ -29,16 +29,18 @@ public class Plugins : BaseUnityPlugin
     internal static new ConfigFile Config { get; private set; }
     internal static ConfigEntries ConfigEntries { get; private set; }
 
-    internal static readonly Dictionary<string, GameObject> HealthBarPrefabs = [];
-    internal static readonly Dictionary<string, GameObject> StaminaBarPrefabs = [];
-    internal static readonly Dictionary<string, GameObject> BatteryPrefabs = [];
-    internal static readonly Dictionary<string, GameObject> SlotPrefabs = [];
+    internal static readonly Dictionary<string, StyleEntry<GameObject>> HealthBarPrefabs = [];
+    internal static readonly Dictionary<string, StyleEntry<GameObject>> StaminaBarPrefabs = [];
+    internal static readonly Dictionary<string, StyleEntry<GameObject>> BatteryPrefabs = [];
+    internal static readonly Dictionary<string, StyleEntry<GameObject>> SlotPrefabs = [];
+
+
+    internal static Dictionary<string, string> ScanlineDisplayToKey = [];
+    internal static Dictionary<string, StyleEntry<Texture2D>> ScanlineTextures = [];
+    internal static Dictionary<string, StyleEntry<ScanNodeTextures>> ScanNodeSprites = [];
 
     internal static Texture2D DefaultScanlineTexture;
     internal static ScanNodeTextures DefaultScanNodeSprites;
-
-    internal static Dictionary<string, Texture2D> ScanlineTextures = [];
-    internal static Dictionary<string, ScanNodeTextures> ScanNodeSprites = [];
     internal struct ScanNodeTextures
     {
         public Sprite Outer;
@@ -112,7 +114,12 @@ public class Plugins : BaseUnityPlugin
         if (tex is Texture2D tex2D)
         {
             DefaultScanlineTexture = tex2D;
-            ScanlineTextures["Default"] = tex2D;
+            ScanlineTextures["Default"] = new StyleEntry<Texture2D>()
+            {
+                Name = "Default",
+                ModName = "Vanilla",
+                Asset = tex2D
+            };
 
             Logger.LogInfo("Cached vanilla scanline texture.");
         }
@@ -145,7 +152,12 @@ public class Plugins : BaseUnityPlugin
                 Outer = outer.sprite
             };
 
-            ScanNodeSprites["Default"] = DefaultScanNodeSprites;
+            ScanNodeSprites["Default"] = new StyleEntry<ScanNodeTextures>()
+            {
+                Name = "Default",
+                ModName = "Vanilla",
+                Asset = DefaultScanNodeSprites
+            };
 
             Logger.LogInfo("Cached vanilla scannode sprites.");
             break;

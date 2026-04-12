@@ -32,8 +32,6 @@ internal static class HUDManagerPatch
     {
         _pingScan = context;
 
-        if (ModCompats.IsGoodItemScanPresent)
-            ScanNodeController.ResetGoodItemScanNodes();
        LootInfoManager.LootScan();
     }
 
@@ -54,13 +52,12 @@ internal static class HUDManagerPatch
     [HarmonyPatch("DisableAllScanElements")]
     private static void OnHUDManagerDisabledAllScanElements_Prefix()
     {
-        if (ModCompats.IsGoodItemScanPresent)
-            ScanNodeController.ResetGoodItemScanNodes();
+
     }
 
-    [HarmonyPrefix]
+    [HarmonyPostfix]
     [HarmonyPatch("SetClockVisible")]
-    private static void OnHUDManagerSetClockVisible_Prefix(ref bool visible)
+    private static void OnHUDManagerSetClockVisible_Postfix(ref bool visible)
     {
         ClockController.UpdateClockVisibility(ref visible);
         ClockController.ApplyClockAlpha();
@@ -78,7 +75,7 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("Start")]
-    private static void OnHUDManagerStart_Postfix(HUDManager __instance)
+    private static void OnHUDManagerStart_Postfix()
     {
         lastSlotCount = 0;
         Plugins.CacheDefaults();
@@ -97,8 +94,6 @@ internal static class HUDManagerPatch
 
         if (ModCompats.IsBetterScanVisionPresent)
             BetterScanVisionProxy.OverrideNightVisionColor();
-
-        __instance.StartCoroutine(ScanTextureRoutine());
     }
 
 
@@ -252,7 +247,7 @@ internal static class HUDManagerPatch
         int index = __instance.ChatMessageHistory.Count - 1;
         if (index < 0) return;
 
-        string original = __instance.ChatMessageHistory[index];
+        _ = __instance.ChatMessageHistory[index];
 
         Match tagMatch = Regex.Match(chatMessage, @"^(<[^>]+>)+");
         string preTags = "";
@@ -327,16 +322,6 @@ internal static class HUDManagerPatch
     #endregion
 
     #region IEnumerators, Utils
-
-    private static IEnumerator ScanTextureRoutine()
-    {
-        while (true)
-        {
-            ScanNodeTextureManager.Tick();
-            ScanNodeTextureManager.ClearDestroyedObjects();
-            yield return new WaitForSeconds(1f);
-        }
-    }
 
     private static void StartToggleScan(HUDManager __instance)
     {

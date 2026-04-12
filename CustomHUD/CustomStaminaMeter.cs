@@ -45,9 +45,9 @@ internal static class CustomStaminaMeter
             _root = existing;
             _root.SetActive(true);
         }
-        else if (Plugins.StaminaBarPrefabs.TryGetValue(style, out GameObject prefab) && prefab != null)
+        else if (Plugins.StaminaBarPrefabs.TryGetValue(style, out var entry) && entry.Asset != null)
         {
-            Build(prefab, style);
+            Build(entry.Asset, style);
         }
         else
         {

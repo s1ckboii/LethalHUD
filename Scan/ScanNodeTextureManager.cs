@@ -1,65 +1,94 @@
-﻿using System.Collections.Generic;
+﻿using LethalHUD.HUD;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using static LethalHUD.Enums;
+using LethalHUD.Compats;
 
 namespace LethalHUD.Scan;
 internal static class ScanNodeTextureManager
 {
-    private static readonly Dictionary<GameObject, Color> _nodeColors = [];
-
-    internal static void Tick()
+    internal static void Tick(Dictionary<RectTransform, ScanNodeProperties> scanNodes)
     {
-        GameObject scanner = GameObject.Find("UI/Canvas/ObjectScanner");
-        if (scanner == null) return;
-
-        string chosenShape = Plugins.ConfigEntries.ScanNodeShapeChoice.Value;
-        if (!Plugins.ScanNodeSprites.TryGetValue(chosenShape, out Plugins.ScanNodeTextures spritePair))
-            return;
-
-        Sprite innerSprite = spritePair.Inner;
-        Sprite outerSprite = spritePair.Outer;
-
-        foreach (Transform child in scanner.transform)
+        foreach (var (rect, node) in GoodItemScanProxy.EnumerateAllNodes(scanNodes))
         {
-            if (!child.name.StartsWith("ScanObject")) continue;
-            ApplySpritesToScanObject(child.gameObject, innerSprite, outerSprite);
+            if (rect == null || node == null) continue;
+            if (IsHandledByDawn(rect)) continue;
+
+            Apply(rect, node);
         }
     }
 
-    private static void ApplySpritesToScanObject(GameObject scanObject, Sprite innerSprite, Sprite outerSprite)
+    private static void Apply(RectTransform rect, ScanNodeProperties node)
     {
-        if (scanObject == null || !scanObject.activeInHierarchy) return;
+        if (!rect.gameObject.activeInHierarchy) return;
 
-        Image inner = scanObject.transform.Find("Circle/Inner")?.GetComponent<Image>();
-        Image outer = scanObject.transform.Find("Circle/Outer")?.GetComponent<Image>();
+        ScanNodeType type = ScanNodeClassifier.GetType(node);
 
-        if (inner == null || outer == null) return;
+        string shape = type switch
+        {
+            ScanNodeType.Scrap => Plugins.ConfigEntries.ScanNodeShape_Scrap.Value,
+            ScanNodeType.Creature => Plugins.ConfigEntries.ScanNodeShape_Creature.Value,
+            _ => Plugins.ConfigEntries.ScanNodeShape_Default.Value
+        };
 
-        if (!_nodeColors.ContainsKey(inner.gameObject))
-            _nodeColors[inner.gameObject] = inner.color;
-        if (!_nodeColors.ContainsKey(outer.gameObject))
-            _nodeColors[outer.gameObject] = outer.color;
+        string colorHex = type switch
+        {
+            ScanNodeType.Scrap => Plugins.ConfigEntries.ScanNodeColor_Scrap.Value,
+            ScanNodeType.Creature => Plugins.ConfigEntries.ScanNodeColor_Creature.Value,
+            _ => Plugins.ConfigEntries.ScanNodeColor_Default.Value
+        };
 
-        inner.sprite = innerSprite;
-        outer.sprite = outerSprite;
+        bool isDefault = IsDefault(type, colorHex);
 
-        inner.color = _nodeColors[inner.gameObject];
-        outer.color = _nodeColors[outer.gameObject];
+        if (Plugins.ScanNodeSprites.TryGetValue(shape, out var entry))
+        {
+            var spritePair = entry.Asset;
+
+            var inner = rect.transform.Find("Circle/Inner")?.GetComponent<Image>();
+            var outer = rect.transform.Find("Circle/Outer")?.GetComponent<Image>();
+
+            if (inner != null) inner.sprite = spritePair.Inner;
+            if (outer != null) outer.sprite = spritePair.Outer;
+        }
+
+        if (isDefault) return;
+
+        Color baseColor = HUDUtils.ParseHexColor(colorHex);
+
+        var images = rect.GetComponentsInChildren<Image>(true);
+        foreach (var img in images)
+        {
+            if (img == null) continue;
+            img.color = new Color(baseColor.r, baseColor.g, baseColor.b, img.color.a);
+        }
+
+        float l = (0.299f * baseColor.r) + (0.587f * baseColor.g) + (0.114f * baseColor.b);
+        Color readable = l > 0.5f ? Color.black : Color.white;
+
+        var texts = rect.GetComponentsInChildren<TextMeshProUGUI>(true);
+        foreach (var txt in texts)
+        {
+            if (txt == null) continue;
+            txt.color = new Color(readable.r, readable.g, readable.b, txt.color.a);
+        }
     }
 
-    internal static void ForceRefresh()
+    private static bool IsHandledByDawn(RectTransform rect)
     {
-        Tick();
+        return rect.GetComponent("ForceScanColorOnItem") != null;
     }
 
-    internal static void ClearDestroyedObjects()
+    private static bool IsDefault(ScanNodeType type, string hex)
     {
-        List<GameObject> keysToRemove = [];
-        foreach (KeyValuePair<GameObject, Color> kvp in _nodeColors)
-            if (kvp.Key == null)
-                keysToRemove.Add(kvp.Key);
-
-        foreach (GameObject key in keysToRemove)
-            _nodeColors.Remove(key);
+        return type switch
+        {
+            ScanNodeType.Scrap => hex.Equals("#38AB00", System.StringComparison.OrdinalIgnoreCase),
+            ScanNodeType.Creature => hex.Equals("#FF0A00", System.StringComparison.OrdinalIgnoreCase),
+            _ => hex.Equals("#0B00B2", System.StringComparison.OrdinalIgnoreCase)
+        };
     }
+
+    internal static void ForceRefresh() { }
 }

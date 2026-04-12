@@ -1,46 +1,27 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace LethalHUD.Compats;
-internal class GoodItemScanProxy
+internal static class GoodItemScanProxy
 {
-    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static bool TryGetRectTransform(ScanNodeProperties scanNodeProperties, out RectTransform rectTransform)
+    internal static IEnumerable<(RectTransform rect, ScanNodeProperties node)> EnumerateAllNodes(Dictionary<RectTransform, ScanNodeProperties> vanillaNodes)
     {
-        rectTransform = null;
-        if (GoodItemScan.GoodItemScan.scanner == null)
-        {
-            return false;
-        }
+        foreach (var kvp in vanillaNodes)
+            yield return (kvp.Key, kvp.Value);
 
-        if (GoodItemScan.GoodItemScan.scanner._scanNodes.TryGetValue(scanNodeProperties, out int index))
-        {
-            rectTransform = GoodItemScan.GoodItemScan.scanner._scannedNodes[index].rectTransform;
-            return true;
-        }
-        return false;
-    }
+        if (!ModCompats.IsGoodItemScanPresent)
+            yield break;
 
-    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static bool TryGetScanNode(RectTransform rectTransform, out ScanNodeProperties scanNodeProperties)
-    {
-        scanNodeProperties = null;
-        if (GoodItemScan.GoodItemScan.scanner == null)
-        {
-            return false;
-        }
+        var scanner = GoodItemScan.GoodItemScan.scanner;
+        if (scanner == null)
+            yield break;
 
-        foreach ((ScanNodeProperties scanNode, int index) in GoodItemScan.GoodItemScan.scanner._scanNodes)
+        foreach (var scanned in scanner.activeNodes)
         {
-            GoodItemScan.ScannedNode scannedNode = GoodItemScan.GoodItemScan.scanner._scannedNodes[index];
-            if (rectTransform != scannedNode.rectTransform)
-            {
+            if (scanned.rectTransform == null || scanned.ScanNodeProperties == null)
                 continue;
-            }
 
-            scanNodeProperties = scanNode;
-            return true;
+            yield return (scanned.rectTransform, scanned.ScanNodeProperties);
         }
-        return false;
     }
 }

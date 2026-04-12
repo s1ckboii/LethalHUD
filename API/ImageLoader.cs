@@ -42,15 +42,25 @@ internal static class ImageLoader
 
             string style = Path.GetFileNameWithoutExtension(file);
 
-            if (style.EndsWith("_Outer") || style.EndsWith("_Inner"))
+            if (!style.StartsWith("Scanline_", System.StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            string uniqueName = $"[{modName}] {style}";
+            string key = style;
+            string display = key.StartsWith("Scanline_", System.StringComparison.OrdinalIgnoreCase) ? key["Scanline_".Length..] : key;
 
-            if (!ScanlineTextures.ContainsKey(uniqueName))
+            if (!ScanlineTextures.ContainsKey(key))
             {
-                ScanlineTextures.Add(uniqueName, tex);
-                Loggers.Info($"Loaded Scanline (Folder): {uniqueName}");
+                ScanlineTextures[key] = new StyleEntry<Texture2D>()
+                {
+                    Name = key,
+                    DisplayName = display,
+                    ModName = modName,
+                    Asset = tex
+                };
+
+                ScanlineDisplayToKey[display] = key;
+
+                Loggers.Info($"Loaded Scanline (Folder): {key} (from {modName})");
             }
         }
     }
@@ -59,7 +69,7 @@ internal static class ImageLoader
     {
         string modName = BundleLoader.GetModName(folder);
 
-        Dictionary<string, ScanNodeTextures> pairs = new();
+        Dictionary<string, ScanNodeTextures> pairs = [];
 
         foreach (string file in Directory.GetFiles(folder))
         {
@@ -101,11 +111,16 @@ internal static class ImageLoader
         {
             if (pair.Value.Inner != null && pair.Value.Outer != null)
             {
-                string uniqueName = $"[{modName}] {pair.Key}";
+                string key = pair.Key;
 
-                ScanNodeSprites[uniqueName] = pair.Value;
+                ScanNodeSprites[key] = new StyleEntry<ScanNodeTextures>()
+                {
+                    Name = key,
+                    ModName = modName,
+                    Asset = pair.Value
+                };
 
-                Loggers.Info($"Loaded Scannode (Folder): {uniqueName}");
+                Loggers.Info($"Loaded Scannode (Folder): {key} (from {modName})");
             }
         }
     }

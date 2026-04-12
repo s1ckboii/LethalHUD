@@ -47,9 +47,11 @@ internal static class HUDStyleRegistry
     {
         List<string> styles = ["Default"];
 
-        foreach (var key in Plugins.ScanlineTextures.Keys)
-            if (!styles.Contains(key))
-                styles.Add(key);
+        foreach (var entry in Plugins.ScanlineTextures.Values)
+        {
+            if (!styles.Contains(entry.Name))
+                styles.Add(entry.DisplayName);
+        }
 
         return [.. styles];
     }
