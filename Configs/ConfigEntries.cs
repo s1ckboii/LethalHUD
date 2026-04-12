@@ -238,13 +238,13 @@ public class ConfigEntries
         ScanNodeFade = ConfigHelper.Bind("ScanNodes", "Fade Away", true, "Allows you to apply fadeaway for scannodes.");
         ScanNodeLifetime = ConfigHelper.Bind("ScanNodes", "Lifetime", 3f, "Change how long it is visible before fading away.", false, new AcceptableValueRange<float>(0f, 10f));
         ScanNodeFadeDuration = ConfigHelper.Bind("ScanNodes", "Fade Duration", 1f, "Change how long it takes to fade out.", false, new AcceptableValueRange<float>(0f, 5f));
-        ScanNodeShape_Default = ConfigHelper.Bind("ScanNodes", "Default Shape", "Default", "", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
-        ScanNodeShape_Scrap = ConfigHelper.Bind("ScanNodes", "Scrap Shape", "Default", "", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
-        ScanNodeShape_Creature = ConfigHelper.Bind("ScanNodes", "Creature Shape", "Default", "", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+        ScanNodeShape_Default = ConfigHelper.Bind("ScanNodes", "Default Shape", "Default", "Shape of the default scannode.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+        ScanNodeShape_Scrap = ConfigHelper.Bind("ScanNodes", "Scrap Shape", "Default", "Shape of the scrap scannode.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
+        ScanNodeShape_Creature = ConfigHelper.Bind("ScanNodes", "Creature Shape", "Default", "Shape of the creature scannode.", false, new AcceptableValueList<string>(HUDStyleRegistry.GetScannodes()));
 
-        ScanNodeColor_Default = ConfigHelper.Bind(true, "ScanNodes", "Default Color", "#0B00B2", "");
-        ScanNodeColor_Scrap = ConfigHelper.Bind(true, "ScanNodes", "Scrap Color", "#38AB00", "");
-        ScanNodeColor_Creature = ConfigHelper.Bind(true, "ScanNodes", "Creature Color", "#FF0A00", "");
+        ScanNodeColor_Default = ConfigHelper.Bind(true, "ScanNodes", "Default Color", "#0B00B2", "Color of the default scannode.");
+        ScanNodeColor_Scrap = ConfigHelper.Bind(true, "ScanNodes", "Scrap Color", "#38AB00", "Color of the scrap scannode.");
+        ScanNodeColor_Creature = ConfigHelper.Bind(true, "ScanNodes", "Creature Color", "#FF0A00", "Color of the creature scannode.");
         #endregion
         #region InventorySlot Binds
         SlotFade = ConfigHelper.Bind("Inventory", "Inventory Fade", 0.13f, "Change the base fadeout for the inventory.", false, new AcceptableValueRange<float>(0f, 0.99f));
