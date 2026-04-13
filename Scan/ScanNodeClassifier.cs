@@ -7,12 +7,11 @@ internal static class ScanNodeClassifier
     {
         if (node == null) return ScanNodeType.Default;
 
-        if (node.scrapValue > 0)
-            return ScanNodeType.Scrap;
-
-        if (node.creatureScanID != -1)
-            return ScanNodeType.Creature;
-
-        return ScanNodeType.Default;
+        return node.nodeType switch
+        {
+            2 => ScanNodeType.Scrap,
+            1 => ScanNodeType.Creature,
+            _ => ScanNodeType.Default
+        };
     }
 }

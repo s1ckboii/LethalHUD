@@ -12,7 +12,7 @@ internal static class InventoryFrames
     internal static Color CurrentGradientStartColor { get; private set; } = Color.white;
     internal static Color CurrentGradientEndColor { get; private set; } = Color.white;
 
-    private static Dictionary<Image, Image> _fadeIconMap = new();
+    private static Dictionary<Image, Image> _fadeIconMap = [];
     private static Image[] _lastFramesReference;
     private static Image[] _allFrames;
     internal static void SetSlotColors()
