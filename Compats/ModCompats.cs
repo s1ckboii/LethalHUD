@@ -8,9 +8,10 @@ internal class ModCompats
     internal const string BetterScanVision_PLUGIN_GUID = "DBJ.BetterScanVision";
     internal const string EladsHUD_PLUGIN_GUID = "me.eladnlg.customhud";
     internal const string HotbarPlus_PLUGIN_GUID = "FlipMods.HotbarPlus";
+    internal const string GoodItemScan_PLUGIN_GUID = "TestAccount666.GoodItemScan";
     internal static bool IsLethalConfigPresent => Chainloader.PluginInfos.ContainsKey(LethalConfig_PLUGIN_GUID);
     internal static bool IsNiceChatPresent => Chainloader.PluginInfos.ContainsKey(NiceChat_PLUGIN_GUID);
-    internal static bool IsGoodItemScanPresent => Chainloader.PluginInfos.ContainsKey(GoodItemScan.MyPluginInfo.PLUGIN_GUID);
+    internal static bool IsGoodItemScanPresent => Chainloader.PluginInfos.ContainsKey(GoodItemScan_PLUGIN_GUID);
     internal static bool IsBetterScanVisionPresent => Chainloader.PluginInfos.ContainsKey(BetterScanVision_PLUGIN_GUID);
     internal static bool IsEladsHUDPresent => Chainloader.PluginInfos.ContainsKey(EladsHUD_PLUGIN_GUID);
     internal static bool IsHotbarPlusPresent => Chainloader.PluginInfos.ContainsKey(HotbarPlus_PLUGIN_GUID);

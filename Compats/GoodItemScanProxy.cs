@@ -5,82 +5,334 @@ using System.Reflection;
 using UnityEngine;
 
 namespace LethalHUD.Compats;
+
 internal static class GoodItemScanProxy
 {
+    private const string PluginTypeName = "GoodItemScan.GoodItemScan";
+    private const string ScannedNodeTypeName = "GoodItemScan.ScannedNode";
+
     private static bool _initialized;
+    private static bool _failed;
+
     private static FieldInfo _scannerField;
     private static FieldInfo _activeNodesField;
 
-    internal static IEnumerable<(RectTransform rect, ScanNodeProperties node)> EnumerateAllNodes(Dictionary<RectTransform, ScanNodeProperties> vanillaNodes)
+    private static MethodInfo _scanMethod;
+    private static MethodInfo _disableScanNodeMethod;
+
+    private static PropertyInfo _rectTransformProperty;
+    private static PropertyInfo _scanNodePropertiesProperty;
+    private static PropertyInfo _hasScanNodeProperty;
+
+    private const BindingFlags StaticFlags =
+        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+
+    private const BindingFlags InstanceFlags =
+        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+    internal static IEnumerable<(RectTransform rect, ScanNodeProperties node)> EnumerateAllNodes(
+        Dictionary<RectTransform, ScanNodeProperties> vanillaNodes)
     {
-        foreach (var kvp in vanillaNodes)
-            yield return (kvp.Key, kvp.Value);
+        HashSet<RectTransform> seenRects = [];
+        List<(RectTransform rect, ScanNodeProperties node)> snapshot = [];
 
+        if (vanillaNodes != null)
+        {
+            try
+            {
+                foreach (var kvp in vanillaNodes)
+                {
+                    if (kvp.Key == null || kvp.Value == null)
+                        continue;
+
+                    if (seenRects.Add(kvp.Key))
+                        snapshot.Add((kvp.Key, kvp.Value));
+                }
+            }
+            catch
+            {
+                // scanNodes can be modified by the game or another mod.
+                // Keep whatever was already captured this frame.
+            }
+        }
+
+        if (ModCompats.IsGoodItemScanPresent)
+        {
+            List<(RectTransform rect, ScanNodeProperties node)> extraNodes = GetGoodItemScanSnapshot();
+
+            foreach (var pair in extraNodes)
+            {
+                if (pair.rect == null || pair.node == null)
+                    continue;
+
+                if (seenRects.Add(pair.rect))
+                    snapshot.Add(pair);
+            }
+        }
+
+        foreach (var pair in snapshot)
+            yield return pair;
+    }
+
+    internal static bool TryScan()
+    {
         if (!ModCompats.IsGoodItemScanPresent)
-            yield break;
+            return false;
 
-        TryInit();
-        if (_scannerField == null || _activeNodesField == null)
-            yield break;
-
-        List<(RectTransform, ScanNodeProperties)> extraNodes = null;
+        if (!TryInit())
+            return false;
 
         try
         {
-            var scanner = _scannerField.GetValue(null);
-            if (scanner == null)
-                yield break;
+            object scanner = GetScanner();
+            if (scanner == null || _scanMethod == null)
+                return false;
 
-            if (_activeNodesField.GetValue(scanner) is not IEnumerable activeNodes)
-                yield break;
+            _scanMethod.Invoke(scanner, null);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-            extraNodes = [];
+    internal static bool TryRemoveNode(RectTransform rect, ScanNodeProperties node)
+    {
+        if (!ModCompats.IsGoodItemScanPresent)
+            return false;
 
-            foreach (var scanned in activeNodes)
+        if (!TryInit())
+            return false;
+
+        try
+        {
+            object scanner = GetScanner();
+            if (scanner == null || _disableScanNodeMethod == null)
+                return false;
+
+            object scannedNode = FindScannedNode(rect, node);
+            if (scannedNode == null)
+                return false;
+
+            _disableScanNodeMethod.Invoke(scanner, [scannedNode]);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool TryInit()
+    {
+        if (_initialized)
+            return true;
+
+        if (_failed)
+            return false;
+
+        if (!ModCompats.IsGoodItemScanPresent)
+            return false;
+
+        try
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var rect = scanned.GetType().GetField("rectTransform")?.GetValue(scanned) as RectTransform;
-                var node = scanned.GetType().GetField("ScanNodeProperties")?.GetValue(scanned) as ScanNodeProperties;
-
-                if (rect == null || node == null)
+                if (assembly.GetName().Name != ModCompats.GoodItemScan_PLUGIN_GUID)
                     continue;
 
-                extraNodes.Add((rect, node));
+                Type pluginType = assembly.GetType(PluginTypeName, false);
+                Type scannedNodeType = assembly.GetType(ScannedNodeTypeName, false);
+
+                if (pluginType == null || scannedNodeType == null)
+                    continue;
+
+                _scannerField = pluginType.GetField("scanner", StaticFlags);
+
+                Type scannerType = _scannerField?.FieldType;
+                if (scannerType == null)
+                    continue;
+
+                _activeNodesField = scannerType.GetField("activeNodes", InstanceFlags);
+                _scanMethod = scannerType.GetMethod("Scan", InstanceFlags);
+                _disableScanNodeMethod = scannerType.GetMethod("DisableScanNode", InstanceFlags);
+
+                _rectTransformProperty = scannedNodeType.GetProperty("RectTransform", InstanceFlags);
+                _scanNodePropertiesProperty = scannedNodeType.GetProperty("ScanNodeProperties", InstanceFlags);
+                _hasScanNodeProperty = scannedNodeType.GetProperty("HasScanNode", InstanceFlags);
+
+                _initialized =
+                    _scannerField != null &&
+                    _activeNodesField != null &&
+                    _rectTransformProperty != null &&
+                    _scanNodePropertiesProperty != null;
+
+                if (_initialized)
+                    return true;
             }
         }
         catch
         {
-            yield break;
+            Reset();
         }
 
-        if (extraNodes == null)
-            yield break;
-
-        foreach (var n in extraNodes)
-            yield return n;
+        _failed = true;
+        return false;
     }
 
-    private static void TryInit()
+    private static object GetScanner()
     {
-        if (_initialized) return;
-        _initialized = true;
+        try
+        {
+            return _scannerField?.GetValue(null);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static List<(RectTransform rect, ScanNodeProperties node)> GetGoodItemScanSnapshot()
+    {
+        List<(RectTransform rect, ScanNodeProperties node)> result = [];
+
+        if (!TryInit())
+            return result;
 
         try
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            object scanner = GetScanner();
+            if (scanner == null)
+                return result;
 
-            foreach (var a in assemblies)
+            if (_activeNodesField.GetValue(scanner) is not IEnumerable activeNodes)
+                return result;
+
+            List<object> snapshot = [];
+
+            foreach (object scanned in activeNodes)
             {
-                if (a.GetName().Name == "TestAccount666.GoodItemScan")
-                {
-                    var type = a.GetType("GoodItemScan.GoodItemScan");
-                    _scannerField = type?.GetField("scanner", BindingFlags.Public | BindingFlags.Static);
+                if (scanned != null)
+                    snapshot.Add(scanned);
+            }
 
-                    var scannerType = _scannerField?.FieldType;
-                    _activeNodesField = scannerType?.GetField("activeNodes", BindingFlags.Public | BindingFlags.Instance);
-                    break;
-                }
+            foreach (object scanned in snapshot)
+            {
+                if (!HasScanNode(scanned))
+                    continue;
+
+                RectTransform rect = GetRectTransform(scanned);
+                ScanNodeProperties node = GetScanNodeProperties(scanned);
+
+                if (rect == null || node == null)
+                    continue;
+
+                result.Add((rect, node));
             }
         }
-        catch { }
+        catch
+        {
+            // Compatibility should never break vanilla scan nodes.
+        }
+
+        return result;
+    }
+
+    private static object FindScannedNode(RectTransform rect, ScanNodeProperties node)
+    {
+        try
+        {
+            object scanner = GetScanner();
+            if (scanner == null)
+                return null;
+
+            if (_activeNodesField.GetValue(scanner) is not IEnumerable activeNodes)
+                return null;
+
+            List<object> snapshot = [];
+
+            foreach (object scanned in activeNodes)
+            {
+                if (scanned != null)
+                    snapshot.Add(scanned);
+            }
+
+            foreach (object scanned in snapshot)
+            {
+                if (!HasScanNode(scanned))
+                    continue;
+
+                RectTransform scannedRect = GetRectTransform(scanned);
+                ScanNodeProperties scannedNode = GetScanNodeProperties(scanned);
+
+                if (rect != null && scannedRect == rect)
+                    return scanned;
+
+                if (node != null && scannedNode == node)
+                    return scanned;
+            }
+        }
+        catch
+        {
+            return null;
+        }
+
+        return null;
+    }
+
+    private static bool HasScanNode(object scanned)
+    {
+        try
+        {
+            if (_hasScanNodeProperty == null)
+                return true;
+
+            return _hasScanNodeProperty.GetValue(scanned) is true;
+        }
+        catch
+        {
+            return true;
+        }
+    }
+
+    private static RectTransform GetRectTransform(object scanned)
+    {
+        try
+        {
+            return _rectTransformProperty?.GetValue(scanned) as RectTransform;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static ScanNodeProperties GetScanNodeProperties(object scanned)
+    {
+        try
+        {
+            return _scanNodePropertiesProperty?.GetValue(scanned) as ScanNodeProperties;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    internal static void Reset()
+    {
+        _initialized = false;
+        _failed = false;
+
+        _scannerField = null;
+        _activeNodesField = null;
+
+        _scanMethod = null;
+        _disableScanNodeMethod = null;
+
+        _rectTransformProperty = null;
+        _scanNodePropertiesProperty = null;
+        _hasScanNodeProperty = null;
     }
 }

@@ -5,6 +5,7 @@ using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
+using System;
 using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -146,6 +147,11 @@ internal static class HUDManagerPatch
         PlayerHPDisplay.UpdateNumber();
         WeightController.UpdateWeightDisplay();
 
+        ScanNodeTextureManager.Tick(__instance.scanNodes);
+
+        if (Plugins.ConfigEntries.ScanNodeFade.Value)
+            ScanNodeController.UpdateTimers(__instance.scanNodes);
+
         ScanMode scanMode = Plugins.ConfigEntries.ScanModeType.Value;
 
         switch (scanMode)
@@ -229,6 +235,7 @@ internal static class HUDManagerPatch
         }
     }
 
+    /*
     [HarmonyPostfix]
     [HarmonyPatch("UpdateScanNodes")]
     private static void OnHUDManagerUpdateScanNodes_Postfix(HUDManager __instance)
@@ -236,58 +243,106 @@ internal static class HUDManagerPatch
         if (Plugins.ConfigEntries.ScanNodeFade.Value)
             ScanNodeController.UpdateTimers(__instance.scanElements, __instance.scanNodes);
     }
+    */
 
     [HarmonyPostfix]
     [HarmonyPatch("AddChatMessage")]
-    private static void OnHUDManagerAddChatMessage_Postfix(HUDManager __instance, string chatMessage, string nameOfUserWhoTyped, int playerWhoSent)
+    private static void OnHUDManagerAddChatMessage_Postfix(
+        HUDManager __instance,
+        string chatMessage,
+        string nameOfUserWhoTyped,
+        int playerWhoSent)
     {
-        if (string.IsNullOrEmpty(chatMessage))
+        if (__instance.ChatMessageHistory == null || __instance.ChatMessageHistory.Count <= 0)
             return;
 
         int index = __instance.ChatMessageHistory.Count - 1;
-        if (index < 0) return;
-
-        _ = __instance.ChatMessageHistory[index];
-
-        Match tagMatch = Regex.Match(chatMessage, @"^(<[^>]+>)+");
-        string preTags = "";
-        string innerText = chatMessage;
-
-        if (tagMatch.Success)
-        {
-            preTags = tagMatch.Value;
-            innerText = chatMessage[tagMatch.Length..];
-        }
-
-        bool alreadyColored = chatMessage.Contains("<color=") || chatMessage.Contains("<gradient=");
-
-        string coloredMessage = alreadyColored
-            ? chatMessage
-            : preTags + ChatController.GetColoredChatMessage(innerText);
+        if (index < 0)
+            return;
 
         string final;
+
         if (!string.IsNullOrEmpty(nameOfUserWhoTyped))
         {
+            if (string.IsNullOrWhiteSpace(chatMessage))
+                return;
+
             string coloredName = ChatController.GetColoredPlayerName(nameOfUserWhoTyped, playerWhoSent);
+            string coloredMessage = ColorChatMessageSafe(chatMessage);
+
+            if (string.IsNullOrWhiteSpace(coloredMessage))
+                return;
+
             final = $"{coloredName}: {coloredMessage}";
         }
         else
         {
-            final = coloredMessage;
+            string vanillaProcessedMessage = __instance.ChatMessageHistory[index];
+
+            if (string.IsNullOrWhiteSpace(vanillaProcessedMessage))
+                return;
+
+            final = ColorChatMessageSafe(vanillaProcessedMessage);
+
+            if (string.IsNullOrWhiteSpace(final))
+                return;
         }
 
         __instance.ChatMessageHistory[index] = final;
 
         StringBuilder sb = new();
+
         for (int i = 0; i < __instance.ChatMessageHistory.Count; i++)
         {
+            string historyMessage = __instance.ChatMessageHistory[i];
+
+            if (string.IsNullOrWhiteSpace(historyMessage))
+                continue;
+
             sb.Append('\n');
-            sb.Append(__instance.ChatMessageHistory[i]);
+            sb.Append(historyMessage);
         }
 
         __instance.chatText.text = sb.ToString();
 
-        __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
+        __instance.PingHUDElement(
+            __instance.Chat,
+            Plugins.ConfigEntries.ChatFadeDelayTime.Value,
+            1f,
+            0f);
+    }
+
+    private static string ColorChatMessageSafe(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return message;
+
+        bool alreadyColored =
+            message.Contains("<color=") ||
+            message.Contains("<gradient=");
+
+        if (alreadyColored)
+            return message;
+
+        Match tagMatch = Regex.Match(message, @"^(<[^>]+>)+");
+
+        string preTags = "";
+        string innerText = message;
+
+        if (tagMatch.Success)
+        {
+            preTags = tagMatch.Value;
+            innerText = message[tagMatch.Length..];
+        }
+
+        if (string.IsNullOrWhiteSpace(innerText))
+            return message;
+
+        string colored = ChatController.GetColoredChatMessage(innerText);
+
+        return string.IsNullOrWhiteSpace(colored)
+            ? message
+            : preTags + colored;
     }
 
     [HarmonyPostfix]
@@ -354,16 +409,23 @@ internal static class HUDManagerPatch
         if (player == null) return;
 
         float cooldown = __instance.playerPingingScan;
-        if (cooldown <= -1f && __instance.CanPlayerScan())
-        {
-            __instance.playerPingingScan = 0.3f;
-            __instance.scanEffectAnimator.transform.position = player.gameplayCamera.transform.position;
-            __instance.scanEffectAnimator.SetTrigger("scan");
-            __instance.PingHUDElement(__instance.Compass, 1f, 0.8f, 0.12f);
-            __instance.UIAudio.PlayOneShot(__instance.scanSFX);
 
+        if (cooldown > -1f || !__instance.CanPlayerScan())
+            return;
+
+        if (GoodItemScanProxy.TryScan())
+        {
             LootInfoManager.LootScan();
+            return;
         }
+
+        __instance.playerPingingScan = 0.3f;
+        __instance.scanEffectAnimator.transform.position = player.gameplayCamera.transform.position;
+        __instance.scanEffectAnimator.SetTrigger("scan");
+        __instance.PingHUDElement(__instance.Compass, 1f, 0.8f, 0.12f);
+        __instance.UIAudio.PlayOneShot(__instance.scanSFX);
+
+        LootInfoManager.LootScan();
     }
     private static IEnumerator ApplySelfRedAfterTick(HUDManager hud)
     {
@@ -391,6 +453,32 @@ internal static class HUDManagerPatch
                 PlayerRedCanvasController.ApplyFillWithRedFade(health);
                 break;
         }
+    }
+
+    private static string ColorMessagePreservingPrefixTags(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return message;
+
+        bool alreadyColored =
+            message.Contains("<color=", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("<gradient=", StringComparison.OrdinalIgnoreCase);
+
+        if (alreadyColored)
+            return message;
+
+        Match tagMatch = Regex.Match(message, @"^(<[^>]+>)+");
+
+        string preTags = "";
+        string innerText = message;
+
+        if (tagMatch.Success)
+        {
+            preTags = tagMatch.Value;
+            innerText = message[tagMatch.Length..];
+        }
+
+        return preTags + ChatController.GetColoredChatMessage(innerText);
     }
     #endregion
 }

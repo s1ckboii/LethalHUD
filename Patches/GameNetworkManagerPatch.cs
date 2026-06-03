@@ -9,15 +9,7 @@ internal static class GameNetworkManagerPatch
     [HarmonyPatch("NoPunctuation")]
     private static bool NoPunctuation_Prefix(string input, ref string __result)
     {
-        if (string.IsNullOrEmpty(input))
-        {
-            __result = "Nameless";
-        }
-        else
-        {
-            __result = ChatController.NoPunctuation(input);
-        }
-
+        __result = ChatController.NoPunctuation(input);
         return false;
     }
 }

@@ -13,7 +13,12 @@ internal static class ChatController
 
     internal static string NoPunctuation(string input)
     {
-        return new string([.. input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.')]);
+        if (string.IsNullOrWhiteSpace(input))
+            return "Nameless";
+
+        string result = new([.. input.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '.')]);
+
+        return string.IsNullOrWhiteSpace(result) ? "Nameless" : result;
     }
 
     internal static string GetColoredPlayerName(string playerName, int playerId = -1)
