@@ -115,7 +115,7 @@ internal static class CustomStaminaMeter
 
         float fillAmount = player.sprintMeterUI.fillAmount;
 
-        _refs.UpdateStaminaUI(fillAmount, _refs.Fill.color);
+        _refs.UpdateStaminaUI(fillAmount, _refs.fill.color);
     }
 
     internal static void Cleanup()

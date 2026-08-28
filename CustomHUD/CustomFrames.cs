@@ -119,7 +119,7 @@ internal static class CustomFrames
             slot.transform.localScale = Vector3.one;
 
             LHSlotRefs refs = slot.GetComponent<LHSlotRefs>();
-            if (refs == null || refs.Frame == null || refs.Icon == null)
+            if (refs == null || refs.frame == null || refs.icon == null)
             {
                 _customFrames[i] = _vanillaFrames[i];
                 _customIcons[i] = _vanillaIcons[i];
@@ -127,8 +127,8 @@ internal static class CustomFrames
                 continue;
             }
 
-            _customFrames[i] = refs.Frame;
-            _customIcons[i] = refs.Icon;
+            _customFrames[i] = refs.frame;
+            _customIcons[i] = refs.icon;
             _customRoots[i] = slot;
         }
     }

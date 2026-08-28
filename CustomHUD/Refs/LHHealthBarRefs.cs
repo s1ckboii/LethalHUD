@@ -4,17 +4,37 @@ using UnityEngine.UI;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.CustomHUD.Refs;
+
 public class LHHealthBarRefs : MonoBehaviour
 {
     [Header("Images")]
-    public Image Frame;
-    public Image FrameB;
-    public Image HealthFill;
+    [Tooltip("Main frame image for the custom health bar. This image is recolored based on the player's current health.")]
+    public Image frame;
 
-    [Header("Optional")]
-    public TextMeshProUGUI Number;
+    [Tooltip("Optional secondary frame image. Use this for extra decorative frame layers if your prefab needs one.")]
+    public Image frameB;
 
-    [HideInInspector] public Vector2 NumberBasePosition;
+    [Tooltip("Image used as the health fill. Supports normal Image.fillAmount or a material with _FillAmount and _OverhealAmount shader properties.")]
+    public Image healthFill;
+
+    [Header("Health")]
+    [Tooltip("Optional TextMeshProUGUI used as the custom health number. Leave empty if this HUD style does not show a health number.")]
+    public TextMeshProUGUI healthNumber;
+
+    [Tooltip("When this HUD style is selected, apply the recommended health format below to the player's Health Format config. Players can still change the config afterwards.")]
+    public bool setHealthFormatOnLoad = true;
+
+    [Tooltip("Health format that gets applied when this HUD style is selected, if Set Health Format On Load is enabled.")]
+    public HPDisplayMode recommendedHealthFormat = HPDisplayMode.Plain;
+
+    [Header("Weight")]
+    [Tooltip("Optional TextMeshProUGUI used as the custom weight counter for this HUD style. Leave empty to keep the vanilla weight counter.")]
+    public TextMeshProUGUI weightNumber;
+
+    [Tooltip("Preferred weight text layout for this HUD style. Config keeps the player's current weight display behavior.")]
+    public WeightDisplayLayout weightLayout = WeightDisplayLayout.Config;
+
+    [HideInInspector] public Vector2 healthNumberBasePos;
 
     private Material _frameMat;
     private Material _fillMat;
@@ -22,13 +42,15 @@ public class LHHealthBarRefs : MonoBehaviour
 
     private void Awake()
     {
-        if (Number != null)
-            NumberBasePosition = Number.rectTransform.anchoredPosition;
-        if (Frame != null && Frame.material != null)
-            _frameMat = Frame.material = Instantiate(Frame.material);
-        if (HealthFill != null && HealthFill.material != null)
+        if (healthNumber != null)
+            healthNumberBasePos = healthNumber.rectTransform.anchoredPosition;
+
+        if (frame != null && frame.material != null)
+            _frameMat = frame.material = Instantiate(frame.material);
+
+        if (healthFill != null && healthFill.material != null)
         {
-            _fillMat = HealthFill.material = Instantiate(HealthFill.material);
+            _fillMat = healthFill.material = Instantiate(healthFill.material);
             _usesShaderFill = _fillMat != null && _fillMat.HasProperty("_FillAmount");
         }
         else
@@ -49,11 +71,11 @@ public class LHHealthBarRefs : MonoBehaviour
 
     public void UpdateHealthUI(int health, float hpFill, Color hpColor, float ohFill, Color ohColor)
     {
-        if (Frame != null)
-            Frame.color = hpColor;
+        if (frame != null)
+            frame.color = hpColor;
 
-        if (HealthFill != null)
-            HealthFill.color = hpColor;
+        if (healthFill != null)
+            healthFill.color = hpColor;
 
         if (_usesShaderFill && _fillMat != null)
         {
@@ -65,13 +87,13 @@ public class LHHealthBarRefs : MonoBehaviour
         }
         else
         {
-            if (HealthFill != null)
-                HealthFill.fillAmount = hpFill;
+            if (healthFill != null)
+                healthFill.fillAmount = hpFill;
         }
 
-        if (Number != null)
+        if (healthNumber != null)
         {
-            Number.text = Plugins.ConfigEntries.HealthFormat.Value switch
+            healthNumber.text = Plugins.ConfigEntries.HealthFormat.Value switch
             {
                 HPDisplayMode.Percent => $"{health} %",
                 HPDisplayMode.Label => $"{health} HP",

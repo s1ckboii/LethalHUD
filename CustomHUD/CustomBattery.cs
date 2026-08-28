@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 
 namespace LethalHUD.CustomHUD;
+
 internal static class CustomBattery
 {
     private static LHBatteryRefs _refs;
@@ -33,7 +34,8 @@ internal static class CustomBattery
 
     internal static void Apply(string style)
     {
-        if (_root != null) _root.SetActive(false);
+        if (_root != null)
+            _root.SetActive(false);
 
         if (style == "Default")
         {
@@ -101,6 +103,7 @@ internal static class CustomBattery
                 off.gameObject.SetActive(false);
         }
     }
+
     private static void RestoreVanilla()
     {
         var hud = HUDManager.Instance;
@@ -125,33 +128,38 @@ internal static class CustomBattery
 
     internal static void Update(float fill, bool visible)
     {
-        if (!UsingCustom || _refs == null) return;
+        if (!UsingCustom || _refs == null || _root == null)
+            return;
 
         _root.SetActive(visible);
 
         _refs.UpdateBattery(fill);
 
-        if (_refs.Icon != null)
-            _refs.Icon.enabled = visible;
-
-        if (_refs.Text != null)
-            _refs.Text.text = Mathf.RoundToInt(fill * 100f) + "%";
+        if (_refs.icon != null)
+            _refs.icon.enabled = visible;
     }
 
     internal static void UpdateColor()
     {
         if (_refs == null) return;
 
-        Color col = HUDUtils.ParseHexColor(Plugins.ConfigEntries.CustomBatteryColor.Value, Color.white);
+        Color col = HUDUtils.ParseHexColor(
+            Plugins.ConfigEntries.CustomBatteryColor.Value,
+            Color.white);
+
         _refs.SetColor(col);
     }
 
     internal static void Cleanup()
     {
         foreach (var obj in _pool.Values)
-            if (obj != null) Object.Destroy(obj);
+        {
+            if (obj != null)
+                Object.Destroy(obj);
+        }
 
         _pool.Clear();
         _root = null;
+        _refs = null;
     }
 }

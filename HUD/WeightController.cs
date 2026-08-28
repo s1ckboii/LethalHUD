@@ -1,12 +1,13 @@
 ﻿using System.Globalization;
+using LethalHUD.CustomHUD;
 using TMPro;
 using UnityEngine;
 using static LethalHUD.Enums;
 
 namespace LethalHUD.HUD;
+
 internal static class WeightController
 {
-    private static bool _shadowApplied = false;
     internal static float ConvertWeight(float weightInLbs)
     {
         return Plugins.ConfigEntries.WeightUnitConfig.Value switch
@@ -49,7 +50,6 @@ internal static class WeightController
         };
     }
 
-
     private static string GetUnitSingle(WeightUnit unit)
     {
         return unit switch
@@ -61,12 +61,23 @@ internal static class WeightController
         };
     }
 
+    private static TextMeshProUGUI GetActiveWeightText(HUDManager hud)
+    {
+        if (CustomHealthBar.UsingCustom && CustomHealthBar.CustomWeightNumber != null)
+            return CustomHealthBar.CustomWeightNumber;
+
+        return hud?.weightCounter;
+    }
+
     internal static void RecolorWeightText()
     {
         HUDManager hud = HUDManager.Instance;
-        if (hud == null || hud.weightCounter == null) return;
+        if (hud == null) return;
 
-        string text = hud.weightCounter.text;
+        TextMeshProUGUI weightText = GetActiveWeightText(hud);
+        if (weightText == null) return;
+
+        string text = weightText.text;
         string[] parts = text.Split(' ');
         if (parts.Length < 2) return;
 
@@ -83,10 +94,9 @@ internal static class WeightController
 
         float normalizedWeight = Mathf.Clamp01(weightNum / maxWeight);
 
-        hud.weightCounter.color = Color.white;
-
-        hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
-        hud.weightCounter.enableVertexGradient = true;
+        weightText.color = Color.white;
+        weightText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
+        weightText.enableVertexGradient = true;
     }
 
     private static string GetManulAsciiTired() => " /\\_/\\  \n( -.- )\n z  z  z";
@@ -100,6 +110,82 @@ internal static class WeightController
         return GetManulAsciiOverloaded();
     }
 
+    private static string GetConfigWeightText(float weightInLbs)
+    {
+        float convertedWeight = ConvertWeight(weightInLbs);
+
+        if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
+        {
+            return $"{FormatWeight(convertedWeight)} manuls\n{GetManulAsciiByWeight(convertedWeight)}";
+        }
+
+        return GetUnitString(weightInLbs);
+    }
+
+    private static string GetWeightText(float weightInLbs)
+    {
+        WeightDisplayLayout layout = CustomHealthBar.ActiveWeightLayout;
+
+        return layout switch
+        {
+            WeightDisplayLayout.Horizontal => GetUnitString(weightInLbs, true),
+
+            WeightDisplayLayout.Vertical => GetUnitString(weightInLbs, false),
+
+            WeightDisplayLayout.ASCII =>
+                $"{FormatWeight(weightInLbs / 9.9f)} manuls\n{GetManulAsciiByWeight(weightInLbs / 9.9f)}",
+
+            _ => GetConfigWeightText(weightInLbs)
+        };
+    }
+
+    private static int GetUnitsCount()
+    {
+        WeightDisplayLayout layout = CustomHealthBar.ActiveWeightLayout;
+
+        if (layout == WeightDisplayLayout.ASCII)
+            return 2;
+
+        if (layout == WeightDisplayLayout.Horizontal)
+            return 1;
+
+        if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
+            return 2;
+
+        return Plugins.ConfigEntries.WeightUnitDisplayConfig.Value switch
+        {
+            WeightUnitDisplay.KgAndPounds => 2,
+            WeightUnitDisplay.PoundsAndManuls => 2,
+            WeightUnitDisplay.KgAndManuls => 2,
+            WeightUnitDisplay.KgPoundsAndManuls => 3,
+            _ => 1
+        };
+    }
+
+    private static float GetMaxWeight()
+    {
+        return Plugins.ConfigEntries.WeightUnitConfig.Value switch
+        {
+            WeightUnit.Pounds => 130f,
+            WeightUnit.Kilograms => 130f * 0.453592f,
+            WeightUnit.Manuls => 130f / 9.9f,
+            _ => 130f
+        };
+    }
+
+    private static void ApplyWeightTextStyle(TextMeshProUGUI weightText, float animatorWeight)
+    {
+        weightText.color = Color.white;
+        weightText.enableVertexGradient = true;
+        weightText.extraPadding = true;
+        weightText.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
+
+        Material mat = weightText.fontMaterial;
+        mat.EnableKeyword("UNDERLAY_ON");
+        mat.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+        mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
+        mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
+    }
 
     internal static void UpdateWeightDisplay()
     {
@@ -107,29 +193,13 @@ internal static class WeightController
         if (hud == null || hud.weightCounter == null || hud.weightCounterAnimator == null) return;
         if (GameNetworkManager.Instance?.localPlayerController == null) return;
 
+        TextMeshProUGUI weightText = GetActiveWeightText(hud);
+        if (weightText == null) return;
+
         float carryWeight = GameNetworkManager.Instance.localPlayerController.carryWeight;
-        float num2 = Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f;
+        float weightInLbs = Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f;
 
-        float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
-        {
-            WeightUnit.Pounds => 130f,
-            WeightUnit.Kilograms => 130f * 0.453592f,
-            WeightUnit.Manuls => 130f / 9.9f,
-            _ => 130f
-        };
-
-        int unitsCount = 1;
-        if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls) unitsCount = 2;
-        else
-        {
-            switch (Plugins.ConfigEntries.WeightUnitDisplayConfig.Value)
-            {
-                case WeightUnitDisplay.KgAndPounds:
-                case WeightUnitDisplay.PoundsAndManuls:
-                case WeightUnitDisplay.KgAndManuls: unitsCount = 2; break;
-                case WeightUnitDisplay.KgPoundsAndManuls: unitsCount = 3; break;
-            }
-        }
+        int unitsCount = GetUnitsCount();
 
         float scaleReduction = unitsCount switch
         {
@@ -139,34 +209,13 @@ internal static class WeightController
             _ => 1f
         };
 
-        float animatorWeight = Mathf.Clamp(num2 / maxWeight, 0f, 1f);
+        float maxWeight = GetMaxWeight();
+        float animatorWeight = Mathf.Clamp(weightInLbs / maxWeight, 0f, 1f);
+
         hud.weightCounterAnimator.SetFloat("weight", animatorWeight * scaleReduction);
 
-        float convertedWeight = ConvertWeight(num2);
+        weightText.text = GetWeightText(weightInLbs);
 
-        if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
-        {
-            hud.weightCounter.text = $"{FormatWeight(convertedWeight)} manuls\n{GetManulAsciiByWeight(convertedWeight)}";
-        }
-        else
-        {
-            hud.weightCounter.text = GetUnitString(num2);
-        }
-
-        hud.weightCounter.color = Color.white;
-        hud.weightCounter.enableVertexGradient = true;
-        hud.weightCounter.extraPadding = true;
-
-        if (!_shadowApplied)
-        {
-            Material mat = hud.weightCounter.fontMaterial;
-            mat.EnableKeyword("UNDERLAY_ON");
-            mat.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
-            mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
-            mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
-            _shadowApplied = true;
-        }
-
-        hud.weightCounter.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
+        ApplyWeightTextStyle(weightText, animatorWeight);
     }
 }

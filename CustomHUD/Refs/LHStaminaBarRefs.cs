@@ -2,12 +2,18 @@
 using UnityEngine.UI;
 
 namespace LethalHUD.CustomHUD.Refs;
+
 public class LHStaminaBarRefs : MonoBehaviour
 {
     [Header("Images")]
-    public Image Frame;
-    public Image FrameB;
-    public Image Fill;
+    [Tooltip("Main frame image for the custom stamina bar. If its material has a _FlowColor property, it will be affected by the Custom Stamina Bar Color config.")]
+    public Image frame;
+
+    [Tooltip("Optional secondary frame layer. This is recolored together with the main Frame by SetBarColor.")]
+    public Image frameB;
+
+    [Tooltip("Image used as the stamina fill. Supports normal Image.fillAmount or a material with a _FillAmount shader property.")]
+    public Image fill;
 
     private Material _frameMat;
     private Material _fillMat;
@@ -15,13 +21,12 @@ public class LHStaminaBarRefs : MonoBehaviour
 
     private void Awake()
     {
-        if (Frame != null && Frame.material != null)
-            _frameMat = Frame.material = Instantiate(Frame.material);
+        if (frame != null && frame.material != null)
+            _frameMat = frame.material = Instantiate(frame.material);
 
-        if (Fill != null && Fill.material != null)
+        if (fill != null && fill.material != null)
         {
-            _fillMat = Fill.material = Instantiate(Fill.material);
-
+            _fillMat = fill.material = Instantiate(fill.material);
             _usesShaderFill = _fillMat.HasProperty("_FillAmount");
         }
         else
@@ -32,9 +37,11 @@ public class LHStaminaBarRefs : MonoBehaviour
 
     public void UpdateStaminaUI(float fillAmount, Color currentColor)
     {
-        if (Fill == null) return;
+        if (fill == null) return;
 
-        Fill.color = currentColor;
+        fillAmount = Mathf.Clamp01(fillAmount);
+
+        fill.color = currentColor;
 
         if (_usesShaderFill && _fillMat != null)
         {
@@ -42,7 +49,7 @@ public class LHStaminaBarRefs : MonoBehaviour
         }
         else
         {
-            Fill.fillAmount = fillAmount;
+            fill.fillAmount = fillAmount;
         }
     }
 
@@ -54,16 +61,18 @@ public class LHStaminaBarRefs : MonoBehaviour
 
     public void SetBarColor(Color color)
     {
-        if (Frame != null) Frame.color = color;
-        if (FrameB != null) FrameB.color = color;
+        if (frame != null)
+            frame.color = color;
 
-        if (Fill != null)
+        if (frameB != null)
+            frameB.color = color;
+
+        if (fill != null)
         {
-            Fill.color = color;
+            fill.color = color;
+
             if (_fillMat != null)
-            {
-                Fill.canvasRenderer.SetColor(color);
-            }
+                fill.canvasRenderer.SetColor(color);
         }
     }
 }

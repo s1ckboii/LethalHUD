@@ -59,6 +59,19 @@ public static class Enums
         Hold,
         Toggle
     }
+    public enum BatteryTextDisplayMode
+    {
+        Number,
+        Percent
+    }
+
+    public enum WeightDisplayLayout
+    {
+        Config,
+        Vertical,
+        Horizontal,
+        ASCII
+    }
     public enum WeightUnit
     {
         Pounds,

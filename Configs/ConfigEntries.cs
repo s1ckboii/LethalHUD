@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using LethalHUD.API;
+using LethalHUD.Compats;
 using LethalHUD.CustomHUD;
 using LethalHUD.HUD;
 using LethalHUD.Misc;
