@@ -202,6 +202,9 @@ internal static class ScanController
         if (selected == "Default")
             return Plugins.DefaultScanlineTexture;
 
+        if (Plugins.ScanlineDisplayToKey.TryGetValue(selected, out string mappedKey))
+            selected = mappedKey;
+
         if (Plugins.ScanlineTextures.TryGetValue(selected, out var entry) && entry.Asset != null)
             return entry.Asset;
 

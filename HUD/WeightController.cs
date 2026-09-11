@@ -8,6 +8,20 @@ namespace LethalHUD.HUD;
 
 internal static class WeightController
 {
+    private static readonly int WeightAnimatorHash = Animator.StringToHash("weight");
+
+    private static TextMeshProUGUI _lastTarget;
+    private static Material _styledMaterial;
+    private static string _cachedDisplayText;
+    private static string _lastStarterColor;
+    private static float _lastWeightInLbs = float.NaN;
+    private static float _lastGradientWeight = float.NaN;
+    private static WeightUnit _lastUnit;
+    private static WeightUnitDisplay _lastUnitDisplay;
+    private static WeightDecimalFormat _lastDecimalFormat;
+    private static WeightDisplayLayout _lastLayout;
+    private static bool _hasCachedText;
+
     internal static float ConvertWeight(float weightInLbs)
     {
         return Plugins.ConfigEntries.WeightUnitConfig.Value switch
@@ -69,36 +83,6 @@ internal static class WeightController
         return hud?.weightCounter;
     }
 
-    internal static void RecolorWeightText()
-    {
-        HUDManager hud = HUDManager.Instance;
-        if (hud == null) return;
-
-        TextMeshProUGUI weightText = GetActiveWeightText(hud);
-        if (weightText == null) return;
-
-        string text = weightText.text;
-        string[] parts = text.Split(' ');
-        if (parts.Length < 2) return;
-
-        if (!float.TryParse(parts[0], out float weightNum)) return;
-
-        string unit = parts[1].Split('\n')[0].ToLower().Trim();
-
-        float maxWeight = unit switch
-        {
-            "manuls" => 130f / 9.9f,
-            "kg" => 130f * 0.453592f,
-            _ => 130f
-        };
-
-        float normalizedWeight = Mathf.Clamp01(weightNum / maxWeight);
-
-        weightText.color = Color.white;
-        weightText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
-        weightText.enableVertexGradient = true;
-    }
-
     private static string GetManulAsciiTired() => " /\\_/\\  \n( -.- )\n z  z  z";
     private static string GetManulAsciiLight() => " /\\_/\\ \n( o.o )\n > ^ < ";
     private static string GetManulAsciiOverloaded() => " /\\_/\\  \n( x_x )\n  ~~~  ";
@@ -115,9 +99,7 @@ internal static class WeightController
         float convertedWeight = ConvertWeight(weightInLbs);
 
         if (Plugins.ConfigEntries.WeightUnitConfig.Value == WeightUnit.Manuls)
-        {
             return $"{FormatWeight(convertedWeight)} manuls\n{GetManulAsciiByWeight(convertedWeight)}";
-        }
 
         return GetUnitString(weightInLbs);
     }
@@ -129,12 +111,9 @@ internal static class WeightController
         return layout switch
         {
             WeightDisplayLayout.Horizontal => GetUnitString(weightInLbs, true),
-
             WeightDisplayLayout.Vertical => GetUnitString(weightInLbs, false),
-
             WeightDisplayLayout.ASCII =>
                 $"{FormatWeight(weightInLbs / 9.9f)} manuls\n{GetManulAsciiByWeight(weightInLbs / 9.9f)}",
-
             _ => GetConfigWeightText(weightInLbs)
         };
     }
@@ -162,45 +141,66 @@ internal static class WeightController
         };
     }
 
-    private static float GetMaxWeight()
+    private static void EnsureMaterialStyle(TextMeshProUGUI weightText)
     {
-        return Plugins.ConfigEntries.WeightUnitConfig.Value switch
-        {
-            WeightUnit.Pounds => 130f,
-            WeightUnit.Kilograms => 130f * 0.453592f,
-            WeightUnit.Manuls => 130f / 9.9f,
-            _ => 130f
-        };
+        if (_lastTarget == weightText && _styledMaterial != null)
+            return;
+
+        _lastTarget = weightText;
+        _styledMaterial = weightText.fontMaterial;
+
+        if (_styledMaterial == null)
+            return;
+
+        _styledMaterial.EnableKeyword("UNDERLAY_ON");
+        _styledMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+        _styledMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
+        _styledMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
     }
 
-    private static void ApplyWeightTextStyle(TextMeshProUGUI weightText, float animatorWeight)
+    private static bool DisplayTextNeedsRefresh(float weightInLbs)
     {
-        weightText.color = Color.white;
-        weightText.enableVertexGradient = true;
-        weightText.extraPadding = true;
-        weightText.colorGradient = HUDUtils.GetWeightGradient(animatorWeight);
+        WeightUnit unit = Plugins.ConfigEntries.WeightUnitConfig.Value;
+        WeightUnitDisplay display = Plugins.ConfigEntries.WeightUnitDisplayConfig.Value;
+        WeightDecimalFormat decimalFormat = Plugins.ConfigEntries.WeightDecimalFormatConfig.Value;
+        WeightDisplayLayout layout = CustomHealthBar.ActiveWeightLayout;
 
-        Material mat = weightText.fontMaterial;
-        mat.EnableKeyword("UNDERLAY_ON");
-        mat.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
-        mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.5f);
-        mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.5f);
+        bool changed = !_hasCachedText ||
+            !Mathf.Approximately(_lastWeightInLbs, weightInLbs) ||
+            _lastUnit != unit ||
+            _lastUnitDisplay != display ||
+            _lastDecimalFormat != decimalFormat ||
+            _lastLayout != layout;
+
+        if (!changed)
+            return false;
+
+        _lastWeightInLbs = weightInLbs;
+        _lastUnit = unit;
+        _lastUnitDisplay = display;
+        _lastDecimalFormat = decimalFormat;
+        _lastLayout = layout;
+        _hasCachedText = true;
+        return true;
     }
 
     internal static void UpdateWeightDisplay()
     {
         HUDManager hud = HUDManager.Instance;
-        if (hud == null || hud.weightCounter == null || hud.weightCounterAnimator == null) return;
-        if (GameNetworkManager.Instance?.localPlayerController == null) return;
+        if (hud == null || hud.weightCounter == null || hud.weightCounterAnimator == null)
+            return;
+
+        if (GameNetworkManager.Instance?.localPlayerController == null)
+            return;
 
         TextMeshProUGUI weightText = GetActiveWeightText(hud);
-        if (weightText == null) return;
+        if (weightText == null)
+            return;
 
         float carryWeight = GameNetworkManager.Instance.localPlayerController.carryWeight;
         float weightInLbs = Mathf.Clamp(carryWeight - 1f, 0f, 100f) * 105f;
 
         int unitsCount = GetUnitsCount();
-
         float scaleReduction = unitsCount switch
         {
             1 => 0.8f,
@@ -209,13 +209,43 @@ internal static class WeightController
             _ => 1f
         };
 
-        float maxWeight = GetMaxWeight();
-        float animatorWeight = Mathf.Clamp(weightInLbs / maxWeight, 0f, 1f);
+        float normalizedWeight = Mathf.Clamp01(weightInLbs / 130f);
+        hud.weightCounterAnimator.SetFloat(WeightAnimatorHash, normalizedWeight * scaleReduction);
 
-        hud.weightCounterAnimator.SetFloat("weight", animatorWeight * scaleReduction);
+        if (DisplayTextNeedsRefresh(weightInLbs))
+            _cachedDisplayText = GetWeightText(weightInLbs);
 
-        weightText.text = GetWeightText(weightInLbs);
+        if (_cachedDisplayText != null && weightText.text != _cachedDisplayText)
+            weightText.text = _cachedDisplayText;
 
-        ApplyWeightTextStyle(weightText, animatorWeight);
+        if (weightText.color != Color.white)
+            weightText.color = Color.white;
+
+        if (!weightText.enableVertexGradient)
+            weightText.enableVertexGradient = true;
+
+        if (!weightText.extraPadding)
+            weightText.extraPadding = true;
+
+        string starterColor = Plugins.ConfigEntries.WeightStarterColor.Value;
+        if (_lastTarget != weightText || !Mathf.Approximately(_lastGradientWeight, normalizedWeight) || _lastStarterColor != starterColor)
+        {
+            _lastGradientWeight = normalizedWeight;
+            _lastStarterColor = starterColor;
+            weightText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
+        }
+
+        EnsureMaterialStyle(weightText);
+    }
+
+    internal static void ResetCache()
+    {
+        _lastTarget = null;
+        _styledMaterial = null;
+        _cachedDisplayText = null;
+        _lastStarterColor = null;
+        _lastWeightInLbs = float.NaN;
+        _lastGradientWeight = float.NaN;
+        _hasCachedText = false;
     }
 }

@@ -7,28 +7,37 @@ using LethalHUD.Networking;
 using System;
 
 namespace LethalHUD.Patches;
+
 [HarmonyPatch(typeof(PlayerControllerB))]
 internal static class PlayerControllerBPatch
 {
     private static int _lastHealth = int.MinValue;
 
+    private static bool IsLocalPlayer(PlayerControllerB player)
+    {
+        GameNetworkManager gameNetworkManager = GameNetworkManager.Instance;
+
+        return player != null && gameNetworkManager != null && player == gameNetworkManager.localPlayerController;
+    }
+
     [HarmonyPrefix]
     [HarmonyPatch("Awake")]
     private static void OnPlayerControllerBAwake_Prefix(PlayerControllerB __instance)
     {
-        if (!Plugins.NetworkingDisabled)
-        {
-            if (!__instance.TryGetComponent(out PlayerColorNetworker _))
-                __instance.gameObject.AddComponent<PlayerColorNetworker>();
-        }
+        if (!Plugins.NetworkingDisabled && !__instance.TryGetComponent(out PlayerColorNetworker _))
+            __instance.gameObject.AddComponent<PlayerColorNetworker>();
+
         if (!__instance.TryGetComponent(out PlayerBillboardGradient _))
             __instance.gameObject.AddComponent<PlayerBillboardGradient>();
     }
 
     [HarmonyPrefix]
     [HarmonyPatch("BeginGrabObject")]
-    private static void OnPlayerControllerBBeginGrabObject()
+    private static void OnPlayerControllerBBeginGrabObject(PlayerControllerB __instance)
     {
+        if (!IsLocalPlayer(__instance))
+            return;
+
         InventoryFrames.HandsFull();
     }
 
@@ -51,30 +60,43 @@ internal static class PlayerControllerBPatch
     [HarmonyPatch("SwitchToItemSlot")]
     private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB __instance, int slot)
     {
-        if (__instance != GameNetworkManager.Instance.localPlayerController)
+        if (!IsLocalPlayer(__instance))
             return;
 
         if (!Plugins.ConfigEntries.ShowItemValue.Value && ScrapValueDisplay.slotTexts != null)
             ScrapValueDisplay.Hide(slot);
+
         if (ScrapValueDisplay.slotTexts == null || slot < 0 || slot >= ScrapValueDisplay.slotTexts.Length)
             return;
 
-        if (__instance.ItemSlots[slot] != null)
+        if (__instance.ItemSlots != null && slot < __instance.ItemSlots.Length && __instance.ItemSlots[slot] != null)
         {
-            int scrapValue = __instance.ItemSlots[slot].scrapValue;
+            int scrapValue =__instance.ItemSlots[slot].scrapValue;
+
             ScrapValueDisplay.UpdateSlot(slot, scrapValue);
         }
         else
         {
             ScrapValueDisplay.UpdateSlot(slot, 0);
         }
+
         if (__instance.twoHanded)
         {
-            HUDManager.Instance.PingHUDElement(HUDManager.Instance.Inventory, Plugins.ConfigEntries.SlotFadeDelayTime.Value / 2f, Math.Clamp(Plugins.ConfigEntries.SlotFade.Value + 0.25f, 0f, 1f), Plugins.ConfigEntries.SlotFade.Value);
+            HUDManager.Instance.PingHUDElement(
+                HUDManager.Instance.Inventory,
+                Plugins.ConfigEntries.SlotFadeDelayTime.Value / 2f,
+                Math.Clamp(Plugins.ConfigEntries.SlotFade.Value + 0.25f, 0f, 1f),
+                Plugins.ConfigEntries.SlotFade.Value
+            );
         }
         else
         {
-            HUDManager.Instance.PingHUDElement(HUDManager.Instance.Inventory, Plugins.ConfigEntries.SlotFadeDelayTime.Value, 1f, Plugins.ConfigEntries.SlotFade.Value);
+            HUDManager.Instance.PingHUDElement(
+                HUDManager.Instance.Inventory,
+                Plugins.ConfigEntries.SlotFadeDelayTime.Value,
+                1f,
+                Plugins.ConfigEntries.SlotFade.Value
+            );
         }
     }
 
@@ -82,6 +104,9 @@ internal static class PlayerControllerBPatch
     [HarmonyPatch("DespawnHeldObject")]
     private static void OnPlayerControllerBDespawnHeldObject(PlayerControllerB __instance)
     {
+        if (!IsLocalPlayer(__instance))
+            return;
+
         ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
     }
 
@@ -89,6 +114,9 @@ internal static class PlayerControllerBPatch
     [HarmonyPatch("DiscardHeldObject")]
     private static void OnPlayerControllerBDiscardHeldObject(PlayerControllerB __instance)
     {
+        if (!IsLocalPlayer(__instance))
+            return;
+
         ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
     }
 
@@ -96,14 +124,20 @@ internal static class PlayerControllerBPatch
     [HarmonyPatch("DestroyItemInSlot")]
     private static void OnPlayerControllerBDestroyItemInSlot(PlayerControllerB __instance)
     {
-        ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
+        if (!IsLocalPlayer(__instance))
+            return;
+
+        ScrapValueDisplay.SyncFromLocalInventory(true);
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("DropAllHeldItems")]
     private static void OnPlayerControllerBDiscardAllHelditems(PlayerControllerB __instance)
     {
-        ScrapValueDisplay.UpdateSlot(__instance.currentItemSlot, 0);
+        if (!IsLocalPlayer(__instance))
+            return;
+
+        ScrapValueDisplay.SyncFromLocalInventory(true);
     }
 
     [HarmonyPostfix]
@@ -115,8 +149,11 @@ internal static class PlayerControllerBPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("SpawnPlayerAnimation")]
-    private static void OnPlayerControllerBSpawnPlayerAnimation()
+    private static void OnPlayerControllerBSpawnPlayerAnimation(PlayerControllerB __instance)
     {
+        if (!IsLocalPlayer(__instance))
+            return;
+
         ScrapValueDisplay.ClearItemSlots();
     }
 
@@ -126,11 +163,13 @@ internal static class PlayerControllerBPatch
     {
         if (__instance.isTypingChat)
             ChatController.PlayerTypingIndicator();
+
         SprintMeterController.UpdateSprintMeterColor();
         CustomStaminaMeter.UpdateFromPlayer(__instance);
         BatteryController.Update(__instance);
 
         int health = __instance.health;
+
         if (health == _lastHealth)
             return;
 

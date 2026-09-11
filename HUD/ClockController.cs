@@ -94,25 +94,11 @@ internal static class ClockController
         int hours = totalMinutes / 60;
         int minutes = totalMinutes % 60;
 
-        if (minutes == _prevMinutes && hours == _prevHours)
-            return;
-
-        _prevMinutes = minutes;
-        _prevHours = hours;
-
         string formatted;
 
         if (use24h)
         {
             formatted = $"{hours % 24:00}:{minutes:00}";
-
-            /*
-            if (hours >= 24)
-            {
-                hud.clockNumber.text = "12:00 AM";
-                return;
-            }
-            */
         }
         else
         {
@@ -125,6 +111,15 @@ internal static class ClockController
 
             formatted = $"{displayHour:00}:{minutes:00}{separator}{ampm}";
         }
+
+        bool timeUnchanged = minutes == _prevMinutes && hours == _prevHours;
+        bool textAlreadyCorrect = hud.clockNumber.text == formatted;
+
+        if (timeUnchanged && textAlreadyCorrect && style == _lastLayout)
+            return;
+
+        _prevMinutes = minutes;
+        _prevHours = hours;
 
         hud.clockNumber.text = formatted;
 

@@ -76,9 +76,19 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("Start")]
-    private static void OnHUDManagerStart_Postfix()
+    private static void OnHUDManagerStart_Postfix(HUDManager __instance)
     {
-        lastSlotCount = 0;
+        lastSlotCount = __instance.itemSlotIconFrames?.Length ?? 0;
+
+        InventoryFrames.ResetCache();
+        WeightController.ResetCache();
+        CompassController.ResetCache();
+        SignalTranslatorController.ResetCache();
+        PlanetInfoDisplay.ResetCache();
+        HUDUtils.ResetLoadingTextCache();
+        ScanNodeTextureManager.Reset();
+        ScanNodeController.Reset();
+
         Plugins.CacheDefaults();
         ScrapValueDisplay.ResetForNewHUD();
 
@@ -185,9 +195,15 @@ internal static class HUDManagerPatch
         if (__instance.itemSlotIconFrames != null)
         {
             int currentCount = __instance.itemSlotIconFrames.Length;
-            if (currentCount != lastSlotCount && lastSlotCount != 0)
+
+            if (lastSlotCount == 0)
             {
                 lastSlotCount = currentCount;
+            }
+            else if (currentCount != lastSlotCount)
+            {
+                lastSlotCount = currentCount;
+                InventoryFrames.ResetCache();
                 CustomFrames.Apply(Plugins.ConfigEntries.CustomInventoryFrames.Value);
             }
         }
@@ -214,36 +230,6 @@ internal static class HUDManagerPatch
 
         }
     }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("UpdateHealthUI")]
-    private static void OnHUDManagerUpdateHealthUI(int health)
-    {
-        switch (Plugins.ConfigEntries.SelfRedCanvasMode.Value)
-        {
-            case SelfRedMode.Vanilla:
-                return;
-
-            case SelfRedMode.ColoredFilled:
-                PlayerRedCanvasController.ApplyFillAndColor(health);
-                break;
-
-            case SelfRedMode.RedFillUp:
-                PlayerRedCanvasController.ApplyFillWithRedFade(health);
-                break;
-
-        }
-    }
-
-    /*
-    [HarmonyPostfix]
-    [HarmonyPatch("UpdateScanNodes")]
-    private static void OnHUDManagerUpdateScanNodes_Postfix(HUDManager __instance)
-    {
-        if (Plugins.ConfigEntries.ScanNodeFade.Value)
-            ScanNodeController.UpdateTimers(__instance.scanElements, __instance.scanNodes);
-    }
-    */
 
     [HarmonyPostfix]
     [HarmonyPatch("AddChatMessage")]
@@ -351,15 +337,6 @@ internal static class HUDManagerPatch
     {
         __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
     }
-    
-    /*
-    [HarmonyPostfix]
-    [HarmonyPatch("SubmitChat_performed")]
-    private static void OnHUDManagerSubmitChat_performed(HUDManager __instance)
-    {
-        __instance.PingHUDElement(__instance.Chat, Plugins.ConfigEntries.ChatFadeDelayTime.Value, 1f, 0f);
-    }
-    */
 
     [HarmonyPostfix]
     [HarmonyPatch("ChangeControlTipMultiple")]

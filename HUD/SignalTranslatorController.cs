@@ -14,18 +14,29 @@ internal static class SignalTranslatorController
     private static Image _signalBG;
     private static TMP_Text _signalText1;
     private static TMP_Text _signalText2;
+    private static float _nextSignalLookupTime;
+
+    private static string _lastTextHex1;
+    private static string _lastTextHex2;
+    private static string _lastBGHex;
+    private static Color _cachedText1Color;
+    private static Color _cachedText2Color;
+    private static Color _cachedBGColor;
 
     public static void CenterText()
     {
         if (!Plugins.ConfigEntries.CenterSTText.Value)
             return;
-        
+
         HUDManager hud = HUDManager.Instance;
+        if (hud?.signalTranslatorText == null)
+            return;
+
         TMP_Text signalText = hud.signalTranslatorText;
-        _cachedRect = hud.signalTranslatorText.rectTransform;
+        _cachedRect = signalText.rectTransform;
         Animator signalAnimator = hud.signalTranslatorAnimator;
-        
-        if (signalAnimator != null)
+
+        if (signalAnimator != null && (_animatorImages == null || _animatorTMPs == null))
         {
             _animatorImages = signalAnimator.GetComponentsInChildren<Image>(true);
             _animatorTMPs = signalAnimator.GetComponentsInChildren<TMP_Text>(true);
@@ -48,8 +59,9 @@ internal static class SignalTranslatorController
     public static void ApplyColor()
     {
         HUDManager hud = HUDManager.Instance;
-        TMP_Text signalText = hud.signalTranslatorText;
-        if (signalText == null) return;
+        TMP_Text signalText = hud?.signalTranslatorText;
+        if (signalText == null)
+            return;
 
         Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalMessageColor.Value);
 
@@ -58,54 +70,105 @@ internal static class SignalTranslatorController
 
         if (_animatorTMPs != null)
         {
-            foreach (TMP_Text tmp in _animatorTMPs)
-                if (tmp.color != color)
+            for (int i = 0; i < _animatorTMPs.Length; i++)
+            {
+                TMP_Text tmp = _animatorTMPs[i];
+                if (tmp != null && tmp.color != color)
                     tmp.color = color;
+            }
         }
 
         if (_animatorImages != null)
         {
-            foreach (Image img in _animatorImages)
-                if (img.color != color)
+            for (int i = 0; i < _animatorImages.Length; i++)
+            {
+                Image img = _animatorImages[i];
+                if (img != null && img.color != color)
                     img.color = color;
+            }
         }
     }
 
     public static void ApplyInMono()
     {
-        if (_signalBG == null || _signalText1 == null || _signalText2 == null)
-        {
-            _signalBG = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalBG")?.GetComponent<Image>();
-            _signalText1 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (1)")?.GetComponent<TMP_Text>();
-            _signalText2 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (2)")?.GetComponent<TMP_Text>();
-        }
+        EnsureSignalRefs();
+        RefreshCachedColors();
 
-        Color color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalTextColor.Value);
-        Color color2 = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalText2Color.Value);
-        Color color3 = HUDUtils.ParseHexColor(Plugins.ConfigEntries.SignalBGColor.Value);
+        if (_signalBG != null && _signalBG.color != _cachedBGColor)
+            _signalBG.color = _cachedBGColor;
 
-        Color signalText1Color = new(color.r, color.g, color.b, 156f / 255f);
-        Color signalText2Color = new(color2.r, color2.g, color2.b, 156f / 255f);
-        Color signalBGColor = new(color3.r, color3.g, color3.b, 18f / 255f);
+        if (_signalText1 != null && _signalText1.color != _cachedText1Color)
+            _signalText1.color = _cachedText1Color;
 
-        if (_signalBG != null && _signalBG.color != signalBGColor)
-            _signalBG.color = signalBGColor;
-
-        if (_signalText1 != null && _signalText1.color != signalText1Color)
-            _signalText1.color = signalText1Color;
-
-        if (_signalText2 != null && _signalText2.color != signalText2Color)
-            _signalText2.color = signalText2Color;
+        if (_signalText2 != null && _signalText2.color != _cachedText2Color)
+            _signalText2.color = _cachedText2Color;
     }
 
+    private static void EnsureSignalRefs()
+    {
+        if (_signalBG != null && _signalText1 != null && _signalText2 != null)
+            return;
+
+        if (Time.unscaledTime < _nextSignalLookupTime)
+            return;
+    
+        _nextSignalLookupTime = Time.unscaledTime + 0.25f;
+
+        if (_signalBG == null)
+        {
+            _signalBG = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalBG")
+                ?.GetComponent<Image>();
+        }
+
+        if (_signalText1 == null)
+        {
+            _signalText1 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (1)")
+                ?.GetComponent<TMP_Text>();
+        }
+
+        if (_signalText2 == null)
+        {
+            _signalText2 = GameObject.Find("Systems/UI/Canvas/SpecialGraphics/Misc/SignalTransmission/SignalAnimContainer/SignalText (2)")
+                ?.GetComponent<TMP_Text>();
+        }
+    }
+
+    private static void RefreshCachedColors()
+    {
+        string textHex1 = Plugins.ConfigEntries.SignalTextColor.Value;
+        string textHex2 = Plugins.ConfigEntries.SignalText2Color.Value;
+        string bgHex = Plugins.ConfigEntries.SignalBGColor.Value;
+
+        if (_lastTextHex1 != textHex1)
+        {
+            _lastTextHex1 = textHex1;
+            Color color = HUDUtils.ParseHexColor(textHex1);
+            _cachedText1Color = new Color(color.r, color.g, color.b, 156f / 255f);
+        }
+
+        if (_lastTextHex2 != textHex2)
+        {
+            _lastTextHex2 = textHex2;
+            Color color = HUDUtils.ParseHexColor(textHex2);
+            _cachedText2Color = new Color(color.r, color.g, color.b, 156f / 255f);
+        }
+
+        if (_lastBGHex != bgHex)
+        {
+            _lastBGHex = bgHex;
+            Color color = HUDUtils.ParseHexColor(bgHex);
+            _cachedBGColor = new Color(color.r, color.g, color.b, 18f / 255f);
+        }
+    }
 
     public static void SetSignalText(string message, bool isTyping = true)
     {
         HUDManager hud = HUDManager.Instance;
-        TMP_Text signalText = hud.signalTranslatorText;
-        if (signalText == null) return;
+        TMP_Text signalText = hud?.signalTranslatorText;
+        if (signalText == null)
+            return;
 
-        int maxLimit = 32;
+        const int maxLimit = 32;
         string processed = message.Length > maxLimit ? message[..maxLimit] : message;
 
         signalText.text = processed;
@@ -117,9 +180,11 @@ internal static class SignalTranslatorController
             ApplyInMono();
         }
     }
+
     public static IEnumerator DisplaySignalTranslatorMessage(string signalMessage, int seed, SignalTranslator signalTranslator)
     {
-        if (signalTranslator == null) yield break;
+        if (signalTranslator == null)
+            yield break;
 
         System.Random signalMessageRandom = new(seed + StartOfRound.Instance.randomMapSeed);
         HUDManager hud = HUDManager.Instance;
@@ -158,5 +223,22 @@ internal static class SignalTranslatorController
 
         yield return new WaitForSeconds(0.5f);
         hud.signalTranslatorAnimator.SetBool("transmitting", false);
+    }
+
+    internal static void ResetCache()
+    {
+        _cachedRect = null;
+        _animatorImages = null;
+        _animatorTMPs = null;
+        _isCentered = false;
+
+        _signalBG = null;
+        _signalText1 = null;
+        _signalText2 = null;
+        _nextSignalLookupTime = 0f;
+
+        _lastTextHex1 = null;
+        _lastTextHex2 = null;
+        _lastBGHex = null;
     }
 }

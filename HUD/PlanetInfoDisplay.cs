@@ -10,13 +10,15 @@ internal static class PlanetInfoDisplay
     private static Image[] _targetImages;
 
     private static readonly Color fallbackColor = new(0.525f, 0.925f, 1f);
-    private static Color _headerColor;
-    private static Color _summaryColor;
+    private static Color _headerColor = fallbackColor;
+    private static Color _summaryColor = fallbackColor;
+    private static string _lastHeaderHex;
+    private static string _lastSummaryHex;
 
-    private static bool _initialized = false;
+    private static bool _initialized;
+    private static bool _reportedMissingLayout;
+    private static float _nextInitAttemptTime;
     private static string _activeLayout = "Unknown";
-
-    // Change this later
 
     private static readonly string[][] _possibleLayouts =
     [
@@ -38,9 +40,25 @@ internal static class PlanetInfoDisplay
 
     internal static void Init()
     {
-        if (_initialized)
-            return;
+        EnsureInitialized(true);
+    }
 
+    private static bool EnsureInitialized(bool force = false)
+    {
+        if (_initialized && HasAnyLiveTarget())
+            return true;
+
+        if (_initialized)
+        {
+            _initialized = false;
+            _hazardTMP = null;
+            _targetImages = null;
+        }
+
+        if (!force && Time.unscaledTime < _nextInitAttemptTime)
+            return false;
+
+        _nextInitAttemptTime = Time.unscaledTime + 1f;
         _targetImages = new Image[4];
         _hazardTMP = null;
 
@@ -52,87 +70,131 @@ internal static class PlanetInfoDisplay
             if (hazardObj != null)
             {
                 _hazardTMP = hazardObj.GetComponent<TMP_Text>();
-                anyFound = true;
+                anyFound = _hazardTMP != null;
             }
 
             for (int i = 0; i < _targetImages.Length; i++)
             {
                 GameObject obj = GameObject.Find(layout[i + 1]);
-                if (obj != null)
-                {
-                    _targetImages[i] = obj.GetComponent<Image>();
-                    anyFound = true;
-                }
+                if (obj == null)
+                    continue;
+
+                _targetImages[i] = obj.GetComponent<Image>();
+                anyFound |= _targetImages[i] != null;
             }
 
-            if (anyFound)
-            {
-                _activeLayout = layout[0].Contains("TopLeftCorner") ? "Original" : "Modified";
-                Loggers.Info($"[PlanetInfoDisplay] Using {_activeLayout} HUD layout.");
-                _initialized = true;
-                break;
-            }
+            if (!anyFound)
+                continue;
+
+            _activeLayout = layout[0].Contains("TopLeftCorner") ? "Original" : "Modified";
+            _initialized = true;
+            _reportedMissingLayout = false;
+            return true;
         }
 
-        if (!_initialized)
-            Loggers.Warning("[PlanetInfoDisplay] No known HUD layout found; skipping HUD coloring.");
+        if (!_reportedMissingLayout)
+        {
+            _reportedMissingLayout = true;
+        }
+
+        return false;
+    }
+
+    private static bool HasAnyLiveTarget()
+    {
+        if (_hazardTMP != null)
+            return true;
+
+        if (_targetImages == null)
+            return false;
+
+        for (int i = 0; i < _targetImages.Length; i++)
+        {
+            if (_targetImages[i] != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void RefreshConfiguredColors()
+    {
+        string headerHex = Plugins.ConfigEntries.PlanetHeaderColor.Value;
+        string summaryHex = Plugins.ConfigEntries.PlanetSummaryColor.Value;
+
+        if (_lastHeaderHex != headerHex)
+        {
+            _lastHeaderHex = headerHex;
+            _headerColor = HUDUtils.ParseHexColor(headerHex, fallbackColor);
+        }
+
+        if (_lastSummaryHex != summaryHex)
+        {
+            _lastSummaryHex = summaryHex;
+            _summaryColor = HUDUtils.ParseHexColor(summaryHex, fallbackColor);
+        }
     }
 
     internal static void HeaderAndFooterAndHazardLevel()
     {
-        if (!_initialized)
-        {
-            Init();
-            if (!_initialized) return;
-        }
+        if (!EnsureInitialized())
+            return;
 
-        _headerColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, fallbackColor);
-        _summaryColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, fallbackColor);
+        RefreshConfiguredColors();
 
-        if (_hazardTMP != null)
+        if (_hazardTMP != null && _hazardTMP.color != _summaryColor)
             _hazardTMP.color = _summaryColor;
 
-        if (_targetImages != null)
+        if (_targetImages == null)
+            return;
+
+        for (int i = 0; i < _targetImages.Length; i++)
         {
-            foreach (Image img in _targetImages)
-            {
-                if (img != null)
-                    img.color = _headerColor;
-            }
+            Image img = _targetImages[i];
+            if (img != null && img.color != _headerColor)
+                img.color = _headerColor;
         }
     }
 
     internal static void ApplyColors()
     {
         HUDManager hud = HUDManager.Instance;
-        if (hud == null) return;
+        if (hud == null)
+            return;
 
-        if (hud.planetInfoHeaderText != null)
-            hud.planetInfoHeaderText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, fallbackColor);
+        RefreshConfiguredColors();
 
-        if (hud.planetInfoSummaryText != null)
-            hud.planetInfoSummaryText.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetSummaryColor.Value, fallbackColor);
+        if (hud.planetInfoHeaderText != null && hud.planetInfoHeaderText.color != _headerColor)
+            hud.planetInfoHeaderText.color = _headerColor;
+
+        if (hud.planetInfoSummaryText != null && hud.planetInfoSummaryText.color != _summaryColor)
+            hud.planetInfoSummaryText.color = _summaryColor;
+
+        HeaderAndFooterAndHazardLevel();
     }
 
     internal static void UpdateColors()
     {
         HUDManager hud = HUDManager.Instance;
-        if (hud == null) return;
+        if (hud?.planetRiskLevelText == null)
+            return;
 
-        if (hud.planetRiskLevelText != null)
-        {
-            if (Plugins.ConfigEntries.PlanetRisk.Value)
-                hud.planetRiskLevelText.color = GetRiskLevelColor(hud.planetRiskLevelText.text);
-            else
-                hud.planetRiskLevelText.color = fallbackColor;
-        }
+        Color target = Plugins.ConfigEntries.PlanetRisk.Value
+            ? GetRiskLevelColor(hud.planetRiskLevelText.text)
+            : fallbackColor;
+
+        if (hud.planetRiskLevelText.color != target)
+            hud.planetRiskLevelText.color = target;
     }
 
     private static Color GetRiskLevelColor(string riskLetter)
     {
-        if (string.IsNullOrEmpty(riskLetter)) return fallbackColor;
+        string currentRisk = StartOfRound.Instance?.currentLevel?.riskLevel;
+        if (!string.IsNullOrEmpty(currentRisk))
+            riskLetter = currentRisk;
 
-        riskLetter = StartOfRound.Instance.currentLevel.riskLevel;
+        if (string.IsNullOrEmpty(riskLetter))
+            return fallbackColor;
 
         if (riskLetter.Equals("Safe", StringComparison.OrdinalIgnoreCase))
             return Color.green;
@@ -140,7 +202,9 @@ internal static class PlanetInfoDisplay
         if (riskLetter.StartsWith("S"))
         {
             int sCount = 1;
-            while (sCount < riskLetter.Length && riskLetter[sCount] == 'S') sCount++;
+            while (sCount < riskLetter.Length && riskLetter[sCount] == 'S')
+                sCount++;
+
             float t = Mathf.Clamp01((sCount - 1) / 4f);
             return Color.Lerp(Color.red, new Color(0.5f, 0f, 0f), t);
         }
@@ -152,7 +216,21 @@ internal static class PlanetInfoDisplay
             'C' => Color.yellow,
             'D' => new Color(0.5f, 1f, 0f),
             'F' => Color.gray,
-            _ => HUDUtils.ParseHexColor(Plugins.ConfigEntries.PlanetHeaderColor.Value, fallbackColor),
+            _ => _headerColor,
         };
+    }
+
+    internal static void ResetCache()
+    {
+        _hazardTMP = null;
+        _targetImages = null;
+        _initialized = false;
+        _reportedMissingLayout = false;
+        _nextInitAttemptTime = 0f;
+        _activeLayout = "Unknown";
+        _lastHeaderHex = null;
+        _lastSummaryHex = null;
+        _headerColor = fallbackColor;
+        _summaryColor = fallbackColor;
     }
 }

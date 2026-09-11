@@ -2,19 +2,22 @@
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using static LethalHUD.Enums;
-using Unity.Netcode.Transports.UTP;
 
 namespace LethalHUD.Misc;
+
 public class StatsDisplay : NetworkBehaviour
 {
     private float _deltaTime;
     private ulong _currentPing;
-    private float _pingTimer;
+
+    private const float PingRefreshRate = 0.5f;
+    private float _nextPingRefresh;
 
     private TextMeshProUGUI _statsText;
-    private UnityTransport _transport;
 
     private string _lastText = "";
     private MTColorMode _lastMode;
@@ -23,13 +26,22 @@ public class StatsDisplay : NetworkBehaviour
     private bool _lastSplit;
     private string _lastSeparateHex = "";
 
+    private static readonly BindingFlags ReflectionFlags =
+        BindingFlags.Instance |
+        BindingFlags.Public |
+        BindingFlags.NonPublic;
+
+    private FieldInfo _connectionManagerField;
+    private PropertyInfo _connectionProperty;
+    private FieldInfo _connectionField;
+    private MethodInfo _detailedStatusMethod;
+
     private void Start()
     {
-        _transport = NetworkManager.Singleton.NetworkConfig.NetworkTransport as Unity.Netcode.Transports.UTP.UnityTransport;
-
         GameObject go = new("StatsDisplay");
         GameObject ipHUD = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/");
         go.transform.SetParent(ipHUD.transform, false);
+
         _statsText = go.AddComponent<TextMeshProUGUI>();
 
         _statsText.font = HUDManager.Instance.chatText.font;
@@ -55,33 +67,166 @@ public class StatsDisplay : NetworkBehaviour
     private void Update()
     {
         _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f;
-        
+
         HandlePing();
         UpdateStatsText();
     }
 
     #region Ping Handling
+
     private void HandlePing()
     {
-        if (_transport == null || !NetworkManager.Singleton.IsClient)
-            return;
+        NetworkManager networkManager = NetworkManager.Singleton;
 
-        if (NetworkManager.Singleton.IsHost)
+        if (networkManager == null || !networkManager.IsClient)
         {
             _currentPing = 0;
             return;
         }
 
-        _currentPing = _transport.GetCurrentRtt(NetworkManager.Singleton.LocalClientId);
+        if (networkManager.IsHost)
+        {
+            _currentPing = 0;
+            return;
+        }
+
+        if (Time.unscaledTime < _nextPingRefresh)
+            return;
+
+        _nextPingRefresh = Time.unscaledTime + PingRefreshRate;
+
+        NetworkTransport transport = networkManager.NetworkConfig.NetworkTransport;
+
+        if (transport == null)
+        {
+            _currentPing = 0;
+            return;
+        }
+
+        if (transport.GetType().FullName == "Netcode.Transports.Facepunch.FacepunchTransport")
+        {
+            if (TryGetFacepunchPing(transport, out ulong ping))
+                _currentPing = ping;
+            else
+                _currentPing = 0;
+
+            return;
+        }
+
+        // Fallback for another transport that actually implements rtt..
+        try
+        {
+            _currentPing = transport.GetCurrentRtt(transport.ServerClientId);
+        }
+        catch
+        {
+            _currentPing = 0;
+        }
     }
+
+    private bool TryGetFacepunchPing(NetworkTransport transport, out ulong ping)
+    {
+        ping = 0;
+
+        try
+        {
+            Type transportType = transport.GetType();
+
+            _connectionManagerField ??= transportType.GetField("connectionManager",ReflectionFlags);
+
+            object connectionManager = _connectionManagerField?.GetValue(transport);
+
+            if (connectionManager == null)
+                return false;
+
+            Type managerType = connectionManager.GetType();
+
+            if (_connectionProperty == null && _connectionField == null)
+            {
+                _connectionProperty = managerType.GetProperty("Connection", ReflectionFlags);
+
+                if (_connectionProperty == null)
+                {
+                    _connectionField = managerType.GetField("Connection", ReflectionFlags);
+                }
+            }
+
+            object connection;
+
+            if (_connectionProperty != null)
+            {
+                connection = _connectionProperty.GetValue(connectionManager);
+            }
+            else if (_connectionField != null)
+            {
+                connection = _connectionField.GetValue(connectionManager);
+            }
+            else
+            {
+                return false;
+            }
+
+            if (connection == null)
+                return false;
+
+            _detailedStatusMethod ??= connection.GetType().GetMethod("DetailedStatus", ReflectionFlags, null, Type.EmptyTypes, null);
+
+            if (_detailedStatusMethod == null)
+                return false;
+
+            string status = _detailedStatusMethod.Invoke(connection, null) as string;
+
+            return TryParseSteamPing(status, out ping);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool TryParseSteamPing(string status, out ulong ping)
+    {
+        ping = 0;
+
+        if (string.IsNullOrEmpty(status))
+            return false;
+
+        int index = status.IndexOf("Ping:", StringComparison.OrdinalIgnoreCase);
+
+        if (index < 0)
+            return false;
+
+        index += "Ping:".Length;
+
+        while (index < status.Length && char.IsWhiteSpace(status[index]))
+        {
+            index++;
+        }
+
+        bool foundNumber = false;
+
+        while (index < status.Length)
+        {
+            char c = status[index];
+
+            if (c < '0' || c > '9')
+                break;
+
+            foundNumber = true;
+            ping = (ping * 10) + (ulong)(c - '0');
+            index++;
+        }
+
+        return foundNumber;
+    }
+
     #endregion
 
     #region Stats Display
+
     private void UpdateStatsText()
     {
-        if (!Plugins.ConfigEntries.ShowFPSDisplay.Value &&
-            !Plugins.ConfigEntries.ShowPingDisplay.Value &&
-            !Plugins.ConfigEntries.ShowSeedDisplay.Value)
+        if (!Plugins.ConfigEntries.ShowFPSDisplay.Value && !Plugins.ConfigEntries.ShowPingDisplay.Value && !Plugins.ConfigEntries.ShowSeedDisplay.Value)
         {
             _statsText.text = "";
             _lastText = "";
@@ -99,28 +244,26 @@ public class StatsDisplay : NetworkBehaviour
         if (Plugins.ConfigEntries.ShowPingDisplay.Value)
             parts.Add($"Ping: {_currentPing} ms");
 
-        if (Plugins.ConfigEntries.ShowSeedDisplay.Value &&
-            StartOfRound.Instance != null &&
-            !StartOfRound.Instance.inShipPhase)
+        if (Plugins.ConfigEntries.ShowSeedDisplay.Value && StartOfRound.Instance != null && !StartOfRound.Instance.inShipPhase)
         {
             parts.Add($"Seed: {StartOfRound.Instance.randomMapSeed}");
         }
 
         string separator = Plugins.ConfigEntries.MiscLayoutEnum.Value == FPSPingLayout.Vertical
-            ? "\n─────────\n"
-            : " | ";
+                ? "\n─────────\n"
+                : " | ";
 
         string currentText = string.Join(separator, parts);
 
         bool split = Plugins.ConfigEntries.SplitAdditionalMTFromToolTips.Value;
+
         string separateHex = Plugins.ConfigEntries.SeperateAdditionalMiscToolsColors.Value;
 
         if (currentText != _lastText ||
             Plugins.ConfigEntries.MTColorSelection.Value != _lastMode ||
             Plugins.ConfigEntries.MTColorGradientA.Value != _lastHexA ||
             Plugins.ConfigEntries.MTColorGradientB.Value != _lastHexB ||
-            split != _lastSplit ||
-            separateHex != _lastSeparateHex)
+            split != _lastSplit || separateHex != _lastSeparateHex)
         {
             _statsText.text = currentText;
             _statsText.alignment = TextAlignmentOptions.TopLeft;
@@ -145,6 +288,7 @@ public class StatsDisplay : NetworkBehaviour
         string hexA = useSeparate
             ? Plugins.ConfigEntries.SeperateAdditionalMiscToolsColors.Value
             : Plugins.ConfigEntries.MTColorGradientA.Value;
+
         string hexB = useSeparate
             ? Plugins.ConfigEntries.SeperateAdditionalMiscToolsColors.Value
             : Plugins.ConfigEntries.MTColorGradientB.Value;
@@ -157,9 +301,14 @@ public class StatsDisplay : NetworkBehaviour
 
             case MTColorMode.Gradient:
                 if (HUDUtils.HasCustomGradient(hexA, hexB) && !useSeparate)
+                {
                     ApplyGradient(tmp, hexA, hexB);
+                }
                 else
+                {
                     tmp.color = HUDUtils.ParseHexColor(hexA, Color.white);
+                }
+
                 break;
         }
     }
@@ -167,9 +316,12 @@ public class StatsDisplay : NetworkBehaviour
     private void ApplyGradient(TextMeshProUGUI tmp, string hexA, string hexB)
     {
         tmp.ForceMeshUpdate();
+
         TMP_TextInfo textInfo = tmp.textInfo;
         int charCount = textInfo.characterCount;
-        if (charCount == 0) return;
+
+        if (charCount == 0)
+            return;
 
         Color colorA = HUDUtils.ParseHexColor(hexA, Color.white);
         Color colorB = HUDUtils.ParseHexColor(hexB, Color.white);
@@ -177,12 +329,18 @@ public class StatsDisplay : NetworkBehaviour
         for (int i = 0; i < charCount; i++)
         {
             TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
-            if (!charInfo.isVisible) continue;
 
-            float t = (charCount > 1) ? i / (float)(charCount - 1) : 0f;
+            if (!charInfo.isVisible)
+                continue;
+
+            float t = charCount > 1
+                ? i / (float)(charCount - 1)
+                : 0f;
+
             Color charColor = Color.Lerp(colorA, colorB, t);
 
             TMP_MeshInfo meshInfo = textInfo.meshInfo[charInfo.materialReferenceIndex];
+
             int vertexIndex = charInfo.vertexIndex;
 
             meshInfo.colors32[vertexIndex + 0] = charColor;
@@ -197,5 +355,6 @@ public class StatsDisplay : NetworkBehaviour
             tmp.UpdateGeometry(tmp.textInfo.meshInfo[i].mesh, i);
         }
     }
+
     #endregion
 }

@@ -49,7 +49,7 @@ internal static class HUDStyleRegistry
 
         foreach (var entry in Plugins.ScanlineTextures.Values)
         {
-            if (!styles.Contains(entry.Name))
+            if (!string.IsNullOrEmpty(entry.DisplayName) && !styles.Contains(entry.DisplayName))
                 styles.Add(entry.DisplayName);
         }
 

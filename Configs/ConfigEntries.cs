@@ -81,6 +81,8 @@ public class ConfigEntries
     public ConfigEntry<string> GradientColorB { get; private set; }
     public ConfigEntry<string> HandsFullColor { get; private set; }
     public ConfigEntry<bool> ShowItemValue { get; private set; }
+    public ConfigEntry<string> ItemValueColor { get; private set; }
+    public ConfigEntry<bool> ItemValueGradient { get; private set; }
     public ConfigEntry<bool> ShowTotalInventoryValue { get; private set; }
     public ConfigEntry<bool> ShowTotalDelta { get; private set; }
     public ConfigEntry<TotalValuePrefix> TotalPrefix { get; private set; }
@@ -256,6 +258,8 @@ public class ConfigEntries
         GradientColorB = ConfigHelper.Bind(true, "Inventory", "Gradient Color B", "#3226B4", "End color for custom wavy gradient.");
         HandsFullColor = ConfigHelper.Bind(true, "Inventory", "Hands Full Color", "#3A00FF", "Change the color of the Hands Full text when holding a two handed item.");
         ShowItemValue = ConfigHelper.Bind("Inventory", "Show Item Value", false, "Enable quality of life visual helper, you can see the value of the items in your inventory");
+        ItemValueColor = ConfigHelper.Bind(true, "Inventory", "Item Value Color", "#00FF00", "Starting color for inventory item values. Highest value uses this color when gradient is enabled.");
+        ItemValueGradient = ConfigHelper.Bind("Inventory", "Item Value Gradient", true, "If true, item values fade from the configured color to white based on value. If false, all item values use the configured color.");
         ShowTotalInventoryValue = ConfigHelper.Bind("Inventory", "Show Total Inventory Value", false, "Enable quality of life visual helper, you can see the total value of the items in your inventory");
         ShowTotalDelta = ConfigHelper.Bind("Inventory", "Show Total Delta", true, "This shows the + and - numbers next to the inventory total value.");
         TotalPrefix = ConfigHelper.Bind("Inventory", "Total Prefix", TotalValuePrefix.Full, "Change inventory total value text.");
@@ -446,6 +450,8 @@ public class ConfigEntries
         SlotRainbowColor.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorA.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
         GradientColorB.SettingChanged += (obj, args) => { InventoryFrames.SetSlotColors(); };
+        ItemValueColor.SettingChanged += (obj, args) => { ScrapValueDisplay.RefreshValueColors(); };
+        ItemValueGradient.SettingChanged += (obj, args) => { ScrapValueDisplay.RefreshValueColors(); };
         #endregion
         #region Chat and Billboard Changes
         if (!Plugins.NetworkingDisabled)

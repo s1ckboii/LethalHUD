@@ -1,4 +1,4 @@
-﻿using LethalHUD.Compats;
+using LethalHUD.Compats;
 using LethalHUD.Misc;
 using LethalHUD.Scan;
 using System;
@@ -52,7 +52,6 @@ namespace LethalHUD.HUD
             CompassController.SoftMaskStuff();
             ChatController.ColorChatInputField(_hud?.chatTextField, Time.time * 0.25f);
             ScrapValueDisplay.Tick(Time.deltaTime);
-            WeightController.RecolorWeightText();
             if (ModCompats.IsBetterScanVisionPresent)
                 BetterScanVisionProxy.OverrideNightVisionColor();
             if (ModCompats.IsEladsHUDPresent)
@@ -65,7 +64,6 @@ namespace LethalHUD.HUD
             ControlTipController.ApplyColor();
             PlanetInfoDisplay.HeaderAndFooterAndHazardLevel();
             SignalTranslatorController.ApplyInMono();
-            ScanNodeTextureManager.Tick(_hud?.scanNodes);
         }
     }
 }

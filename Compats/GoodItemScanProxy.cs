@@ -19,59 +19,58 @@ internal static class GoodItemScanProxy
 
     private static MethodInfo _scanMethod;
     private static MethodInfo _disableScanNodeMethod;
+    private static MethodInfo _disableScanNodeWithAnimationMethod;
 
     private static PropertyInfo _rectTransformProperty;
     private static PropertyInfo _scanNodePropertiesProperty;
     private static PropertyInfo _hasScanNodeProperty;
 
-    private const BindingFlags StaticFlags =
-        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+    private static readonly HashSet<RectTransform> _snapshotSeenRects = [];
+    private static readonly HashSet<RectTransform> _goodItemScanRects = [];
+    private static readonly List<(RectTransform rect, ScanNodeProperties node)> _snapshot = [];
+    private static Dictionary<RectTransform, ScanNodeProperties> _snapshotSource;
+    private static int _snapshotFrame = -1;
 
-    private const BindingFlags InstanceFlags =
-        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags StaticFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+    private const BindingFlags InstanceFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-    internal static IEnumerable<(RectTransform rect, ScanNodeProperties node)> EnumerateAllNodes(
-        Dictionary<RectTransform, ScanNodeProperties> vanillaNodes)
+    internal static IReadOnlyList<(RectTransform rect, ScanNodeProperties node)> EnumerateAllNodes(Dictionary<RectTransform, ScanNodeProperties> vanillaNodes)
     {
-        HashSet<RectTransform> seenRects = [];
-        List<(RectTransform rect, ScanNodeProperties node)> snapshot = [];
+        if (_snapshotFrame == Time.frameCount && ReferenceEquals(_snapshotSource, vanillaNodes))
+            return _snapshot;
+
+        _snapshotFrame = Time.frameCount;
+        _snapshotSource = vanillaNodes;
+        _snapshot.Clear();
+        _snapshotSeenRects.Clear();
+        _goodItemScanRects.Clear();
 
         if (vanillaNodes != null)
         {
             try
             {
-                foreach (var kvp in vanillaNodes)
+                foreach (KeyValuePair<RectTransform, ScanNodeProperties> kvp in vanillaNodes)
                 {
-                    if (kvp.Key == null || kvp.Value == null)
+                    RectTransform rect = kvp.Key;
+                    ScanNodeProperties node = kvp.Value;
+
+                    if (rect == null || node == null)
                         continue;
 
-                    if (seenRects.Add(kvp.Key))
-                        snapshot.Add((kvp.Key, kvp.Value));
+                    if (_snapshotSeenRects.Add(rect))
+                        _snapshot.Add((rect, node));
                 }
             }
             catch
             {
-                // scanNodes can be modified by the game or another mod.
-                // Keep whatever was already captured this frame.
+                // scannodes may be modified by the game or another mod.
             }
         }
 
         if (ModCompats.IsGoodItemScanPresent)
-        {
-            List<(RectTransform rect, ScanNodeProperties node)> extraNodes = GetGoodItemScanSnapshot();
+            AppendGoodItemScanNodes();
 
-            foreach (var pair in extraNodes)
-            {
-                if (pair.rect == null || pair.node == null)
-                    continue;
-
-                if (seenRects.Add(pair.rect))
-                    snapshot.Add(pair);
-            }
-        }
-
-        foreach (var pair in snapshot)
-            yield return pair;
+        return _snapshot;
     }
 
     internal static bool TryScan()
@@ -97,6 +96,11 @@ internal static class GoodItemScanProxy
         }
     }
 
+    internal static bool IsGoodItemScanNode(RectTransform rect)
+    {
+        return rect != null && _goodItemScanRects.Contains(rect);
+    }
+
     internal static bool TryRemoveNode(RectTransform rect, ScanNodeProperties node)
     {
         if (!ModCompats.IsGoodItemScanPresent)
@@ -105,16 +109,36 @@ internal static class GoodItemScanProxy
         if (!TryInit())
             return false;
 
+        object scanner = GetScanner();
+        if (scanner == null)
+            return false;
+
+        object scannedNode = FindScannedNode(rect, node);
+        if (scannedNode == null)
+            return false;
+
+        if (_disableScanNodeWithAnimationMethod != null)
+        {
+            try
+            {
+                object result = _disableScanNodeWithAnimationMethod.Invoke(scanner, [scannedNode]);
+                if (result is IEnumerator routine && HUDManager.Instance != null)
+                {
+                    HUDManager.Instance.StartCoroutine(routine);
+                    return true;
+                }
+            }
+            catch
+            {
+                // Fall back to the non-animated removal path.
+            }
+        }
+
+        if (_disableScanNodeMethod == null)
+            return false;
+
         try
         {
-            object scanner = GetScanner();
-            if (scanner == null || _disableScanNodeMethod == null)
-                return false;
-
-            object scannedNode = FindScannedNode(rect, node);
-            if (scannedNode == null)
-                return false;
-
             _disableScanNodeMethod.Invoke(scanner, [scannedNode]);
             return true;
         }
@@ -157,6 +181,7 @@ internal static class GoodItemScanProxy
                 _activeNodesField = scannerType.GetField("activeNodes", InstanceFlags);
                 _scanMethod = scannerType.GetMethod("Scan", InstanceFlags);
                 _disableScanNodeMethod = scannerType.GetMethod("DisableScanNode", InstanceFlags);
+                _disableScanNodeWithAnimationMethod = scannerType.GetMethod("DisableScanNodeWithAnimation", InstanceFlags);
 
                 _rectTransformProperty = scannedNodeType.GetProperty("RectTransform", InstanceFlags);
                 _scanNodePropertiesProperty = scannedNodeType.GetProperty("ScanNodeProperties", InstanceFlags);
@@ -174,7 +199,7 @@ internal static class GoodItemScanProxy
         }
         catch
         {
-            Reset();
+            ResetReflection();
         }
 
         _failed = true;
@@ -193,33 +218,23 @@ internal static class GoodItemScanProxy
         }
     }
 
-    private static List<(RectTransform rect, ScanNodeProperties node)> GetGoodItemScanSnapshot()
+    private static void AppendGoodItemScanNodes()
     {
-        List<(RectTransform rect, ScanNodeProperties node)> result = [];
-
         if (!TryInit())
-            return result;
+            return;
 
         try
         {
             object scanner = GetScanner();
             if (scanner == null)
-                return result;
+                return;
 
             if (_activeNodesField.GetValue(scanner) is not IEnumerable activeNodes)
-                return result;
-
-            List<object> snapshot = [];
+                return;
 
             foreach (object scanned in activeNodes)
             {
-                if (scanned != null)
-                    snapshot.Add(scanned);
-            }
-
-            foreach (object scanned in snapshot)
-            {
-                if (!HasScanNode(scanned))
+                if (scanned == null || !HasScanNode(scanned))
                     continue;
 
                 RectTransform rect = GetRectTransform(scanned);
@@ -228,15 +243,16 @@ internal static class GoodItemScanProxy
                 if (rect == null || node == null)
                     continue;
 
-                result.Add((rect, node));
+                _goodItemScanRects.Add(rect);
+
+                if (_snapshotSeenRects.Add(rect))
+                    _snapshot.Add((rect, node));
             }
         }
         catch
         {
             // Compatibility should never break vanilla scan nodes.
         }
-
-        return result;
     }
 
     private static object FindScannedNode(RectTransform rect, ScanNodeProperties node)
@@ -250,17 +266,9 @@ internal static class GoodItemScanProxy
             if (_activeNodesField.GetValue(scanner) is not IEnumerable activeNodes)
                 return null;
 
-            List<object> snapshot = [];
-
             foreach (object scanned in activeNodes)
             {
-                if (scanned != null)
-                    snapshot.Add(scanned);
-            }
-
-            foreach (object scanned in snapshot)
-            {
-                if (!HasScanNode(scanned))
+                if (scanned == null || !HasScanNode(scanned))
                     continue;
 
                 RectTransform scannedRect = GetRectTransform(scanned);
@@ -320,7 +328,7 @@ internal static class GoodItemScanProxy
         }
     }
 
-    internal static void Reset()
+    private static void ResetReflection()
     {
         _initialized = false;
         _failed = false;
@@ -330,9 +338,21 @@ internal static class GoodItemScanProxy
 
         _scanMethod = null;
         _disableScanNodeMethod = null;
+        _disableScanNodeWithAnimationMethod = null;
 
         _rectTransformProperty = null;
         _scanNodePropertiesProperty = null;
         _hasScanNodeProperty = null;
+    }
+
+    internal static void Reset()
+    {
+        ResetReflection();
+
+        _snapshot.Clear();
+        _snapshotSeenRects.Clear();
+        _goodItemScanRects.Clear();
+        _snapshotSource = null;
+        _snapshotFrame = -1;
     }
 }

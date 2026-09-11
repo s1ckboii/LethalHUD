@@ -1,8 +1,6 @@
 ﻿using LethalHUD.Compats;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace LethalHUD.Scan;
 
@@ -12,6 +10,8 @@ internal static class ScanNodeController
     internal static float fadeDuration = Plugins.ConfigEntries.ScanNodeFadeDuration.Value;
 
     private static readonly Dictionary<ScanNodeProperties, float> _nodeAppearTimes = [];
+    private static readonly HashSet<ScanNodeProperties> _seenThisFrame = [];
+    private static readonly List<ScanNodeProperties> _toRemove = [];
     private static readonly AnimationCurve _fadeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
 
     internal static void UpdateTimers(Dictionary<RectTransform, ScanNodeProperties> scanNodes)
@@ -19,33 +19,38 @@ internal static class ScanNodeController
         lifetime = Plugins.ConfigEntries.ScanNodeLifetime.Value;
         fadeDuration = Plugins.ConfigEntries.ScanNodeFadeDuration.Value;
 
-        HashSet<ScanNodeProperties> seenThisFrame = [];
+        _seenThisFrame.Clear();
 
-        // Snapshot before processing, because RemoveNode can modify scanNodes.
-        List<(RectTransform element, ScanNodeProperties node)> nodesThisFrame = [];
+        IReadOnlyList<(RectTransform rect, ScanNodeProperties node)> nodesThisFrame = GoodItemScanProxy.EnumerateAllNodes(scanNodes);
 
-        foreach (var (element, node) in GoodItemScanProxy.EnumerateAllNodes(scanNodes))
+        for (int i = 0; i < nodesThisFrame.Count; i++)
         {
-            if (element == null || node == null)
-                continue;
+            (RectTransform element, ScanNodeProperties node) = nodesThisFrame[i];
 
-            nodesThisFrame.Add((element, node));
-        }
-
-        foreach (var (element, node) in nodesThisFrame)
-        {
             if (element == null || node == null)
                 continue;
 
             if (!element.gameObject.activeInHierarchy)
                 continue;
 
-            seenThisFrame.Add(node);
+            _seenThisFrame.Add(node);
 
-            if (!_nodeAppearTimes.ContainsKey(node))
-                _nodeAppearTimes[node] = Time.time;
+            if (!_nodeAppearTimes.TryGetValue(node, out float appearedAt))
+            {
+                appearedAt = Time.time;
+                _nodeAppearTimes[node] = appearedAt;
+            }
 
-            float elapsed = Time.time - _nodeAppearTimes[node];
+            float elapsed = Time.time - appearedAt;
+
+            if (GoodItemScanProxy.IsGoodItemScanNode(element))
+            {
+                if (elapsed >= lifetime)
+                    RemoveNode(element, node, scanNodes);
+
+                continue;
+            }
+
             float removeAt = lifetime + Mathf.Max(0f, fadeDuration);
 
             if (elapsed >= removeAt)
@@ -63,43 +68,13 @@ internal static class ScanNodeController
                     : _fadeCurve.Evaluate(Mathf.Clamp01((elapsed - lifetime) / fadeDuration));
             }
 
-            ApplyAlpha(element, alpha);
+            ScanNodeTextureManager.ApplyAlpha(element, node, alpha);
         }
 
-        CleanInvalidNodes(seenThisFrame);
+        CleanInvalidNodes();
     }
 
-    private static void ApplyAlpha(RectTransform element, float alpha)
-    {
-        Image[] images = element.GetComponentsInChildren<Image>(true);
-
-        foreach (Image img in images)
-        {
-            if (img == null)
-                continue;
-
-            Color color = img.color;
-            color.a = alpha;
-            img.color = color;
-        }
-
-        TextMeshProUGUI[] texts = element.GetComponentsInChildren<TextMeshProUGUI>(true);
-
-        foreach (TextMeshProUGUI txt in texts)
-        {
-            if (txt == null)
-                continue;
-
-            Color color = txt.color;
-            color.a = alpha;
-            txt.color = color;
-        }
-    }
-
-    private static void RemoveNode(
-        RectTransform element,
-        ScanNodeProperties node,
-        Dictionary<RectTransform, ScanNodeProperties> scanNodes)
+    private static void RemoveNode(RectTransform element, ScanNodeProperties node, Dictionary<RectTransform, ScanNodeProperties> scanNodes)
     {
         if (ModCompats.IsGoodItemScanPresent && GoodItemScanProxy.TryRemoveNode(element, node))
         {
@@ -114,22 +89,24 @@ internal static class ScanNodeController
         _nodeAppearTimes.Remove(node);
     }
 
-    private static void CleanInvalidNodes(HashSet<ScanNodeProperties> seenThisFrame)
+    private static void CleanInvalidNodes()
     {
-        List<ScanNodeProperties> toRemove = [];
+        _toRemove.Clear();
 
         foreach (KeyValuePair<ScanNodeProperties, float> kvp in _nodeAppearTimes)
         {
-            if (kvp.Key == null || !seenThisFrame.Contains(kvp.Key))
-                toRemove.Add(kvp.Key);
+            if (kvp.Key == null || !_seenThisFrame.Contains(kvp.Key))
+                _toRemove.Add(kvp.Key);
         }
 
-        foreach (ScanNodeProperties key in toRemove)
-            _nodeAppearTimes.Remove(key);
+        for (int i = 0; i < _toRemove.Count; i++)
+            _nodeAppearTimes.Remove(_toRemove[i]);
     }
 
     internal static void Reset()
     {
         _nodeAppearTimes.Clear();
+        _seenThisFrame.Clear();
+        _toRemove.Clear();
     }
 }

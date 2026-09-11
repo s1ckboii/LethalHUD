@@ -7,11 +7,15 @@ using UnityEngine.UI;
 namespace LethalHUD.HUD;
 internal static class CompassController
 {
+    private static RawImage _cachedCompassImage;
+    private static SoftMask _cachedSoftMask;
+
     internal static RawImage CompassImage => HUDManager.Instance?.compassImage;
 
     internal static void SetCompassColor(Color? overrideColor = null)
     {
-        if (CompassImage == null)
+        RawImage compassImage = CompassImage;
+        if (compassImage == null)
             return;
 
         PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
@@ -24,7 +28,8 @@ internal static class CompassController
             ? 0f
             : Plugins.ConfigEntries.CompassAlpha.Value;
 
-        CompassImage.color = color;
+        if (compassImage.color != color)
+            compassImage.color = color;
     }
 
     internal static void SetCompassWavyGradient()
@@ -38,38 +43,58 @@ internal static class CompassController
 
     internal static void SoftMaskStuff()
     {
-        if (CompassImage == null)
+        RawImage compassImage = CompassImage;
+        if (compassImage == null)
             return;
 
         PlayerControllerB player = StartOfRound.Instance?.localPlayerController;
         if (player == null)
             return;
 
-        SoftMask softMask = CompassImage.GetComponentInParent<SoftMask>();
+        if (_cachedCompassImage != compassImage || _cachedSoftMask == null)
+        {
+            _cachedCompassImage = compassImage;
+            _cachedSoftMask = compassImage.GetComponentInParent<SoftMask>();
+        }
+
+        SoftMask softMask = _cachedSoftMask;
         if (softMask == null)
             return;
 
-        bool invertMaskConfig = Plugins.ConfigEntries.CompassInvertMask.Value;
-        bool invertOutsidesConfig = Plugins.ConfigEntries.CompassInvertOutsides.Value;
-        float alphaConfig = Plugins.ConfigEntries.CompassAlpha.Value;
+        bool invertMask;
+        bool invertOutsides;
+        float alpha;
 
         if (player.isPlayerDead)
         {
-            softMask.invertMask = false;
-            softMask.invertOutsides = false;
-
-            Vector4 weights = softMask.channelWeights;
-            weights.w = 0f;
-            softMask.channelWeights = weights;
+            invertMask = false;
+            invertOutsides = false;
+            alpha = 0f;
         }
         else
         {
-            softMask.invertMask = invertMaskConfig;
-            softMask.invertOutsides = invertOutsidesConfig;
+            invertMask = Plugins.ConfigEntries.CompassInvertMask.Value;
+            invertOutsides = Plugins.ConfigEntries.CompassInvertOutsides.Value;
+            alpha = Plugins.ConfigEntries.CompassAlpha.Value;
+        }
 
-            Vector4 weights = softMask.channelWeights;
-            weights.w = alphaConfig;
+        if (softMask.invertMask != invertMask)
+            softMask.invertMask = invertMask;
+
+        if (softMask.invertOutsides != invertOutsides)
+            softMask.invertOutsides = invertOutsides;
+
+        Vector4 weights = softMask.channelWeights;
+        if (!Mathf.Approximately(weights.w, alpha))
+        {
+            weights.w = alpha;
             softMask.channelWeights = weights;
         }
+    }
+
+    internal static void ResetCache()
+    {
+        _cachedCompassImage = null;
+        _cachedSoftMask = null;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -441,43 +441,45 @@ internal static class HUDUtils
     #region LoadingScreen Helpers
     private class LoadingTextDefaults
     {
-        public Color LoadTextFaceColor;
-        public Color LoadTextBColor;
-        public Color TextBGColor;
+        public TextMeshProUGUI LoadText;
+        public TextMeshProUGUI LoadTextB;
+        public Image TextBG;
+        public Material LoadTextMaterial;
+
+        public Color LoadTextFaceColor = Color.white;
+        public Color LoadTextBColor = Color.white;
+        public Color TextBGColor = Color.black;
+
+        public bool LoadTextDefaultCaptured;
+        public bool LoadTextBDefaultCaptured;
+        public bool TextBGDefaultCaptured;
+        public float NextDiscoveryTime;
     }
 
     private static readonly Dictionary<Transform, LoadingTextDefaults> _loadingDefaults = [];
+
     public static void ColorLoadingText(Transform root, string hexColor)
     {
-        if (root == null) return;
+        if (root == null)
+            return;
 
-        var loadText = root.Find("LoadText")?.GetComponent<TextMeshProUGUI>();
-        var loadTextB = root.Find("LoadTextB")?.GetComponent<TextMeshProUGUI>();
-        var textBG = root.Find("TextBG")?.GetComponent<Image>();
-
-        if (!_loadingDefaults.TryGetValue(root, out var defaults))
-        {
-            defaults = new LoadingTextDefaults
-            {
-                LoadTextFaceColor = loadText?.fontMaterial?.GetColor("_FaceColor") ?? Color.white,
-                LoadTextBColor = loadTextB?.color ?? Color.white,
-                TextBGColor = textBG?.color ?? Color.black
-            };
-
-            _loadingDefaults[root] = defaults;
-        }
+        LoadingTextDefaults defaults = GetLoadingTextDefaults(root);
+        TextMeshProUGUI loadText = defaults.LoadText;
+        TextMeshProUGUI loadTextB = defaults.LoadTextB;
+        Image textBG = defaults.TextBG;
+        Material loadTextMaterial = defaults.LoadTextMaterial;
 
         bool isDefault = hexColor.Equals("#A5F4FF", System.StringComparison.OrdinalIgnoreCase);
 
         if (isDefault)
         {
-            if (loadText?.fontMaterial != null)
-                loadText.fontMaterial.SetColor("_FaceColor", defaults.LoadTextFaceColor);
+            if (loadTextMaterial != null && defaults.LoadTextDefaultCaptured && loadTextMaterial.GetColor("_FaceColor") != defaults.LoadTextFaceColor)
+                loadTextMaterial.SetColor("_FaceColor", defaults.LoadTextFaceColor);
 
-            if (loadTextB != null)
+            if (loadTextB != null && defaults.LoadTextBDefaultCaptured && loadTextB.color != defaults.LoadTextBColor)
                 loadTextB.color = defaults.LoadTextBColor;
 
-            if (textBG != null)
+            if (textBG != null && defaults.TextBGDefaultCaptured && textBG.color != defaults.TextBGColor)
                 textBG.color = defaults.TextBGColor;
 
             return;
@@ -485,26 +487,91 @@ internal static class HUDUtils
 
         Color baseColor = ParseHexColor(hexColor, Color.gray);
 
-        if (loadText?.fontMaterial != null)
+        if (loadTextMaterial != null)
         {
             Color color = baseColor;
             color.a = defaults.LoadTextFaceColor.a;
-            loadText.fontMaterial.SetColor("_FaceColor", color);
+
+            if (loadTextMaterial.GetColor("_FaceColor") != color)
+                loadTextMaterial.SetColor("_FaceColor", color);
         }
 
         if (loadTextB != null)
         {
             Color color = baseColor;
             color.a = defaults.LoadTextBColor.a;
-            loadTextB.color = color;
+
+            if (loadTextB.color != color)
+                loadTextB.color = color;
         }
 
         if (textBG != null)
         {
             Color bg = Color.Lerp(baseColor, Color.black, 0.6f);
             bg.a = defaults.TextBGColor.a;
-            textBG.color = bg;
+
+            if (textBG.color != bg)
+                textBG.color = bg;
         }
+    }
+
+    private static LoadingTextDefaults GetLoadingTextDefaults(Transform root)
+    {
+        if (!_loadingDefaults.TryGetValue(root, out LoadingTextDefaults defaults))
+        {
+            defaults = new LoadingTextDefaults();
+            _loadingDefaults[root] = defaults;
+            DiscoverLoadingTextRefs(root, defaults);
+            return defaults;
+        }
+
+        if ((defaults.LoadText == null || defaults.LoadTextB == null || defaults.TextBG == null) &&
+            Time.unscaledTime >= defaults.NextDiscoveryTime)
+        {
+            DiscoverLoadingTextRefs(root, defaults);
+        }
+
+        return defaults;
+    }
+
+    private static void DiscoverLoadingTextRefs(Transform root, LoadingTextDefaults defaults)
+    {
+        defaults.NextDiscoveryTime = Time.unscaledTime + 1f;
+
+        if (defaults.LoadText == null)
+            defaults.LoadText = root.Find("LoadText")?.GetComponent<TextMeshProUGUI>();
+
+        if (defaults.LoadTextB == null)
+            defaults.LoadTextB = root.Find("LoadTextB")?.GetComponent<TextMeshProUGUI>();
+
+        if (defaults.TextBG == null)
+            defaults.TextBG = root.Find("TextBG")?.GetComponent<Image>();
+
+        if (defaults.LoadText != null && defaults.LoadTextMaterial == null)
+            defaults.LoadTextMaterial = defaults.LoadText.fontMaterial;
+
+        if (!defaults.LoadTextDefaultCaptured && defaults.LoadTextMaterial != null)
+        {
+            defaults.LoadTextFaceColor = defaults.LoadTextMaterial.GetColor("_FaceColor");
+            defaults.LoadTextDefaultCaptured = true;
+        }
+
+        if (!defaults.LoadTextBDefaultCaptured && defaults.LoadTextB != null)
+        {
+            defaults.LoadTextBColor = defaults.LoadTextB.color;
+            defaults.LoadTextBDefaultCaptured = true;
+        }
+
+        if (!defaults.TextBGDefaultCaptured && defaults.TextBG != null)
+        {
+            defaults.TextBGColor = defaults.TextBG.color;
+            defaults.TextBGDefaultCaptured = true;
+        }
+    }
+
+    internal static void ResetLoadingTextCache()
+    {
+        _loadingDefaults.Clear();
     }
     #endregion
     #region HP and PlayerRedCanvas Helpers

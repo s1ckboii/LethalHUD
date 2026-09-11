@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using GameNetcodeStuff;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,8 +24,8 @@ internal static class ScrapValueDisplay
     private static readonly float _eraseSpeed = 0.05f;
     private static float _eraseTimer = 0f;
 
-    private static readonly Color _lowColor = new(0.85f, 0.85f, 0.85f);
-    private static readonly Color _highColor = Color.green;
+    private const float InventorySyncInterval = 0.25f;
+    private static float _inventorySyncTimer = 0f;
 
     private static readonly StringBuilder _deltaPlainBuilder = new();
     private static readonly StringBuilder _deltaTextBuilder = new();
@@ -77,6 +78,7 @@ internal static class ScrapValueDisplay
         }
 
         SetupTotalText(hud);
+        SyncFromLocalInventory(true);
     }
 
     private static void CreateSlotTextForIndex(int index, Image slot)
@@ -96,7 +98,7 @@ internal static class ScrapValueDisplay
         TMP_Text tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.fontSize = 14;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.green;
+        tmp.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ItemValueColor.Value, Color.green);
         tmp.raycastTarget = false;
         tmp.text = "";
 
@@ -133,7 +135,7 @@ internal static class ScrapValueDisplay
     internal static void UpdateSlot(int slotIndex, int value)
     {
         if (!Plugins.ConfigEntries.ShowItemValue.Value) return;
-        if (slotTexts == null || slotIndex < 0 || slotIndex >= slotTexts.Length) return;
+        if (slotTexts == null || _slotValues == null || slotIndex < 0 || slotIndex >= slotTexts.Length || slotIndex >= _slotValues.Length) return;
 
         TMP_Text tmp = slotTexts[slotIndex];
         if (tmp == null) return;
@@ -151,6 +153,65 @@ internal static class ScrapValueDisplay
         UpdateSlotValueTextColors();
     }
 
+    internal static void SyncFromLocalInventory(bool forceRefresh = false)
+    {
+        if (!Plugins.ConfigEntries.ShowItemValue.Value) return;
+
+        PlayerControllerB player = GameNetworkManager.Instance?.localPlayerController;
+        if (player?.ItemSlots == null || slotTexts == null || _slotValues == null) return;
+
+        int count = Mathf.Min(player.ItemSlots.Length, Mathf.Min(slotTexts.Length, _slotValues.Length));
+        bool changed = false;
+
+        for (int i = 0; i < count; i++)
+        {
+            TMP_Text tmp = slotTexts[i];
+            if (tmp == null) continue;
+
+            GrabbableObject item = player.ItemSlots[i];
+            int value = item != null ? item.scrapValue : 0;
+
+            TMP_FontAsset wantedFont = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
+                ? _defaultFont : _dollarFont;
+
+            if (tmp.font != wantedFont)
+                tmp.font = wantedFont;
+
+            bool textNeedsRestore = value > 0
+                ? string.IsNullOrEmpty(tmp.text)
+                : !string.IsNullOrEmpty(tmp.text);
+
+            if (!forceRefresh && _slotValues[i] == value && !textNeedsRestore)
+                continue;
+
+            _slotValues[i] = value;
+            tmp.text = value > 0 ? $"${value}" : "";
+            changed = true;
+        }
+
+        for (int i = count; i < slotTexts.Length; i++)
+        {
+            if (i >= _slotValues.Length) break;
+
+            TMP_Text tmp = slotTexts[i];
+
+            if (!forceRefresh && _slotValues[i] == 0 && (tmp == null || string.IsNullOrEmpty(tmp.text)))
+                continue;
+
+            _slotValues[i] = 0;
+
+            tmp?.text = "";
+
+            changed = true;
+        }
+
+        if (changed || forceRefresh)
+        {
+            UpdateInventoryTotal();
+            UpdateSlotValueTextColors();
+        }
+    }
+
     internal static void UpdateTotalTextPosition()
     {
         if (_totalText == null) return;
@@ -160,7 +221,7 @@ internal static class ScrapValueDisplay
 
     internal static void Hide(int slotIndex)
     {
-        if (slotTexts == null || slotIndex < 0 || slotIndex >= slotTexts.Length) return;
+        if (slotTexts == null || _slotValues == null || slotIndex < 0 || slotIndex >= slotTexts.Length || slotIndex >= _slotValues.Length) return;
 
         TMP_Text tmp = slotTexts[slotIndex];
         if (tmp != null) tmp.text = "";
@@ -174,7 +235,9 @@ internal static class ScrapValueDisplay
     {
         if (slotTexts == null || _slotValues == null) return;
 
-        for (int i = 0; i < slotTexts.Length; i++)
+        int count = Mathf.Min(slotTexts.Length, _slotValues.Length);
+
+        for (int i = 0; i < count; i++)
         {
             if (slotTexts[i] != null)
                 slotTexts[i].text = "";
@@ -185,8 +248,27 @@ internal static class ScrapValueDisplay
         UpdateSlotValueTextColors();
     }
 
+    internal static void RefreshValueColors() => UpdateSlotValueTextColors();
+
     private static void UpdateSlotValueTextColors()
     {
+        if (_slotValues == null || slotTexts == null) return;
+
+        Color valueColor = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ItemValueColor.Value, Color.green);
+
+        if (!Plugins.ConfigEntries.ItemValueGradient.Value)
+        {
+            for (int i = 0; i < slotTexts.Length; i++)
+            {
+                TMP_Text tmp = slotTexts[i];
+                if (tmp == null) continue;
+
+                tmp.color = valueColor;
+            }
+
+            return;
+        }
+
         int min = int.MaxValue;
         int max = int.MinValue;
         bool hasValues = false;
@@ -204,18 +286,22 @@ internal static class ScrapValueDisplay
 
         if (!hasValues) return;
 
-        for (int i = 0; i < _slotValues.Length; i++)
+        int count = Mathf.Min(slotTexts.Length, _slotValues.Length);
+
+        for (int i = 0; i < count; i++)
         {
             TMP_Text tmp = slotTexts[i];
             if (tmp == null) continue;
 
             int v = _slotValues[i];
-            tmp.color = v <= 0 ? _lowColor : Color.Lerp(_lowColor, _highColor, (max == min) ? 1f : Mathf.InverseLerp(min, max, v));
+            tmp.color = v <= 0 ? Color.white : Color.Lerp(Color.white, valueColor, (max == min) ? 1f : Mathf.InverseLerp(min, max, v));
         }
     }
 
     private static void UpdateInventoryTotal()
     {
+        if (_slotValues == null) return;
+
         if (!Plugins.ConfigEntries.ShowTotalInventoryValue.Value)
         {
             if (_totalText != null && _totalText.text != string.Empty)
@@ -270,13 +356,21 @@ internal static class ScrapValueDisplay
         {
             _totalText.font = Plugins.ConfigEntries.SetDollar.Value == ItemValue.Default
                 ? _defaultFont : _dollarFont;
-            
+
             _totalText.text = _displayBuilder.ToString();
         }
     }
 
     internal static void Tick(float deltaTime)
     {
+        _inventorySyncTimer -= deltaTime;
+
+        if (_inventorySyncTimer <= 0f)
+        {
+            _inventorySyncTimer = InventorySyncInterval;
+            SyncFromLocalInventory();
+        }
+
         if (!_erasingDelta)
         {
             if (_deltaTimer > 0f)
@@ -316,8 +410,7 @@ internal static class ScrapValueDisplay
         if (slotTexts != null)
         {
             for (int i = 0; i < slotTexts.Length; i++)
-                if (slotTexts[i] != null)
-                    slotTexts[i].transform.rotation = Quaternion.identity;
+                slotTexts[i]?.transform.rotation = Quaternion.identity;
         }
 
         if (_totalText != null)
@@ -345,5 +438,6 @@ internal static class ScrapValueDisplay
         }
 
         _lastTotal = 0;
+        _inventorySyncTimer = 0f;
     }
 }

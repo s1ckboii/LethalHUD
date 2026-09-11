@@ -12,65 +12,32 @@ internal static class InventoryFrames
     internal static Color CurrentGradientStartColor { get; private set; } = Color.white;
     internal static Color CurrentGradientEndColor { get; private set; } = Color.white;
 
-    private static Dictionary<Image, Image> _fadeIconMap = [];
+    private static readonly Dictionary<Image, Image> _fadeIconMap = [];
     private static Image[] _lastFramesReference;
     private static Image[] _allFrames;
+    private static Image _chatFrame;
+    private static float _nextChatFrameLookupTime;
+    private static bool _reportedMissingChatFrame;
+
     internal static void SetSlotColors()
     {
-        if (HUDManager.Instance == null || HUDManager.Instance.itemSlotIconFrames == null)
+        HUDManager hud = HUDManager.Instance;
+        if (hud?.itemSlotIconFrames == null)
             return;
-        
-        Image[] frames = HUDManager.Instance.itemSlotIconFrames;
 
-        GameObject bottomLeftCorner;
-        if (ModCompats.IsNiceChatPresent)
-            bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner/taffyko.NiceChat.ChatContainer");
-        else
-            bottomLeftCorner = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner");
+        Image[] frames = hud.itemSlotIconFrames;
+        EnsureFrameCache(frames);
 
-        if (bottomLeftCorner == null)
-        {
-            Loggers.Warning("InventoryFrames: BottomLeftCorner not found.");
-            _allFrames = frames;
+        if (_allFrames == null || _allFrames.Length == 0)
             return;
-        }
-
-        Transform imageTransform = bottomLeftCorner.transform.Find("Image");
-        if (imageTransform == null)
-        {
-            Loggers.Warning("InventoryFrames: Image transform not found under BottomLeftCorner.");
-            _allFrames = frames;
-            return;
-        }
-
-        Image chatFrame = imageTransform.GetComponent<Image>();
-        if (chatFrame == null)
-        {
-            Loggers.Warning("InventoryFrames: Image component not found.");
-            _allFrames = frames;
-            return;
-        }
-
-        Image[] combined = new Image[frames.Length + 1];
-        for (int i = 0; i < frames.Length; i++)
-            combined[i] = frames[i];
-        combined[frames.Length] = chatFrame;
-        _allFrames = combined;
-        if (_lastFramesReference != frames)
-        {
-            _lastFramesReference = frames;
-
-            RebuildFadeCache(_allFrames);
-        }
-
 
         if (HUDUtils.HasCustomGradient(Plugins.ConfigEntries.GradientColorA.Value, Plugins.ConfigEntries.GradientColorB.Value))
         {
             if (ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientColorA.Value, out Color colorA)
              && ColorUtility.TryParseHtmlString(Plugins.ConfigEntries.GradientColorB.Value, out Color colorB))
             {
-                CurrentGradientStartColor =colorA;
-                CurrentGradientEndColor =colorB;
+                CurrentGradientStartColor = colorA;
+                CurrentGradientEndColor = colorB;
                 HUDUtils.ApplyWavyGradient(_allFrames, colorA, colorB, _fadeIconMap);
                 HUDUtils.ApplyCompassWavyGradient(colorA, colorB);
                 return;
@@ -129,40 +96,132 @@ internal static class InventoryFrames
 
             default:
                 Color color = ConfigHelper.GetSlotColor();
-                foreach (var frame in _allFrames)
+                for (int i = 0; i < _allFrames.Length; i++)
                 {
-                    if (frame == null) continue;
+                    Image frame = _allFrames[i];
+                    if (frame == null)
+                        continue;
 
-                    Color c = color;
-                    c.a = frame.color.a;
-                    frame.color = c;
+                    Color current = frame.color;
+                    Color target = new(color.r, color.g, color.b, current.a);
+                    if (current != target)
+                        frame.color = target;
 
-                    if (_fadeIconMap.TryGetValue(frame, out var fadeImg) && fadeImg != null)
+                    if (_fadeIconMap.TryGetValue(frame, out Image fadeImg) && fadeImg != null)
                     {
-                        Color fadeColor = color;
-                        fadeColor.a = fadeImg.color.a;
-                        fadeImg.color = fadeColor;
+                        Color fadeCurrent = fadeImg.color;
+                        Color fadeTarget = new(color.r, color.g, color.b, fadeCurrent.a);
+                        if (fadeCurrent != fadeTarget)
+                            fadeImg.color = fadeTarget;
                     }
                 }
+
                 CompassController.SetCompassColor(color);
                 break;
         }
     }
+
+    private static void EnsureFrameCache(Image[] frames)
+    {
+        Image previousChatFrame = _chatFrame;
+
+        if (_chatFrame == null && Time.unscaledTime >= _nextChatFrameLookupTime)
+        {
+            _nextChatFrameLookupTime = Time.unscaledTime + 1f;
+            _chatFrame = FindChatFrame();
+        }
+
+        bool framesChanged = !ReferenceEquals(_lastFramesReference, frames);
+        bool chatFrameChanged = !ReferenceEquals(previousChatFrame, _chatFrame);
+
+        if (!framesChanged && !chatFrameChanged && _allFrames != null)
+            return;
+
+        _lastFramesReference = frames;
+
+        if (_chatFrame == null)
+        {
+            _allFrames = frames;
+        }
+        else
+        {
+            Image[] combined = new Image[frames.Length + 1];
+            for (int i = 0; i < frames.Length; i++)
+                combined[i] = frames[i];
+
+            combined[frames.Length] = _chatFrame;
+            _allFrames = combined;
+        }
+
+        RebuildFadeCache(_allFrames);
+    }
+
+    private static Image FindChatFrame()
+    {
+        string path = ModCompats.IsNiceChatPresent
+            ? "Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner/taffyko.NiceChat.ChatContainer"
+            : "Systems/UI/Canvas/IngamePlayerHUD/BottomLeftCorner";
+
+        GameObject bottomLeftCorner = GameObject.Find(path);
+        if (bottomLeftCorner == null)
+        {
+            ReportMissingChatFrameOnce("BottomLeftCorner not found; inventory frame cache will retry.");
+            return null;
+        }
+
+        Transform imageTransform = bottomLeftCorner.transform.Find("Image");
+        if (imageTransform == null)
+        {
+            ReportMissingChatFrameOnce("Image transform not found under BottomLeftCorner; inventory frame cache will retry.");
+            return null;
+        }
+
+        Image chatFrame = imageTransform.GetComponent<Image>();
+        if (chatFrame == null)
+        {
+            ReportMissingChatFrameOnce("Image component not found; inventory frame cache will retry.");
+            return null;
+        }
+
+        _reportedMissingChatFrame = false;
+        return chatFrame;
+    }
+
+    private static void ReportMissingChatFrameOnce(string message)
+    {
+        if (_reportedMissingChatFrame)
+            return;
+
+        _reportedMissingChatFrame = true;
+        Loggers.Warning($"InventoryFrames: {message}");
+    }
+
     private static void RebuildFadeCache(Image[] frames)
     {
         _fadeIconMap.Clear();
 
-        foreach (var frame in frames)
+        for (int i = 0; i < frames.Length; i++)
         {
-            if (frame == null) continue;
+            Image frame = frames[i];
+            if (frame == null)
+                continue;
 
             Transform fade = frame.transform.Find("fadeIcon");
             if (fade != null && fade.TryGetComponent(out Image fadeImg))
-            {
                 _fadeIconMap[frame] = fadeImg;
-            }
         }
     }
+
+    internal static void ResetCache()
+    {
+        _fadeIconMap.Clear();
+        _lastFramesReference = null;
+        _allFrames = null;
+        _chatFrame = null;
+        _nextChatFrameLookupTime = 0f;
+        _reportedMissingChatFrame = false;
+    }
+
     internal static void HandsFull()
     {
         string handsfullColor = Plugins.ConfigEntries.HandsFullColor.Value;
