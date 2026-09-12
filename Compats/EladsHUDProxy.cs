@@ -78,8 +78,8 @@ internal static class EladsHUDProxy
             displayText = WeightController.GetUnitString(num2, true);
         }
 
-        carryText.enableVertexGradient = true;
-        carryText.color = Color.white;
+        if (carryText.enableVertexGradient)
+            carryText.enableVertexGradient = false;
 
         float maxWeight = Plugins.ConfigEntries.WeightUnitConfig.Value switch
         {
@@ -90,7 +90,7 @@ internal static class EladsHUDProxy
         };
         float normalizedWeight = Mathf.Clamp01(convertedWeight / maxWeight);
 
-        carryText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
+        carryText.color = HUDUtils.GetWeightColor(normalizedWeight);
         carryText.text = displayText;
     }
 }

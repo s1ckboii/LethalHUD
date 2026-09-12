@@ -96,7 +96,7 @@ internal static class ScrapValueDisplay
         rt.position = slot.transform.position + offset;
 
         TMP_Text tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.fontSize = 14;
+        tmp.fontSize = Plugins.ConfigEntries.ItemValueTextSize.Value;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color = HUDUtils.ParseHexColor(Plugins.ConfigEntries.ItemValueColor.Value, Color.green);
         tmp.raycastTarget = false;
@@ -123,7 +123,7 @@ internal static class ScrapValueDisplay
         totalRT.localPosition = new Vector2(Plugins.ConfigEntries.TotalValueOffsetX.Value, Plugins.ConfigEntries.TotalValueOffsetY.Value);
 
         _totalText = totalGO.AddComponent<TextMeshProUGUI>();
-        _totalText.fontSize = 14;
+        _totalText.fontSize = Plugins.ConfigEntries.TotalValueTextSize.Value;
         _totalText.alignment = TextAlignmentOptions.Right;
         _totalText.color = Color.green;
         _totalText.raycastTarget = false;
@@ -249,6 +249,24 @@ internal static class ScrapValueDisplay
     }
 
     internal static void RefreshValueColors() => UpdateSlotValueTextColors();
+
+    internal static void RefreshTextSizes()
+    {
+        float itemValueTextSize = Plugins.ConfigEntries.ItemValueTextSize.Value;
+
+        if (slotTexts != null)
+        {
+            for (int i = 0; i < slotTexts.Length; i++)
+            {
+                TMP_Text tmp = slotTexts[i];
+                if (tmp != null)
+                    tmp.fontSize = itemValueTextSize;
+            }
+        }
+
+        if (_totalText != null)
+            _totalText.fontSize = Plugins.ConfigEntries.TotalValueTextSize.Value;
+    }
 
     private static void UpdateSlotValueTextColors()
     {

@@ -64,6 +64,7 @@ namespace LethalHUD.HUD
             ControlTipController.ApplyColor();
             PlanetInfoDisplay.HeaderAndFooterAndHazardLevel();
             SignalTranslatorController.ApplyInMono();
+            WeightController.UpdateWeightDisplay();
         }
     }
 }

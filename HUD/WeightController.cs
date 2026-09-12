@@ -13,9 +13,7 @@ internal static class WeightController
     private static TextMeshProUGUI _lastTarget;
     private static Material _styledMaterial;
     private static string _cachedDisplayText;
-    private static string _lastStarterColor;
     private static float _lastWeightInLbs = float.NaN;
-    private static float _lastGradientWeight = float.NaN;
     private static WeightUnit _lastUnit;
     private static WeightUnitDisplay _lastUnitDisplay;
     private static WeightDecimalFormat _lastDecimalFormat;
@@ -218,22 +216,15 @@ internal static class WeightController
         if (_cachedDisplayText != null && weightText.text != _cachedDisplayText)
             weightText.text = _cachedDisplayText;
 
-        if (weightText.color != Color.white)
-            weightText.color = Color.white;
+        if (weightText.enableVertexGradient)
+            weightText.enableVertexGradient = false;
 
-        if (!weightText.enableVertexGradient)
-            weightText.enableVertexGradient = true;
+        Color weightColor = HUDUtils.GetWeightColor(normalizedWeight);
+        if (weightText.color != weightColor)
+            weightText.color = weightColor;
 
         if (!weightText.extraPadding)
             weightText.extraPadding = true;
-
-        string starterColor = Plugins.ConfigEntries.WeightStarterColor.Value;
-        if (_lastTarget != weightText || !Mathf.Approximately(_lastGradientWeight, normalizedWeight) || _lastStarterColor != starterColor)
-        {
-            _lastGradientWeight = normalizedWeight;
-            _lastStarterColor = starterColor;
-            weightText.colorGradient = HUDUtils.GetWeightGradient(normalizedWeight);
-        }
 
         EnsureMaterialStyle(weightText);
     }
@@ -243,9 +234,7 @@ internal static class WeightController
         _lastTarget = null;
         _styledMaterial = null;
         _cachedDisplayText = null;
-        _lastStarterColor = null;
         _lastWeightInLbs = float.NaN;
-        _lastGradientWeight = float.NaN;
         _hasCachedText = false;
     }
 }

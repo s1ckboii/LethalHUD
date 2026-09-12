@@ -155,7 +155,6 @@ internal static class HUDManagerPatch
     {
         ScanController.UpdateScanAlpha();
         PlayerHPDisplay.UpdateNumber();
-        WeightController.UpdateWeightDisplay();
 
         ScanNodeTextureManager.Tick(__instance.scanNodes);
 
