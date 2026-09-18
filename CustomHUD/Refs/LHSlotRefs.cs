@@ -6,7 +6,7 @@ namespace LethalHUD.CustomHUD.Refs;
 public class LHSlotRefs : MonoBehaviour
 {
     [Header("Images")]
-    [Tooltip("Main frame image for this custom slot prefab. LethalHUD assigns this to HUDManager.itemSlotIconFrames for the matching inventory slot.")]
+    [Tooltip("Main frame image for this custom slot prefab. LethalHUD mirrors the live HUD frame into this visual without replacing the original frame.")]
     public Image frame;
 
     [Tooltip("Optional secondary frame layer. Its RGB color follows the main Frame while keeping its own alpha.")]
@@ -15,7 +15,7 @@ public class LHSlotRefs : MonoBehaviour
     [Tooltip("Optional third frame layer. Its RGB color follows the main Frame while keeping its own alpha.")]
     public Image frameC;
 
-    [Tooltip("Main item icon image for this custom slot prefab. LethalHUD assigns this to HUDManager.itemSlotIcons for the matching inventory slot.")]
+    [Tooltip("Main item icon image for this custom slot prefab. LethalHUD mirrors the live item icon into this visual without replacing the original icon.")]
     public Image icon;
 
     [Tooltip("Optional duplicate icon layer. Copies the main Icon sprite, enabled state, color, and preserveAspect setting.")]
@@ -27,6 +27,8 @@ public class LHSlotRefs : MonoBehaviour
 
     private Animator _animator;
     private bool _lastHasItem;
+    private bool _hasItemInitialized;
+    [System.NonSerialized] private Image _sourceIcon;
 
     private static readonly int hasItemHash = Animator.StringToHash("hasItem");
     private static readonly float[] quarterRotations = [0f, 90f, 180f, 270f];
@@ -46,7 +48,15 @@ public class LHSlotRefs : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    private void LateUpdate() => RefreshVisuals();
+
+    internal void BindSourceIcon(Image source)
+    {
+        _sourceIcon = source;
+        _hasItemInitialized = false;
+    }
+
+    internal void RefreshVisuals()
     {
         if (icon != null)
         {
@@ -63,10 +73,13 @@ public class LHSlotRefs : MonoBehaviour
 
             if (_animator != null)
             {
-                bool hasItem = icon.enabled;
+                bool hasItem = _sourceIcon != null
+                    ? _sourceIcon.enabled && _sourceIcon.gameObject.activeInHierarchy
+                    : icon.enabled;
 
-                if (hasItem != _lastHasItem)
+                if (!_hasItemInitialized || hasItem != _lastHasItem)
                 {
+                    _hasItemInitialized = true;
                     _lastHasItem = hasItem;
                     _animator.SetBool(hasItemHash, hasItem);
                 }

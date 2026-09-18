@@ -110,7 +110,7 @@ internal static class ScrapValueDisplay
         if (_totalText != null)
             Object.Destroy(_totalText.gameObject);
 
-        if (hud.itemSlotIconFrames.Length == 0) return;
+        if (hud.itemSlotIconFrames.Length == 0 || hud.itemSlotIconFrames[0] == null) return;
 
         GameObject totalGO = new("InventoryScrapTotalValueText");
         totalGO.transform.SetParent(hud.itemSlotIconFrames[0].transform.parent, false);

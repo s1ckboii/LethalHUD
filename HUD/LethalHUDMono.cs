@@ -1,6 +1,6 @@
-using LethalHUD.Compats;
+﻿using LethalHUD.Compats;
+using LethalHUD.CustomHUD;
 using LethalHUD.Misc;
-using LethalHUD.Scan;
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -49,6 +49,7 @@ namespace LethalHUD.HUD
         private void LateUpdate()
         {
             InventoryFrames.SetSlotColors();
+            CustomFrames.Tick(_hud);
             CompassController.SoftMaskStuff();
             ChatController.ColorChatInputField(_hud?.chatTextField, Time.time * 0.25f);
             ScrapValueDisplay.Tick(Time.deltaTime);

@@ -23,8 +23,6 @@ internal static class HUDManagerPatch
     private static bool _isScanToggled = false;
     private static Coroutine _toggleCoroutine;
 
-    private static int lastSlotCount = 0;
-
     #region Prefixes
 
     [HarmonyPrefix]
@@ -58,10 +56,10 @@ internal static class HUDManagerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("SetClockVisible")]
-    private static void OnHUDManagerSetClockVisible_Postfix(ref bool visible)
+    private static void OnHUDManagerSetClockVisible_Postfix(HUDManager __instance, bool visible)
     {
         ClockController.UpdateClockVisibility(ref visible);
-        ClockController.ApplyClockAlpha();
+        ClockController.ApplyClockAlpha(__instance, visible);
     }
 
     [HarmonyPrefix]
@@ -78,8 +76,6 @@ internal static class HUDManagerPatch
     [HarmonyPatch("Start")]
     private static void OnHUDManagerStart_Postfix(HUDManager __instance)
     {
-        lastSlotCount = __instance.itemSlotIconFrames?.Length ?? 0;
-
         InventoryFrames.ResetCache();
         WeightController.ResetCache();
         CompassController.ResetCache();
@@ -121,6 +117,8 @@ internal static class HUDManagerPatch
             __instance.gameObject.AddComponent<StatsDisplay>();
         }
 
+        CustomFrames.OnHUDEnable(__instance);
+
         CanvasGroup selfRed = __instance.selfRedCanvasGroup;
         if (selfRed == null)
             return;
@@ -128,11 +126,17 @@ internal static class HUDManagerPatch
         PlayerRedCanvasController.Bind(selfRed);
 
         CustomHealthBar.OnHUDEnable(__instance);
-        CustomFrames.OnHUDEnable(__instance);
 
         ChatController.ColorChatInputField(HUDManager.Instance.chatTextField, Time.time * 0.25f);
 
         __instance.StartCoroutine(ApplySelfRedAfterTick(__instance));
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch("OnDisable")]
+    private static void OnHUDManagerDisable_Postfix(HUDManager __instance)
+    {
+        CustomFrames.OnHUDDisable(__instance);
     }
 
     [HarmonyPostfix]
@@ -189,22 +193,6 @@ internal static class HUDManagerPatch
         if (CustomHealthBar.UsingCustom && __instance.localPlayer != null)
         {
             CustomHealthBar.UpdateFromPlayer(__instance.localPlayer);
-        }
-
-        if (__instance.itemSlotIconFrames != null)
-        {
-            int currentCount = __instance.itemSlotIconFrames.Length;
-
-            if (lastSlotCount == 0)
-            {
-                lastSlotCount = currentCount;
-            }
-            else if (currentCount != lastSlotCount)
-            {
-                lastSlotCount = currentCount;
-                InventoryFrames.ResetCache();
-                CustomFrames.Apply(Plugins.ConfigEntries.CustomInventoryFrames.Value);
-            }
         }
     }
 

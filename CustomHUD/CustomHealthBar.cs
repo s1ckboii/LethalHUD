@@ -94,8 +94,8 @@ internal static class CustomHealthBar
         float hpFill = Mathf.Clamp01(health / 100f);
         float ohFill = health > 100 ? Mathf.Clamp01((health - 100f) / 100f) : 0f;
 
-        Color hpColor = HUDUtils.GetHPColor(Mathf.Min(health, 100));
-        Color ohColor = health > 100 ? HUDUtils.GetHPColor(health) : Color.clear;
+        Color hpColor = PlayerHPDisplay.GetDisplayColor(Mathf.Min(health, 100));
+        Color ohColor = health > 100 ? PlayerHPDisplay.GetDisplayColor(health) : Color.clear;
 
         _refs.UpdateHealthUI(health, hpFill, hpColor, ohFill, ohColor);
 

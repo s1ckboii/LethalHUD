@@ -29,6 +29,8 @@ public static class PlayerHPDisplay
 
     internal static Color FullHPColor => HUDUtils.ParseHexColor(Plugins.ConfigEntries.HealthColor.Value);
 
+    internal static Color GetDisplayColor(int hp) => Plugins.ConfigEntries.StaticHealthColor.Value ? FullHPColor : HUDUtils.GetHPColor(hp);
+
     internal static void Init()
     {
         if (ModCompats.IsEladsHUDPresent) return;
@@ -128,7 +130,7 @@ public static class PlayerHPDisplay
 
         targetText.fontSize = Mathf.Lerp(targetText.fontSize, targetSize, Time.deltaTime * _sizeLerpSpeed);
 
-        targetText.color = HUDUtils.GetHPColor(hp);
+        targetText.color = GetDisplayColor(hp);
     }
 
     internal static void ShakeOnHit(PlayerControllerB player)

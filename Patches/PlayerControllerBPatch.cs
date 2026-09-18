@@ -5,6 +5,7 @@ using LethalHUD.HUD;
 using LethalHUD.Misc;
 using LethalHUD.Networking;
 using System;
+using UnityEngine;
 
 namespace LethalHUD.Patches;
 
@@ -58,10 +59,30 @@ internal static class PlayerControllerBPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("SwitchToItemSlot")]
-    private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB __instance, int slot)
+    private static void OnPlayerControllerBSwitchToItemSlot(PlayerControllerB __instance, int slot, GrabbableObject fillSlotWithItem, bool __runOriginal)
     {
         if (!IsLocalPlayer(__instance))
             return;
+            
+        if (__runOriginal && __instance.IsOwner)
+        {
+            var frames = HUDManager.Instance?.itemSlotIconFrames;
+            if (frames != null)
+            {
+                for (int i = 0; i < frames.Length; i++)
+                {
+                    Animator animator = frames[i] != null ? frames[i].GetComponent<Animator>() : null;
+                    if (animator == null) continue;
+
+                    CustomFrames.ForwardSlotBool(animator, "selectedSlot", i == __instance.currentItemSlot);
+                    if (fillSlotWithItem != null && i == slot)
+                    {
+                        CustomFrames.ForwardSlotTrigger(animator, "GetItem", true);
+                        CustomFrames.ForwardSlotTrigger(animator, "GetItem", false);
+                    }
+                }
+            }
+        }
 
         if (!Plugins.ConfigEntries.ShowItemValue.Value && ScrapValueDisplay.slotTexts != null)
             ScrapValueDisplay.Hide(slot);

@@ -110,6 +110,7 @@ public class ConfigEntries
     public ConfigEntry<int> HealthSize { get; private set; }
     public ConfigEntry<int> HealthRotation { get; private set; }
     public ConfigEntry<string> HealthColor { get; private set; }
+    public ConfigEntry<bool> StaticHealthColor { get; private set; }
     public ConfigEntry<float> HPIndicatorX { get; private set; }
     public ConfigEntry<float> HPIndicatorY { get; private set; }
     public ConfigEntry<bool> SprintBool { get; private set; }
@@ -287,6 +288,7 @@ public class ConfigEntries
         HealthSize = ConfigHelper.Bind("Health/Stamina/Weight", "Health Size", 24, "Change the fontsize of the HP Indicator.", false, new AcceptableValueRange<int>(1, 50));
         HealthRotation = ConfigHelper.Bind("Health/Stamina/Weight", "Health Rotation", 356, "Change the rotation of the HP Indicator.", false, new AcceptableValueRange<int>(0, 359));
         HealthColor = ConfigHelper.Bind(true, "Health/Stamina/Weight", "Health Color", "#33FF33", "Base color for HP Indicator.");
+        StaticHealthColor = ConfigHelper.Bind("Health/Stamina/Weight", "Static Health Color", false, "Keep the health indicator at the configured Health Color instead of changing color based on health.");
         HPIndicatorX = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator X", -300f, "X position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-1360f, 1520));
         HPIndicatorY = ConfigHelper.Bind("Health/Stamina/Weight", "HP Indicator Y", 110f, "Y position of the HP Indicator counter on screen.", false, new AcceptableValueRange<float>(-1250f, 1250f));
         SprintBool = ConfigHelper.Bind("Health/Stamina/Weight", "Sprint Meter", true, "Enable sprint meter coloring.");

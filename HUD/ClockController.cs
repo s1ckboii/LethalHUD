@@ -15,7 +15,6 @@ internal static class ClockController
     private static Transform _clockParent;
     private static Image _boxImage;
 
-    private static bool _skipAlphaCheck;
     private static bool _defaultsCached;
 
     private static Vector3 _defaultClockPos;
@@ -173,70 +172,45 @@ internal static class ClockController
     }
     internal static void UpdateClockVisibility(ref bool visible)
     {
-        if (visible)
-        {
-            _skipAlphaCheck = true;
-            return;
-        }
-
-        PlayerControllerB localPlayer = StartOfRound.Instance.localPlayerController;
+        StartOfRound round = StartOfRound.Instance;
+        PlayerControllerB localPlayer = round != null ? round.localPlayerController : null;
         if (localPlayer == null)
             return;
 
-        if (localPlayer.inTerminalMenu)
+        if (localPlayer.inTerminalMenu || DisabledClockLevels.Contains(round.currentLevel))
         {
             visible = false;
             return;
         }
 
-        if (!Plugins.ConfigEntries.ShowClockInShip.Value && localPlayer.isInHangarShipRoom)
-        {
-            visible = false;
-            return;
-        }
-
-        if (!Plugins.ConfigEntries.ShowClockInFacility.Value && localPlayer.isInsideFactory)
-        {
-            visible = false;
-            return;
-        }
-
-        SelectableLevel currentLevel = StartOfRound.Instance.currentLevel;
-        if (DisabledClockLevels.Contains(currentLevel))
-        {
-            visible = false;
-            return;
-        }
-
-        visible = true;
+        if (localPlayer.isInHangarShipRoom)
+            visible = Plugins.ConfigEntries.ShowClockInShip.Value;
+        else if (localPlayer.isInsideFactory)
+            visible = Plugins.ConfigEntries.ShowClockInFacility.Value;
     }
-    internal static void ApplyClockAlpha()
-    {
-        if (HUDManager.Instance == null) return;
 
-        CanvasGroup canvasGroup = _clockParent.GetComponent<CanvasGroup>() ?? _clockParent.gameObject.AddComponent<CanvasGroup>();
-        canvasGroup.alpha = GetTargetAlpha();
+    internal static void ApplyClockAlpha(HUDManager hud, bool visible)
+    {
+        if (hud == null || hud.Clock == null) return;
+
+        hud.Clock.targetAlpha = visible ? GetTargetAlpha() : 0f;
     }
 
     private static float GetTargetAlpha()
     {
-        if (_skipAlphaCheck)
-        {
-            _skipAlphaCheck = false;
-            return 1f;
-        }
-
-        PlayerControllerB player = StartOfRound.Instance.localPlayerController;
+        StartOfRound round = StartOfRound.Instance;
+        PlayerControllerB player = round != null ? round.localPlayerController : null;
         if (player == null) return 1f;
 
-        if (player.isInsideFactory)
-            return Plugins.ConfigEntries.ClockVisibilityInFacility.Value;
-
         if (player.isInHangarShipRoom)
-            return Plugins.ConfigEntries.ClockVisibilityInShip.Value;
+            return Mathf.Clamp01(Plugins.ConfigEntries.ClockVisibilityInShip.Value);
+
+        if (player.isInsideFactory)
+            return Mathf.Clamp01(Plugins.ConfigEntries.ClockVisibilityInFacility.Value);
 
         return 1f;
     }
+
     internal static void ApplyRealtimeClock()
     {
         if (!Plugins.ConfigEntries.RealtimeClock.Value) return;
